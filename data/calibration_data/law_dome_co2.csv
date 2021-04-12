@@ -1,0 +1,22 @@
+﻿# Law Dome CO2 Data,,
+# Data can be accessed at: http://cdiac.ess-dive.lbl.gov/trends/co2/lawdome-data.html,,
+"# Measurement error taken from ""Natural and anthropogenic changes in atmospheric CO2 over the last 1000 years from ait in Antarctic ice and fern"". Etheridge et al., Journal of Geophysical Research (1996).",,
+#,,
+year,co2_ice,one_sigma_error
+1854,284.9,1.2
+1861,286.6,1.2
+1869,287.4,1.2
+1877,288.8,1.2
+1882,291.9,1.2
+1886,293.7,1.2
+1892,294.6,1.2
+1898,294.7,1.2
+1905,297.7,1.2
+1912,300.7,1.2
+1915,301.3,1.2
+1924,304.5,1.2
+1932,307.8,1.2
+1938,310.5,1.2
+1939,311,1.2
+1944,309.7,1.2
+1953,311.9,1.2
