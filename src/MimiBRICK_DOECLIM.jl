@@ -69,23 +69,27 @@ function create_brick_doeclim(;rcp_scenario::String = "RCP85", start_year::Int=1
     set_param!(brick_doeclim, :radiativeforcing, :rf_aerosol, forcing_aerosols)
     set_param!(brick_doeclim, :radiativeforcing, :rf_other, forcing_other_sources)
     set_param!(brick_doeclim, :radiativeforcing, :alpha, 1.0)
-    set_param!(brick_doeclim, :radiativeforcing, :deltat, 1.0)
+    add_shared_param!(brick_doeclim, :deltat, 1.0)
+    connect_param!(brick_doeclim, :radiativeforcing, :deltat, :deltat)
 
     # ----- DOEclim ----- #
 
     set_param!(brick_doeclim, :doeclim, :t2co, 3.0)
     set_param!(brick_doeclim, :doeclim, :kappa, 1.0)
-    set_param!(brick_doeclim, :doeclim, :deltat, 1.0)
+    connect_param!(brick_doeclim, :doeclim, :deltat, :deltat)
 
     # ----- Antarctic Ocean ----- #
 
     set_param!(brick_doeclim, :antarctic_ocean, :anto_α, 0.28)
     set_param!(brick_doeclim, :antarctic_ocean, :anto_β, 0.95)
-    set_param!(brick_doeclim, :antarctic_ocean, :seawater_freeze, -1.8)
+    #set_param!(brick_doeclim, :antarctic_ocean, :seawater_freeze, -1.8)
+    add_shared_param!(brick_doeclim, :seawater_freeze, -1.8)
+    connect_param!(brick_doeclim, :antarctic_ocean, :seawater_freeze, :seawater_freeze)
 
     # ----- Antarctic Ice Sheet ----- #
 
-    set_param!(brick_doeclim, :antarctic_icesheet, :seawater_freeze, -1.8)
+    #set_param!(brick_doeclim, :antarctic_icesheet, :seawater_freeze, -1.8)
+    connect_param!(brick_doeclim, :antarctic_icesheet, :seawater_freeze, :seawater_freeze)
     set_param!(brick_doeclim, :antarctic_icesheet, :ais_ρ_ice, 917.0)
     set_param!(brick_doeclim, :antarctic_icesheet, :ais_ρ_seawater, 1030.0)
     set_param!(brick_doeclim, :antarctic_icesheet, :ais_ρ_rock, 4000.0)
@@ -151,9 +155,9 @@ function create_brick_doeclim(;rcp_scenario::String = "RCP85", start_year::Int=1
 
     connect_param!(brick_doeclim, :antarctic_ocean => :global_surface_temperature, :doeclim => :temp)
 
-    connect_param!(brick_doeclim, :glaciers_small_icecaps => :global_temperature, :doeclim => :temp)
+    connect_param!(brick_doeclim, :glaciers_small_icecaps => :global_surface_temperature, :doeclim => :temp)
 
-    connect_param!(brick_doeclim, :greenland_icesheet => :global_temperature, :doeclim => :temp)
+    connect_param!(brick_doeclim, :greenland_icesheet => :global_surface_temperature, :doeclim => :temp)
 
     connect_param!(brick_doeclim, :thermal_expansion => :ocean_heat_mixed,    :doeclim => :heat_mixed)
     connect_param!(brick_doeclim, :thermal_expansion => :ocean_heat_interior, :doeclim => :heat_mixed)
@@ -173,6 +177,3 @@ function create_brick_doeclim(;rcp_scenario::String = "RCP85", start_year::Int=1
 end
 
 end # Module
-
-
-

@@ -6,8 +6,7 @@
 
     lws₀                  = Parameter()             # Initial landwater storage trend value applying to first projection year (m).
     first_projection_year = Parameter{Int}()        # First model projection year (necessary because calibrating to Church & White data that removed landwater storage trend).
-    lws_distribution      = Parameter(index=[time]) # Samples from Normal distribution for annual land water storage trend.
-    #lws_distribution     = Parameter{Distributions.Normal{Float64}}() # Normal distribution to sample for annual land water storage trend.
+    lws_random_sample     = Parameter(index=[time]) # Samples from Normal distribution for annual land water storage trend.
 
     # --------------------
     # Model Variables
@@ -33,8 +32,8 @@
 
         else
             # Add landwater storage values for projection period.
-            v.lws_sea_level[t] = v.lws_sea_level[t-1] + p.lws_distribution[t]
-            #v.lws_sea_level[t] = v.lws_sea_level[t-1] + rand(p.lws_distribution)
+            v.lws_sea_level[t] = v.lws_sea_level[t-1] + p.lws_random_sample[t]
+            #v.lws_sea_level[t] = v.lws_sea_level[t-1] + rand(p.lws_random_sample)
         end
     end
 end
