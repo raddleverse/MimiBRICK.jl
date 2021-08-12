@@ -39,14 +39,36 @@ add https://github.com/anthofflab/MimiSNEASY.jl.git
 (3) Run the following line to install the Mimi implementation of BRICK:
 
 ```julia
-add https://github.com/FrankErrickson/MimiBRICK.jl.git
+add https://github.com/BRICK-SLR/MimiBRICK.jl.git
 ```
 
 (4) To exit back to Julia, hit the `backspace` key.
 
+## Running baseline cases with default parameters
+
+### BRICK standalone (with temperature and ocean heat uptake exogenous forcing)
+
+TODO
+
+### BRICK+DOECLIM (with radiative forcing)
+
+TODO
+
+### BRICK+SNEASY (with emissions forcing)
+
+TODO
+
+## Running baseline cases with parameters provided via CSV file
+
+TODO
+
+## Running simulations with parameters from a previous ensemble
+
+TODO
+
 ## Run the Baseline SNEASY+BRICK Calibration
 
-**(here is where we may deviate from what Frank had previously)**
+**(TODO - modify descriptions, what Frank had previously)**
 
 (1) First, [Clone or download](https://git-scm.com/book/en/v2/Git-Basics-Getting-a-Git-Repository) the `brick_scc_paper` Git repository. Once this is on your computer, set this folder as your working directory in the Julia console.
 
@@ -60,6 +82,8 @@ include("scr/calibrate_sneasybrick_for_tony.jl")
 
 ## Description of SNEASY+BRICK Baseline Calibration Files
 
+**(TODO - modify descriptions, what Frank had previously)**
+
 (1) `calibration/calibration_helper_functions.jl`: Contains various functions that are useful for the model calibration.
 
 (2) `calibration/run_historic_models/run_sneasy_brick_historic_climate.jl`: Creates an instance of SNEASY+BRICK that will automatically update model projections over the hindcast period when passing in a new set of parameter values (mostly there to make calibration code run faster).
@@ -67,3 +91,18 @@ include("scr/calibrate_sneasybrick_for_tony.jl")
 (3) `calibration/create_log_posterior_sneasy_brick.jl`: Creates functions to calculate the prior, likelihood, and posterior for SNEASY+BRICK that can then be passed into the MCMC calibration.
 
 (4) `src/calibrate_sneasybrick_for_tony.jl`: Contains a few model settings at the top (length of MCMC chain, name of folder to save results, etc.), and then otherwise will load all of the necessary files and carries out the SNEASY+BRICK calibration.
+
+## License
+
+MimiBRICK is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
