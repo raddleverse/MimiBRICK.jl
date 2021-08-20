@@ -1,6 +1,6 @@
 # #-------------------------------------------------------------------------------------------------------
 # #-------------------------------------------------------------------------------------------------------
-# # This file carries out all of the runs to replicate the results from "BRICK-SCC Paper".
+# # This file carries out a Markov chain Monte Carlo calibration of SNEASY+BRICK.
 # #-------------------------------------------------------------------------------------------------------
 # #-------------------------------------------------------------------------------------------------------
 
@@ -35,10 +35,12 @@ include(joinpath("..", "calibration", "calibration_helper_functions.jl"))
 calibration_end_year = 2017
 
 # The length of the final chain (i.e. number of samples from joint posterior pdf after discarding burn-in period values).
-final_chain_length = 100_000
+#final_chain_length = 100_000
+final_chain_length = 100 # original was 100_000; this is for testing
 
 # Length of burn-in period (i.e. number of initial MCMC samples to discard).
-burn_in_length = 1_000
+#burn_in_length = 1_000
+burn_in_length = 10 # original was 1_000; this is for testing
 
 
 #-------------------------------------------------------------#
@@ -52,7 +54,7 @@ burn_in_length = 1_000
 # Load run historic model file.
 include(joinpath("..", "calibration", "run_historic_models", "run_sneasy_brick_historic_climate.jl"))
 
-# Load log-posterior file for SNEASY+BRICK model.
+# Load log-posterior script for SNEASY+BRICK model.
 include(joinpath("..", "calibration", "create_log_posterior_sneasy_brick.jl"))
 
 # Load inital parameter values for SNEASY+BRICK model.

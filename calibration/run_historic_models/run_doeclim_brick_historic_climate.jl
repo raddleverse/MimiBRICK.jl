@@ -1,31 +1,25 @@
 #--------------------------------------------------------------------------------------------------------------
-# Create a function to run the SNEASY+BRICK model over the historic period.
+# Create a function to run the DOECLIM+BRICK model over the historic period.
 #--------------------------------------------------------------------------------------------------------------
 
 # Load model file.
-include("../../src/create_models/SNEASY_BRICK.jl")
+include("../../src/MimiBRICK_DOECLIM.jl")
 
-function construct_run_sneasybrick(calibration_end_year::Int)
+function construct_run_doeclimbrick(calibration_end_year::Int)
 
-    # Load an instance of SNEASY+BRICK model.
-    m = create_sneasy_brick("RCP85", end_year=calibration_end_year)
+    # Load an instance of DOECLIM+BRICK model.
+    m = MimiBRICK_DOECLIM.create_brick_doeclim("RCP85", end_year=calibration_end_year)
 
-    # Get indices needed to normalize temperature anomalies relative to 1861-1880 mean (SNEASY+BRICK starts in 1850 by default).
+    # Get indices needed to normalize temperature anomalies relative to 1861-1880 mean (DOECLIM+BRICK starts in 1850 by default).
     temperature_norm_indices = findall((in)(1861:1880), 1850:calibration_end_year)
 
     # Get indices needed to normalize all sea level rise sources.
     sealevel_norm_indices_1961_1990 = findall((in)(1961:1990), 1850:calibration_end_year)
     sealevel_norm_indices_1992_2001 = findall((in)(1992:2001), 1850:calibration_end_year)
 
-    # Set placeholders for these two parameters so they have an external value and I can use "update_param!" below (just default value sets for now which throws an error).
-    set_param!(m, :rfco2, :CO₂_0, 0.0)
-    set_param!(m, :rfco2, :N₂O_0, 0.0)
-
-    # Given user settings, create a function to run SNEASY+BRICK and return model output used for calibration.
-    function run_sneasybrick!(
+    # Given user settings, create a function to run DOECLIM+BRICK and return model output used for calibration.
+    function run_doeclimbrick!(
         param::Array{Float64,1},
-        modeled_CO₂::Vector{Float64},
-        modeled_oceanCO₂_flux::Vector{Float64},
         modeled_temperature::Vector{Float64},
         modeled_ocean_heat::Vector{Float64},
         modeled_glaciers::Vector{Float64},
@@ -35,62 +29,47 @@ function construct_run_sneasybrick(calibration_end_year::Int)
         modeled_gmsl::Vector{Float64})
 
         # Assign names to uncertain model and initial condition parameters for convenience.
-        # Note: This assumes "param" is the full vector of uncertain parameters with the same ordering as in "create_log_posterior_sneasy_brick.jl".
-        CO₂_0                    = param[15]
-        N₂O_0                    = param[16]
-        temperature_0            = param[17]
-        ocean_heat_0             = param[18]
-        thermal_s₀               = param[19]
-        greenland_v₀             = param[20]
-        glaciers_v₀              = param[21]
-        glaciers_s₀              = param[22]
-        antarctic_s₀             = param[23]
-        Q10                      = param[24]
-        CO₂_fertilization        = param[25]
-        CO₂_diffusivity          = param[26]
-        heat_diffusivity         = param[27]
-        rf_scale_aerosol         = param[28]
-        ECS                      = param[29]
-        thermal_α                = param[30]
-        greenland_a              = param[31]
-        greenland_b              = param[32]
-        greenland_α              = param[33]
-        greenland_β              = param[34]
-        glaciers_β₀              = param[35]
-        glaciers_n               = param[36]
-        anto_α                   = param[37]
-        anto_β                   = param[38]
-        antarctic_γ              = param[39]
-        antarctic_α              = param[40]
-        antarctic_μ              = param[41]
-        antarctic_ν              = param[42]
-        antarctic_precip₀        = param[43]
-        antarctic_κ              = param[44]
-        antarctic_flow₀          = param[45]
-        antarctic_runoff_height₀ = param[46]
-        antarctic_c              = param[47]
-        antarctic_bedheight₀     = param[48]
-        antarctic_slope          = param[49]
-        antarctic_λ              = param[50]
-        antarctic_temp_threshold = param[51]
+        # Note: This assumes "param" is the full vector of uncertain parameters with the same ordering as in "create_log_posterior_doeclim_brick.jl".
+        temperature_0            = param[13]
+        ocean_heat_0             = param[14]
+        thermal_s₀               = param[15]
+        greenland_v₀             = param[16]
+        glaciers_v₀              = param[17]
+        glaciers_s₀              = param[18]
+        antarctic_s₀             = param[19]
+        heat_diffusivity         = param[20]
+        rf_scale_aerosol         = param[21]
+        ECS                      = param[22]
+        thermal_α                = param[23]
+        greenland_a              = param[24]
+        greenland_b              = param[25]
+        greenland_α              = param[26]
+        greenland_β              = param[27]
+        glaciers_β₀              = param[28]
+        glaciers_n               = param[29]
+        anto_α                   = param[30]
+        anto_β                   = param[31]
+        antarctic_γ              = param[32]
+        antarctic_α              = param[33]
+        antarctic_μ              = param[34]
+        antarctic_ν              = param[35]
+        antarctic_precip₀        = param[36]
+        antarctic_κ              = param[37]
+        antarctic_flow₀          = param[38]
+        antarctic_runoff_height₀ = param[39]
+        antarctic_c              = param[40]
+        antarctic_bedheight₀     = param[41]
+        antarctic_slope          = param[42]
+        antarctic_λ              = param[43]
+        antarctic_temp_threshold = param[44]
 
         #----------------------------------------------------------
-        # Set SNEASY+BRICK to use sampled parameter values.
+        # Set DOECLIM+BRICK to use sampled parameter values.
         #----------------------------------------------------------
 
         # ---- Diffusion Ocean Energy balance CLIMate model (DOECLIM) ---- #
         update_param!(m, :t2co,  ECS)
         update_param!(m, :kappa, heat_diffusivity)
-
-        # ---- Carbon Cycle ---- #
-        update_param!(m, :Q10,     Q10)
-        update_param!(m, :Beta,    CO₂_fertilization)
-        update_param!(m, :Eta,     CO₂_diffusivity)
-        update_param!(m, :atmco20, CO₂_0)
-
-        # ---- Carbon Dioxide Radiative Forcing ---- #
-        update_param!(m, :CO₂_0, CO₂_0)
-        update_param!(m, :N₂O_0, N₂O_0)
 
         # ---- Total Radiative Forcing ---- #
         update_param!(m, :alpha, rf_scale_aerosol)
@@ -139,14 +118,8 @@ function construct_run_sneasybrick(calibration_end_year::Int)
         # Calculate model output being compared to observations.
         #----------------------------------------------------------
 
-        # Atmospheric concentration of CO₂.
-        modeled_CO₂[:] = m[:ccm, :atmco2]
-
         # Global surface temperature anomaly (normalized to 1861-1880 mean with initial condition offset).
         modeled_temperature[:] = m[:doeclim, :temp] .- mean(m[:doeclim, :temp][temperature_norm_indices]) .+ temperature_0
-
-        # Ocean carbon flux (Note: timesteps cause last `atm_oc_flux` value to equal `missing`, so exclude it here).
-        modeled_oceanCO₂_flux[1:end-1] = m[:ccm, :atm_oc_flux][1:end-1]
 
         # Ocean heat content (with initial condition offset).
         modeled_ocean_heat[:] = m[:doeclim, :heat_mixed] .+ m[:doeclim, :heat_interior] .+ ocean_heat_0
@@ -171,5 +144,5 @@ function construct_run_sneasybrick(calibration_end_year::Int)
     end
 
     # Return run model function.
-    return run_sneasybrick!
+    return run_doeclimbrick!
 end
