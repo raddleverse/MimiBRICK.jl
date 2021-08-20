@@ -40,14 +40,16 @@ function load_calibration_data(model_start_year::Int64, last_calibration_year; l
     norm_temp_data  = DataFrame(year=raw_temp_data[!,:year], hadcrut_temperature_obs = raw_temp_data[!,:median] .- mean(raw_temp_data[hadcrut_norm_indices, :median]))
 
     # Join data on year.
-    df = join(df, norm_temp_data, on=:year, kind=:outer)
+    #df = join(df, norm_temp_data, on=:year, kind=:outer)
+    df = outerjoin(df, norm_temp_data, on=:year)
 
     # Read in HadCRUT4 1σ errors and rename column.
     raw_temp_errors  = DataFrame(load(joinpath(@__DIR__,  "..", "data", "calibration_data", "global_temp_hadcrut4_1sigma_uncertainty.csv"), skiplines_begin=21))
     rename!(raw_temp_errors, :one_sigma_all => :hadcrut_temperature_sigma)
 
     # Join data on year.
-    df = join(df, raw_temp_errors[!, [:year, :hadcrut_temperature_sigma]], on=:year, kind=:outer)
+    #df = join(df, raw_temp_errors[!, [:year, :hadcrut_temperature_sigma]], on=:year, kind=:outer)
+    df = outerjoin(df, raw_temp_errors[!, [:year, :hadcrut_temperature_sigma]], on=:year)
 
     #--------------------------------------------------------
     # Mauna Loa Instrumental Atmospheric CO₂ Concentrations.
@@ -58,7 +60,8 @@ function load_calibration_data(model_start_year::Int64, last_calibration_year; l
     rename!(raw_mauna_loa_co2_data, :mean => :maunaloa_co2_obs, :unc => :maunaloa_co2_sigma)
 
     # Join data on year.
-    df = join(df, raw_mauna_loa_co2_data, on=:year, kind=:outer)
+    #df = join(df, raw_mauna_loa_co2_data, on=:year, kind=:outer)
+    df = outerjoin(df, raw_mauna_loa_co2_data, on=:year)
 
     #-----------------------------------------------------
     # Law Dome Ice Core Atmospheric CO₂ Concentrations.
@@ -69,7 +72,8 @@ function load_calibration_data(model_start_year::Int64, last_calibration_year; l
     rename!(raw_law_dome_co2_data, :co2_ice => :lawdome_co2_obs, :one_sigma_error => :lawdome_co2_sigma)
 
     # Join data on year.
-    df = join(df, raw_law_dome_co2_data, on=:year, kind=:outer)
+    #df = join(df, raw_law_dome_co2_data, on=:year, kind=:outer)
+    df = outerjoin(df, raw_law_dome_co2_data, on=:year)
 
     #---------------------------------------------------------------------------------
     # Annual Global Ocean Heat Content (0-3000 m).
@@ -79,7 +83,8 @@ function load_calibration_data(model_start_year::Int64, last_calibration_year; l
     ocean_heat_raw = DataFrame(load(joinpath(@__DIR__,  "..", "data", "calibration_data", "ocean_heat_gouretski_3000m.csv"), colnames=["year", "ocean_heat_obs", "ocean_heat_sigma"], skiplines_begin=3))
 
     # Join data on year.
-    df = join(df, ocean_heat_raw, on=:year, kind=:outer)
+    #df = join(df, ocean_heat_raw, on=:year, kind=:outer)
+    df = outerjoin(df, ocean_heat_raw, on=:year)
 
     #---------------------------------------------------------------------------------
     # Decadal Ocean Carbon Fluxes
@@ -89,7 +94,8 @@ function load_calibration_data(model_start_year::Int64, last_calibration_year; l
     ocean_co2_flux_data = DataFrame(year=[1985, 1995], oceanco2_flux_obs=[1.6, 2.0], oceanco2_flux_sigma=[0.4, 0.4])
 
     # Join data on year.
-    df = join(df, ocean_co2_flux_data, on=:year, kind=:outer)
+    #df = join(df, ocean_co2_flux_data, on=:year, kind=:outer)
+    df = outerjoin(df, ocean_co2_flux_data, on=:year)
 
     #--------------------------------------------------------------------------------------
     # Load Church & White Global Mean Sea Level data (anomalies relative to 1961-1990 mean
@@ -111,7 +117,8 @@ function load_calibration_data(model_start_year::Int64, last_calibration_year; l
 
     # Combine into dataframe and join with other calibration data on year.
     gmsl_df = DataFrame(year = gmsl_years, gmsl_obs = gmsl_obs_norm, gmsl_sigma = gmsl_error)
-    df = join(df, gmsl_df, on=:year, kind=:outer)
+    #df = join(df, gmsl_df, on=:year, kind=:outer)
+    df = outerjoin(df, gmsl_df, on=:year)
 
     #---------------------------------------------------------------------------------
     # Load Greenland Ice Sheet Mass Balance Data for SIMPLE model.
@@ -169,7 +176,7 @@ function load_calibration_data(model_start_year::Int64, last_calibration_year; l
         year_indices = findall(x -> x == annual_imbie_years[t], years)
         # Calculate mean values for this year (corresponds to mid-year average).
         annual_imbie_obs[t]   = mean(raw_imbie_greenland_data.greenland_obs[year_indices]) / 1000
-        # Convert annualized sigmas to corresponding monthly value and then add together for annual value (each monthly value has units of mm/yr).. 
+        # Convert annualized sigmas to corresponding monthly value and then add together for annual value (each monthly value has units of mm/yr)..
         annual_imbie_sigma[t] = sqrt(sum((raw_imbie_greenland_data.greenland_sigma[year_indices] ./ sqrt(12)).^2)) / 1000
     end
 
@@ -201,7 +208,8 @@ function load_calibration_data(model_start_year::Int64, last_calibration_year; l
 
     # Create dataframe of merged data and combine with other calibration data.
     merged_greenland_df = DataFrame(year=merged_years, merged_greenland_obs=norm_greenland_merged_obs, merged_greenland_sigma=merged_greenland_sigma)
-    df = join(df, merged_greenland_df, on=:year, kind=:outer)
+    #df = join(df, merged_greenland_df, on=:year, kind=:outer)
+    df = outerjoin(df, merged_greenland_df, on=:year)
 
     #---------------------------------------------------------------------------------
     # Load Glacier and Small Ice Caps (GSIC) Data
@@ -225,7 +233,8 @@ function load_calibration_data(model_start_year::Int64, last_calibration_year; l
 
     # Combine into data frame and join with other calibration data.
     glaciers_df = DataFrame(year = years, glaciers_obs = glaciers_obs_norm, glaciers_sigma = glaciers_error)
-    df = join(df, glaciers_df, on=:year, kind=:outer)
+    #df = join(df, glaciers_df, on=:year, kind=:outer)
+    df = outerjoin(df, glaciers_df, on=:year)
 
     #---------------------------------------------------------------------------------
     # Load IMBIE Antarctic Ice Sheet Mass Balance Data (1992-2017).
@@ -239,7 +248,8 @@ function load_calibration_data(model_start_year::Int64, last_calibration_year; l
     raw_imbie_antarctic_data = raw_imbie_antarctic_data[1:drop_index, :]
 
     # Give columns shorter names for convenience.
-    names!(raw_imbie_antarctic_data, Symbol.(["year", "cumm_obs_Gt", "cumm_sigma_Gt", "cumm_obs_mm", "cumm_sigma_mm"]))
+    #names!(raw_imbie_antarctic_data, Symbol.(["year", "cumm_obs_Gt", "cumm_sigma_Gt", "cumm_obs_mm", "cumm_sigma_mm"]))
+    rename!(raw_imbie_antarctic_data, Symbol.(["year", "cumm_obs_Gt", "cumm_sigma_Gt", "cumm_obs_mm", "cumm_sigma_mm"]))
 
     # Dataset provides cummulative observation error (mm). Convert to annual observation error (mm/year) using same approach found in Greenland IMBIE dataset above.
     antarctic_sigma = zeros(size(raw_imbie_antarctic_data, 1))
@@ -277,7 +287,7 @@ function load_calibration_data(model_start_year::Int64, last_calibration_year; l
         year_indices = findall(x -> x == annual_imbie_years[t], years)
         # Calculate mean values for this year (corresponds to mid-year average).
         annual_imbie_obs[t]   = mean(raw_imbie_antarctic_data.cumm_obs_mm[year_indices]) / 1000
-        # Convert annualized sigmas to corresponding monthly value and then add together for annual value (each monthly value has units of mm/yr).. 
+        # Convert annualized sigmas to corresponding monthly value and then add together for annual value (each monthly value has units of mm/yr)..
         annual_imbie_sigma[t] = sqrt(sum((antarctic_sigma[year_indices] ./ sqrt(12)).^2)) / 1000
     end
 
@@ -287,7 +297,8 @@ function load_calibration_data(model_start_year::Int64, last_calibration_year; l
 
     # Merge into a dataframe and combine with other data.
     annual_antarctic_imbie_df = DataFrame(year=annual_imbie_years, antarctic_imbie_obs=annual_imbie_obs, antarctic_imbie_sigma=annual_imbie_sigma)
-    df = join(df, annual_antarctic_imbie_df, on=:year, kind=:outer)
+    #df = join(df, annual_antarctic_imbie_df, on=:year, kind=:outer)
+    df = outerjoin(df, annual_antarctic_imbie_df, on=:year)
 
     #---------------------------------------------------------------------------------
     # Load Original BRICK Antarctic Ice Sheet (AIS) Data.
@@ -300,10 +311,10 @@ function load_calibration_data(model_start_year::Int64, last_calibration_year; l
 
     # Values and equations taken from original R/fortran BRICK code.
     antarctic_inst_rate = abs(-71/360)/1000
-    
+
     # "Using the midpoint of the 19-year interval"
     time_years = 2002-1992
-    
+
     # Caluclate observed AIS value.
     obs_antarctic_inst = antarctic_inst_rate * time_years
 
@@ -312,12 +323,13 @@ function load_calibration_data(model_start_year::Int64, last_calibration_year; l
 
     # Note on total error: sqrt(10) because 10 years of potentially accumulated error:
     #      Total error^2 = year₁ error² + year₂ error² + ... year₁₀ error² = 10*year X error².
-    antarctic_inst_error = sqrt(time_years) * antarctic_inst_rate_error 
+    antarctic_inst_error = sqrt(time_years) * antarctic_inst_rate_error
 
     # Combine into data frame and join with other calibration data.
     # Note: Calibration sets year for this AIS observation as 2012.
     antarctic_inst_df = DataFrame(year = 2012, antarctic_inst_obs = obs_antarctic_inst, antarctic_inst_sigma = antarctic_inst_error)
-    df = join(df, antarctic_inst_df, on=:year, kind=:outer)
+    #df = join(df, antarctic_inst_df, on=:year, kind=:outer)
+    df = outerjoin(df, antarctic_inst_df, on=:year)
 
     #---------------------------------------------------------------------------------
     # Finalize Joint Calibration Data Set.
@@ -352,8 +364,9 @@ function load_calibration_data(model_start_year::Int64, last_calibration_year; l
                         #0.27  0.16  0.38  1993  2009  findfirst(x -> x == 1993, model_years) findfirst(x -> x == 2009, model_years)]
 
         # Assign trends to dataframe and add column names.
-        ais_trend_df = DataFrame(ais_trends)
-        names!(ais_trend_df, Symbol.(["Trend", "Lower_90_Percent", "Upper_90_Percent", "Start_Year", "End_Year", "Start_Model_Index", "End_Model_Index"]))
+        ais_trend_df = DataFrame(ais_trends, :auto)
+        #names!(ais_trend_df, Symbol.(["Trend", "Lower_90_Percent", "Upper_90_Percent", "Start_Year", "End_Year", "Start_Model_Index", "End_Model_Index"]))
+        rename!(ais_trend_df, Symbol.(["Trend", "Lower_90_Percent", "Upper_90_Percent", "Start_Year", "End_Year", "Start_Model_Index", "End_Model_Index"]))
 
     else
 
@@ -380,8 +393,9 @@ function load_calibration_data(model_start_year::Int64, last_calibration_year; l
                           1.1  0.8  1.4  1993  2009  findfirst(x -> x == 1993, model_years) findfirst(x -> x == 2009, model_years)]
 
         # Assign trends to dataframe and add column names.
-        te_trend_df = DataFrame(te_trends)
-        names!(te_trend_df, Symbol.(["Trend", "Lower_90_Percent", "Upper_90_Percent", "Start_Year", "End_Year", "Start_Model_Index", "End_Model_Index"]))
+        te_trend_df = DataFrame(te_trends, :auto)
+        #names!(te_trend_df, Symbol.(["Trend", "Lower_90_Percent", "Upper_90_Percent", "Start_Year", "End_Year", "Start_Model_Index", "End_Model_Index"]))
+        rename!(te_trend_df, Symbol.(["Trend", "Lower_90_Percent", "Upper_90_Percent", "Start_Year", "End_Year", "Start_Model_Index", "End_Model_Index"]))
 
     else
 
@@ -393,7 +407,7 @@ function load_calibration_data(model_start_year::Int64, last_calibration_year; l
 
     #--------------------------------------------------
     # Return all calibration observations and trends.
-    #-------------------------------------------------- 
+    #--------------------------------------------------
     return df, ais_trend_df, te_trend_df
 end
 
@@ -477,7 +491,7 @@ end
 #######################################################################################################
 # CALCULATE MODELED SEA LEVEL TRENDS
 #######################################################################################################
-# Description: This function calculates the trend in different modeled sea level contributions over 
+# Description: This function calculates the trend in different modeled sea level contributions over
 #              a user-specified time period.
 #
 # Function Arguments:
@@ -497,7 +511,7 @@ function calculate_trends(model_output::Array{Float64,1}, obs_trends::DataFrame,
     for i = 1:length(modeled_trends)
 
         # Find indices in model years corresponding to trend.
-        trend_indices = findall((in)(obs_trends.Start_Year[i]:obs_trends.End_Year[i]), start_year:end_year) 
+        trend_indices = findall((in)(obs_trends.Start_Year[i]:obs_trends.End_Year[i]), start_year:end_year)
 
         # "These calculate the least squares regression slope coefficients..." -original R/Fortran BRICK code.
         x = collect(trend_indices)

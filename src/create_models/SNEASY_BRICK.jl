@@ -113,7 +113,7 @@ function create_sneasy_brick(rcp_scenario::String; end_year::Int=2020)
 
     set_param!(m, :landwater_storage, :lws₀, 0.0)
     set_param!(m, :landwater_storage, :first_projection_year, 2018)
-    set_param!(m, :landwater_storage, :lws_distribution, rand(Normal(0.0003, 0.00018), length(model_years)))
+    set_param!(m, :landwater_storage, :lws_random_sample, rand(Normal(0.0003, 0.00018), length(model_years)))
 
     # ----- Set Parameters With Common Values Across Components ----- #
 
