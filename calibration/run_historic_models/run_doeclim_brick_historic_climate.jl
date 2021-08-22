@@ -5,10 +5,10 @@
 # Load model file.
 include("../../src/MimiBRICK_DOECLIM.jl")
 
-function construct_run_doeclimbrick(calibration_end_year::Int)
+function construct_run_doeclimbrick(calibration_start_year::Int, calibration_end_year::Int)
 
     # Load an instance of DOECLIM+BRICK model.
-    m = MimiBRICK_DOECLIM.create_brick_doeclim("RCP85", end_year=calibration_end_year)
+    m = MimiBRICK_DOECLIM.create_brick_doeclim(rcp_scenario="RCP85", start_year=calibration_start_year, end_year=calibration_end_year)
 
     # Get indices needed to normalize temperature anomalies relative to 1861-1880 mean (DOECLIM+BRICK starts in 1850 by default).
     temperature_norm_indices = findall((in)(1861:1880), 1850:calibration_end_year)

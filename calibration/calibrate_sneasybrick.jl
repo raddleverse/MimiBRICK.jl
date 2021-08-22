@@ -81,19 +81,19 @@ burned_chain_sneasybrick = chain_sneasybrick[Int(burn_in_length+1):end, :]
 mean_sneasybrick = vec(mean(burned_chain_sneasybrick, dims=1))
 
 # Calculate posterior correlations between parameters and set column names.
-correlations_sneasybrick = DataFrame(cor(burned_chain_sneasybrick))
-names!(correlations_sneasybrick, [Symbol(initial_parameters_sneasybrick.parameter[i]) for i in 1:length(mean_sneasybrick)])
+correlations_sneasybrick = DataFrame(cor(burned_chain_sneasybrick), :auto)
+rename!(correlations_sneasybrick, [Symbol(initial_parameters_sneasybrick.parameter[i]) for i in 1:length(mean_sneasybrick)])
 
 # Create equally-spaced indices to thin chains down to 10,000 and 100,000 samples.
 thin_indices_100k = trunc.(Int64, collect(range(1, stop=final_chain_length, length=100_000)))
 thin_indices_10k  = trunc.(Int64, collect(range(1, stop=final_chain_length, length=10_000)))
 
 # Create thinned chains (after burn-in period) with 10,000 and 100,000 samples and assign parameter names to each column.
-thin100k_chain_sneasybrick = DataFrame(burned_chain_sneasybrick[thin_indices_100k, :])
-thin10k_chain_sneasybrick  = DataFrame(burned_chain_sneasybrick[thin_indices_10k, :])
+thin100k_chain_sneasybrick = DataFrame(burned_chain_sneasybrick[thin_indices_100k, :], :auto)
+thin10k_chain_sneasybrick  = DataFrame(burned_chain_sneasybrick[thin_indices_10k, :], :auto)
 
-names!(thin100k_chain_sneasybrick, [Symbol(initial_parameters_sneasybrick.parameter[i]) for i in 1:length(mean_sneasybrick)])
-names!(thin10k_chain_sneasybrick,  [Symbol(initial_parameters_sneasybrick.parameter[i]) for i in 1:length(mean_sneasybrick)])
+rename!(thin100k_chain_sneasybrick, [Symbol(initial_parameters_sneasybrick.parameter[i]) for i in 1:length(mean_sneasybrick)])
+rename!(thin10k_chain_sneasybrick,  [Symbol(initial_parameters_sneasybrick.parameter[i]) for i in 1:length(mean_sneasybrick)])
 
 #--------------------------------------------------#
 #------------ Save Calibration Results ------------#
@@ -104,7 +104,7 @@ println("Saving calibrated parameters for SNEASY+BRICK.\n")
 
 # SNEASY-BRICK model calibration.
 save(joinpath(@__DIR__, output, "mcmc_acceptance_rate.csv"), DataFrame(sneasybrick_acceptance=accept_rate_sneasybrick))
-save(joinpath(@__DIR__, output, "proposal_covariance_matrix.csv"), DataFrame(cov_matrix_sneasybrick))
+save(joinpath(@__DIR__, output, "proposal_covariance_matrix.csv"), DataFrame(cov_matrix_sneasybrick, :auto))
 save(joinpath(@__DIR__, output, "mean_parameters.csv"), DataFrame(parameter = initial_parameters_sneasybrick.parameter[1:length(mean_sneasybrick)], sneasybrick_mean=mean_sneasybrick))
 save(joinpath(@__DIR__, output, "parameters_10k.csv"), thin10k_chain_sneasybrick)
 save(joinpath(@__DIR__, output, "parameters_100k.csv"), thin100k_chain_sneasybrick)
