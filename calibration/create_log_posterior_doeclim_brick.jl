@@ -332,39 +332,6 @@ function construct_doeclimbrick_log_posterior(f_run_model!; model_start_year::In
         llik_ocean_heat = hetero_logl_ar1(ocean_heat_residual, σ_ocean_heat, ρ_ocean_heat, calibration_data[indices_oceanheat_data, :ocean_heat_sigma])
 
         #-----------------------------------------------------------------------
-        # Atmospheric CO₂ Concentration Log-Likelihood
-        #-----------------------------------------------------------------------
-
-        llik_co2 = 0.
-
-        # Calculate CO₂ concentration (Law Dome) residuals (assuming 8 year model mean centered on year of ice core observation).
-        for (i, index)=enumerate(indices_lawdome_co2_data)
-            co2_residual[i] = calibration_data[index, :lawdome_co2_obs] - mean(modeled_CO₂[index .+ (-4:3)])
-        end
-
-        # Calculate CO₂ concentration (Mauna Loa) residuals.
-        for (i, index)=enumerate(indices_maunaloa_co2_data)
-            co2_residual[i+n_lawdome_co2] = calibration_data[index, :maunaloa_co2_obs] - modeled_CO₂[index]
-        end
-
-        # Calculate atmospheric CO₂ concentration log-likelihood.
-        llik_co2 = hetero_logl_car1(co2_residual, indices_co2_data, σ²_white_noise_CO₂, α₀_CO₂, calibration_data[indices_co2_data, :co2_combined_sigma])
-
-        #-----------------------------------------------------------------------
-        # Ocean Carbon Flux Log-Likelihood
-        #-----------------------------------------------------------------------
-
-        llik_oceanco2_flux = 0.
-
-        # Calculate ocean CO₂ flux log-likelihood for individual data points.
-        for (i,index) = enumerate(indices_oceanco2_flux_data)
-            individual_llik_oceanco2_flux[i] = logpdf(Normal(modeled_oceanCO₂_flux[index], calibration_data[index, :oceanco2_flux_sigma]), calibration_data[index, :oceanco2_flux_obs])
-        end
-
-        # Calculate ocean CO₂ flux total log-likelihood as sum of individual data point likelihoods.
-        llik_oceanco2_flux = sum(individual_llik_oceanco2_flux)
-
-        #-----------------------------------------------------------------------
         # Glaciers and Small Ice Caps Log-Likelihood
         #-----------------------------------------------------------------------
 
@@ -449,7 +416,7 @@ function construct_doeclimbrick_log_posterior(f_run_model!; model_start_year::In
         #-----------------------------------------------------------------------
 
         # Calculate the total log-likelihood (assuming residual independence across data sets).
-        llik = llik_temperature + llik_ocean_heat + llik_co2 + llik_oceanco2_flux + llik_glaciers + llik_greenland + llik_antarctic + llik_thermal_trend + llik_gmsl
+        llik = llik_temperature + llik_ocean_heat + llik_glaciers + llik_greenland + llik_antarctic + llik_thermal_trend + llik_gmsl
 
         return llik
     end
