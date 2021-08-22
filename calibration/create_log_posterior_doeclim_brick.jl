@@ -300,7 +300,7 @@ function construct_doeclimbrick_log_posterior(f_run_model!; model_start_year::In
         ρ_gmsl             = p[12]
 
         # Run an instance of DOECLIM+BRICK with sampled parameter set and return model output being compared to observations.
-        f_run_model!(p, modeled_CO₂, modeled_oceanCO₂_flux, modeled_temperature, modeled_ocean_heat,
+        f_run_model!(p, modeled_temperature, modeled_ocean_heat,
                      modeled_glaciers, modeled_greenland, modeled_antarctic, modeled_thermal_expansion, modeled_gmsl)
 
         #---------------------------------------------------------------------------
