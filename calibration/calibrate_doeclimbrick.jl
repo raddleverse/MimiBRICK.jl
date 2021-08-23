@@ -22,7 +22,7 @@ using RobustAdaptiveMetropolisSampler
 
 
 # A folder with this name will be created to store all of the replication results.
-results_folder_name = "my_results"
+results_folder_name = "my_doeclim+brick_results"
 
 # Create output folder path for convenience and make path.
 output = joinpath(@__DIR__, "..", "results", results_folder_name)
