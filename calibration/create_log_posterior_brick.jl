@@ -236,18 +236,14 @@ function construct_brick_log_posterior(f_run_model!; model_start_year::Int=1850,
     function brick_log_likelihood(p::Array{Float64,1})
 
         # Assign names to uncertain statistical process parameters used in log-likelihood calculations.
-#        σ_temperature      = p[1]
-#        σ_ocean_heat       = p[2]
-        σ_glaciers         = p[3]
-        σ_greenland        = p[4]
-        σ_antarctic        = p[5]
-        σ_gmsl             = p[6]
-#        ρ_temperature      = p[7]
-#        ρ_ocean_heat       = p[8]
-        ρ_glaciers         = p[9]
-        ρ_greenland        = p[10]
-        ρ_antarctic        = p[11]
-        ρ_gmsl             = p[12]
+        σ_glaciers         = p[1]
+        σ_greenland        = p[2]
+        σ_antarctic        = p[3]
+        σ_gmsl             = p[4]
+        ρ_glaciers         = p[5]
+        ρ_greenland        = p[6]
+        ρ_antarctic        = p[7]
+        ρ_gmsl             = p[8]
 
         # Run an instance of BRICK with sampled parameter set and return model output being compared to observations.
         f_run_model!(p, modeled_glaciers, modeled_greenland, modeled_antarctic, modeled_thermal_expansion, modeled_gmsl)

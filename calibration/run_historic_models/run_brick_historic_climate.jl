@@ -9,7 +9,7 @@ function construct_run_brick(calibration_start_year::Int, calibration_end_year::
 
     # Load an instance of DOECLIM+BRICK model.
     #m = MimiBRICK_DOECLIM.create_brick_doeclim(rcp_scenario="RCP85", start_year=calibration_start_year, end_year=calibration_end_year)
-    m = MimiBRICK.get_model() # TODO - add optional arguments for RCP scenario, beg/end years?
+    m = MimiBRICK.get_model(rcp_scenario="RCP85", start_year=calibration_start_year, end_year=calibration_end_year) # TODO - add optional arguments for RCP scenario, beg/end years?
 
     # Get indices needed to normalize temperature anomalies relative to 1861-1880 mean (DOECLIM+BRICK starts in 1850 by default).
     temperature_norm_indices = findall((in)(1861:1880), 1850:calibration_end_year)
@@ -29,38 +29,33 @@ function construct_run_brick(calibration_start_year::Int, calibration_end_year::
 
         # Assign names to uncertain model and initial condition parameters for convenience.
         # Note: This assumes "param" is the full vector of uncertain parameters with the same ordering as in "create_log_posterior_brick.jl".
-        #temperature_0            = param[13]
-        #ocean_heat_0             = param[14]
-        thermal_s₀               = param[15]
-        greenland_v₀             = param[16]
-        glaciers_v₀              = param[17]
-        glaciers_s₀              = param[18]
-        antarctic_s₀             = param[19]
-        #heat_diffusivity         = param[20]
-        #rf_scale_aerosol         = param[21]
-        #ECS                      = param[22]
-        thermal_α                = param[23]
-        greenland_a              = param[24]
-        greenland_b              = param[25]
-        greenland_α              = param[26]
-        greenland_β              = param[27]
-        glaciers_β₀              = param[28]
-        glaciers_n               = param[29]
-        anto_α                   = param[30]
-        anto_β                   = param[31]
-        antarctic_γ              = param[32]
-        antarctic_α              = param[33]
-        antarctic_μ              = param[34]
-        antarctic_ν              = param[35]
-        antarctic_precip₀        = param[36]
-        antarctic_κ              = param[37]
-        antarctic_flow₀          = param[38]
-        antarctic_runoff_height₀ = param[39]
-        antarctic_c              = param[40]
-        antarctic_bedheight₀     = param[41]
-        antarctic_slope          = param[42]
-        antarctic_λ              = param[43]
-        antarctic_temp_threshold = param[44]
+        thermal_s₀               = param[9]
+        greenland_v₀             = param[10]
+        glaciers_v₀              = param[11]
+        glaciers_s₀              = param[12]
+        antarctic_s₀             = param[13]
+        thermal_α                = param[14]
+        greenland_a              = param[15]
+        greenland_b              = param[16]
+        greenland_α              = param[17]
+        greenland_β              = param[18]
+        glaciers_β₀              = param[19]
+        glaciers_n               = param[20]
+        anto_α                   = param[21]
+        anto_β                   = param[22]
+        antarctic_γ              = param[23]
+        antarctic_α              = param[24]
+        antarctic_μ              = param[25]
+        antarctic_ν              = param[26]
+        antarctic_precip₀        = param[27]
+        antarctic_κ              = param[28]
+        antarctic_flow₀          = param[29]
+        antarctic_runoff_height₀ = param[30]
+        antarctic_c              = param[31]
+        antarctic_bedheight₀     = param[32]
+        antarctic_slope          = param[33]
+        antarctic_λ              = param[34]
+        antarctic_temp_threshold = param[35]
 
         #----------------------------------------------------------
         # Set BRICK to use sampled parameter values.
