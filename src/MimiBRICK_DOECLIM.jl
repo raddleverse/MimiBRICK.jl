@@ -27,6 +27,9 @@ function create_brick_doeclim(;rcp_scenario::String = "RCP85", start_year::Int=1
     # ----- Load Data ----- #
     #-----------------------#
 
+    # Set model years.
+	model_years = collect(start_year:end_year)
+
     # Find indices for BRICK start and end years relative to RCP time range of 1765-2500.
     index_start, index_end = findall((in)([start_year, end_year]), (1765:2500))
 
@@ -143,7 +146,7 @@ function create_brick_doeclim(;rcp_scenario::String = "RCP85", start_year::Int=1
 
     set_param!(brick_doeclim, :landwater_storage, :lws₀, 0.0)
     set_param!(brick_doeclim, :landwater_storage, :first_projection_year, 2018)
-    set_param!(brick_doeclim, :landwater_storage, :lws_random_sample, rand(Normal(0.0003, 0.00018), length(1850:2300)))
+    set_param!(brick_doeclim, :landwater_storage, :lws_random_sample, rand(Normal(0.0003, 0.00018), length(model_years)))
 
 
     #-----------------------------------------#

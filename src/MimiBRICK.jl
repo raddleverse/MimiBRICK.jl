@@ -20,15 +20,16 @@ include(joinpath("components", "thermal_expansion_component.jl"))
 # -------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------
 
-function get_model()
+function get_model(;rcp_scenario::String="RCP85", start_year::Int=1850, end_year::Int=2300)
 
     #-----------------------#
     # ----- Load Data ----- #
     #-----------------------#
 
     # Load exogenous time-series for global surface temperature and ocean heat content (output from SNEASY under RCP8.5).
-    temperature_scenario = DataFrame(load(joinpath(@__DIR__, "..", "data", "model_data", "sneasy_temperature_rcp85_1850_2300.csv"), skiplines_begin=5))
-    oceanheat_scenario   = DataFrame(load(joinpath(@__DIR__, "..", "data", "model_data", "sneasy_oceanheat_rcp85_1850_2300.csv"), skiplines_begin=5))
+    # NOTE: for now, only `rcp_scenario = "RCP85"` is supported
+    temperature_scenario = DataFrame(load(joinpath(@__DIR__, "..", "data", "model_data", "sneasy_temperature_"*rcp_scenario*"_1850_2300.csv"), skiplines_begin=5))
+    oceanheat_scenario   = DataFrame(load(joinpath(@__DIR__, "..", "data", "model_data", "sneasy_oceanheat_"*rcp_scenario*"_1850_2300.csv"), skiplines_begin=5))
 
     #-------------------------#
     # ----- Build BRICK ----- #
@@ -38,7 +39,7 @@ function get_model()
     brick = Model()
 
     # Set model time horizon, defaults to 1850-2300.
-    set_dimension!(brick, :time, 1850:2300)
+    set_dimension!(brick, :time, start_year:end_year)
 
     # Add in BRICK components.
     add_comp!(brick, antarctic_ocean)
@@ -108,20 +109,21 @@ function get_model()
     set_param!(brick, :thermal_expansion, :te_ρ, 1027.0)
     set_param!(brick, :thermal_expansion, :te_α, 0.16)
     set_param!(brick, :thermal_expansion, :te_s₀, 0.0)
-    set_param!(brick, :thermal_expansion, :ocean_heat_mixed, zeros(length(1850:2300)))
-    set_param!(brick, :thermal_expansion, :ocean_heat_interior, oceanheat_scenario[!, :Mean_Ocean_Heat])
+    set_param!(brick, :thermal_expansion, :ocean_heat_mixed, zeros(length(start_year:end_year)))
+    oceanheat_idx = findall((in)(start_year:end_year), oceanheat_scenario[!,:Year])
+    set_param!(brick, :thermal_expansion, :ocean_heat_interior, oceanheat_scenario[oceanheat_idx, :Mean_Ocean_Heat])
 
     # ----- Landwater Storage ----- #
 
     set_param!(brick, :landwater_storage, :lws₀, 0.0)
     set_param!(brick, :landwater_storage, :first_projection_year, 2018)
-    set_param!(brick, :landwater_storage, :lws_distribution, rand(Normal(0.0003, 0.00018), length(1850:2300)))
-    #set_param!(brick, :landwater_storage, :lws_distribution, Distributions.Normal(0.0003, 0.00018))
+    set_param!(brick, :landwater_storage, :lws_random_sample, rand(Normal(0.0003, 0.00018), length(start_year:end_year)))
 
     # ----- Set Parameters With Common Values Across Components ----- #
 
     set_param!(brick, :seawater_freeze, -1.8)
-    set_param!(brick, :global_surface_temperature, temperature_scenario[!,:Mean_Temperature])
+    temperature_idx = findall((in)(start_year:end_year), temperature_scenario[!,:Year])
+    set_param!(brick, :global_surface_temperature, temperature_scenario[temperature_idx,:Mean_Temperature])
 
     #-----------------------------------------#
     #----- Create Component Connections ----- #

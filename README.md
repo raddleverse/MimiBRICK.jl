@@ -46,9 +46,43 @@ add https://github.com/BRICK-SLR/MimiBRICK.jl.git
 
 ## Running baseline cases with default parameters
 
+As a preliminary step, you should activate the Julia environment by doing the following in a Julia console:
+1. Navigate to the
+
 ### BRICK standalone (with temperature and ocean heat uptake exogenous forcing)
 
-TODO
+This is the first test that is done in `test/runtests.jl`. Since it does not require DOECLIM or SNEASY, you can run BRICK using temperature and ocean heat uptake forcing data by running in the Julia console:
+```
+using MimiBRICK
+m = MimiBRICK.get_model()
+run(m)
+```
+
+You can plot the output fields in the model object `m` using (for example) the `Plots` Julia plotting package. First, let's grab the years over which the model was run. This is a dimension in the model. We can retrieve it by using the `dim_keys()` function, from the `Mimi` package.
+```
+using Mimi
+years = dim_keys(m, :time)
+```
+
+Then we can load the `Plots` package and make a figure of the global mean sea-level change. Note that the first argument into the `m` object specifies the component of our model, and the second argument specifies the field. Here, we are grabbing the `sea_level_rise` field from the `global_sea_level` component.
+```
+using Plots
+plot(years, m[:global_sea_level, :sea_level_rise])
+```
+
+Mimi also offers an explorer window to check these model output fields out. To use this, we need to load the `Mimi` package (if you haven't already).
+```
+using Mimi
+```
+
+Then, we can open the explorer.
+```
+explore(m)
+```
+
+This should open a window labeled "Mimi Explorer Window". On the left, there should be two vertically-stacked boxes. The top box is labeled "Components" and the bottom box is labeled "Data". To view some of the model output from our out-of-box BRICK simulation, you must first pick one of the Components from the top box, and then a Variable field out of the bottom box. For example, to view the global mean sea level model projections, select `global_sea_level` from the Components box, and `global_sea_level : sea_level_rise` from the Variables box. A plot of this variable should appear in the right column of plot boxes. The top box is static; the bottom box you can interact with to zoom in on different portions of the figure.
+
+More information about exploring Mimi model results can be found in the [Mimi Framework How-To guides online](https://www.mimiframework.org/Mimi.jl/stable/howto/howto_2/).
 
 ### BRICK+DOECLIM (with radiative forcing)
 

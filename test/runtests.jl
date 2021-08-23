@@ -4,10 +4,31 @@ using DataFrames
 using MimiBRICK
 using MimiSNEASY
 
-include("MimiBRICK_DOECLIM.jl")
-include("create_models/SNEASY_BRICK.jl")
+srcdir = joinpath(@__DIR__, "..", "src")
+include(joinpath(srcdir,"MimiBRICK_DOECLIM.jl"))
+include(joinpath(srcdir,"create_models","SNEASY_BRICK.jl"))
 
 ##==============================================================================
+## With default parameters
+
+## BRICK standalone
+m = MimiBRICK.get_model()
+run(m)
+
+## DOECLIM+BRICK
+m = MimiBRICK_DOECLIM.create_brick_doeclim()
+run(m)
+
+## SNEASY+BRICK
+m = create_sneasy_brick("RCP85")
+run(m)
+
+##==============================================================================
+
+
+##==============================================================================
+## With parameters read from a CSV file
+
 ## BRICK standalone
 ##  --> with SNEASY forcings for Temperature and Ocean heat uptake
 
@@ -15,7 +36,6 @@ include("create_models/SNEASY_BRICK.jl")
 m = MimiBRICK.get_model()
 run(m)
 
-##==============================================================================
 ## DOECLIM+BRICK
 
 #TODO - check what the parameter values used are - can we get these on a CSV file for reading/writing?
@@ -23,7 +43,6 @@ run(m)
 m = MimiBRICK_DOECLIM.create_brick_doeclim()
 run(m)
 
-##==============================================================================
 ## SNEASY+BRICK
 
 #TODO - check what the parameter values used are - can we get these on a CSV file for reading/writing?
