@@ -56,7 +56,8 @@ Major contributors to global sea-level change include glaciers and ice caps, the
 # Statement of need
 
 The Building Blocks for Relevant Ice and Climate Knowledge (BRICK) model for sea-level rise [@Wong:2017] is a model for global and local mean sea-level change. 
-Used in a number of recent assessments, including comparisons in the IPCC AR6 (TODO - citation). Relatedly, there is a need 
+Used in a number of recent assessments, including comparisons in the IPCC AR6 (TODO - citation). 
+Coastal hazards are just one element of a larger set of climate risks... 
 
 `Gala` is an Astropy-affiliated Python package for galactic dynamics. Python
 enables wrapping low-level languages (e.g., C) for speed without losing
