@@ -55,7 +55,7 @@ Major contributors to global sea-level change include glaciers and ice caps, the
 
 # Statement of need
 
-The Building Blocks for Relevant Ice and Climate Knowledge (BRICK) model for sea-level rise [@Wong:2017] is a model for global and local mean sea-level change. 
+The Building Blocks for Relevant Ice and Climate Knowledge (BRICK) model for sea-level rise [ref Wong 2017] is a model for global and local mean sea-level change. 
 Used in a number of recent assessments, including comparisons in the IPCC AR6 (TODO - citation). 
 Coastal hazards are just one element of a larger set of climate risks... 
 
@@ -74,23 +74,6 @@ The original BRICK model was designed to be flexible and efficient **(TODO - con
 `MimiBRICK.jl` stays true to these design principles, and enhances the usability of the code by **(TODO - continue)**...
 
 **(TODO - continue, talk about Mimi)**
-
-# Mathematics
-
-Single dollars ($) are required for inline mathematics e.g. $f(x) = e^{\pi/x}$
-
-Double dollars make self-standing equations:
-
-$$\Theta(x) = \left\{\begin{array}{l}
-0\textrm{ if } x < 0\cr
-1\textrm{ else}
-\end{array}\right.$$
-
-You can also use plain \LaTeX for equations
-\begin{equation}\label{eq:fourier}
-\hat f(\omega) = \int_{-\infty}^{\infty} f(x) e^{i\omega x} dx
-\end{equation}
-and refer to \autoref{eq:fourier} from text.
 
 # Acknowledgements
 
