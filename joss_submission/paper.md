@@ -1,11 +1,11 @@
 ---
 title: 'MimiBRICK.jl: A Julia package for running and coupling the BRICK model for sea-level change in the Mimi integrated modeling framework'
 tags:
-  - Julia
   - sea level
   - climate
   - coastal
-  - coupling
+  - model coupling
+  - Julia
 authors:
   - name: Tony E. Wong
     orcid: 0000-0002-7304-3883
