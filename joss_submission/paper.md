@@ -41,37 +41,29 @@ affiliations:
    index: 5
  - name: Department of Geosciences, Pennsylvania State University, USA
    index: 6
-date: 24 August 2021
+date: 27 August 2021
 bibliography: paper.bib
 
 ---
 
-# Summary
-
-Assessment of policies to manage climate risks requires projections of future climate. 
-For coastal risks, this includes projections of future global and local sea levels.
-Major contributors to global sea-level change include glaciers and ice caps, thermal expansion, land water storage, and the Greenaland and Antarctic ice sheets.
-**(TODO - finish general introduction to GMSL/LSL modeling, coastal hazards, and integrated modeling/Mimi idea)**
-
 # Statement of need
 
-The Building Blocks for Relevant Ice and Climate Knowledge (BRICK) model for sea-level rise [ref Wong 2017] is a model for global and local mean sea-level change. 
-Used in a number of recent assessments, including comparisons in the IPCC AR6 (TODO - citation). 
-Coastal hazards are just one element of a larger set of climate risks... 
+Assessment of policies to manage climate risks requires projections of future climate.
+For coastal risks, this includes projections of future global and local sea levels.
+Major contributors to global sea-level change include glaciers and ice caps, thermal expansion, land water storage, and the Greenland and Antarctic ice sheets.
+Characterizing coastal hazards and managing the associated risks requires resolving the tails of distributions.
+A common approach for this is semi-empirical models for sea-level rise (cite: Kopp 2017, Mengel 2016, Nauels 2017, Wong 2017)
+**(TODO - finish general introduction to GMSL/LSL modeling, coastal hazards, and integrated modeling/Mimi idea)**
 
-`Gala` is an Astropy-affiliated Python package for galactic dynamics. Python
-enables wrapping low-level languages (e.g., C) for speed without losing
-flexibility or ease-of-use in the user-interface. The API for `Gala` was
-designed to provide a class-based and user-friendly interface to fast (C or
-Cython-optimized) implementations of common operations such as gravitational
-potential and force evaluation, orbit integration, dynamical transformations,
-and chaos indicators for nonlinear dynamics. `Gala` also relies heavily on and
-interfaces well with the implementations of physical units and astronomical
-coordinate systems in the `Astropy` package [@astropy] (`astropy.units` and
-`astropy.coordinates`).
+# Summary
 
-The original BRICK model was designed to be flexible and efficient **(TODO - continue)**... 
+The Building Blocks for Relevant Ice and Climate Knowledge (BRICK) model for sea-level rise [@Wong2017_brick] is a model for global and local mean sea-level change.
+Used in a number of recent assessments, including comparisons in the IPCC AR6 (TODO - citation).
+
+The original BRICK model was designed to be flexible and efficient **(TODO - continue)**...
 `MimiBRICK.jl` stays true to these design principles, and enhances the usability of the code by **(TODO - continue)**...
+
+`MimiBRICK.jl` is an implementation of the BRICK model in the Mimi integrated modeling framework (https://www.mimiframework.org/)
 
 **(TODO - continue, talk about Mimi)**
 
@@ -81,4 +73,3 @@ We gratefully acknowledge Corinne Hartin, Ryan Sriver, and Nathan Urban for thei
 **(TODO - add anyone else?)**
 
 # References
-

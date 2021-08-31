@@ -629,11 +629,9 @@ version = "1.3.0"
 
 [[MimiSNEASY]]
 deps = ["CSVFiles", "DataFrames", "DelimitedFiles", "Mimi", "Query", "SpecialFunctions"]
-git-tree-sha1 = "b05a18c3a5999832549198039338c072950b1aed"
-repo-rev = "master"
-repo-url = "https://github.com/anthofflab/MimiSNEASY.jl.git"
+git-tree-sha1 = "ca406a6e9bf3b06f335a1fbff346c047194e616b"
 uuid = "3f1801d0-c5f8-11e9-1568-bf13fd643260"
-version = "1.0.2-DEV"
+version = "1.0.1"
 
 [[Missings]]
 deps = ["DataAPI"]
