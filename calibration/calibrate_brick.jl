@@ -19,6 +19,7 @@ using LinearAlgebra
 using Mimi
 using NetCDF
 using RobustAdaptiveMetropolisSampler
+using MCMCDiagnostics
 
 
 # A folder with this name will be created to store all of the replication results.
@@ -35,13 +36,16 @@ include(joinpath("..", "calibration", "calibration_helper_functions.jl"))
 calibration_start_year = 1850
 calibration_end_year = 2017
 
-# The length of the final chain (i.e. number of samples from joint posterior pdf after discarding burn-in period values).
-#final_chain_length = 100_000
-final_chain_length = 100 # original was 100_000; this is for testing
+# The length of the chain before burn-in and thinning
+total_chain_length = 100_000
+#total_chain_length = 100 # original was 100_000; this is for testing
 
-# Length of burn-in period (i.e. number of initial MCMC samples to discard).
-#burn_in_length = 1_000
-burn_in_length = 10 # original was 1_000; this is for testing
+# Burn-in length - How many samples from the beginning to immediately discard
+burnin_length = 50_000
+
+# Number of individual hchain_brick_burned = chain_brick[(burnin_length+1)ypothetical chains to break the big on up into for testing convergence ("walkers"):total_chain_length,:]
+
+chain_brick_burned = chain_brick[(burnin_length+1):total_chain_length,:]
 
 
 #-------------------------------------------------------------#
@@ -74,28 +78,24 @@ log_posterior_brick = construct_brick_log_posterior(run_brick!, model_start_year
 println("Begin baseline calibration of BRICK model.\n")
 
 # Carry out Bayesian calibration using robust adaptive metropolis MCMC algorithm.
-chain_brick, accept_rate_brick, cov_matrix_brick = RAM_sample(log_posterior_brick, initial_parameters_brick.starting_point, initial_covariance_matrix_brick, Int(final_chain_length + burn_in_length), opt_α=0.234)
+chain_brick, accept_rate_brick, cov_matrix_brick = RAM_sample(log_posterior_brick, initial_parameters_brick.starting_point, initial_covariance_matrix_brick, Int(total_chain_length), opt_α=0.234)
 
-# Discard burn-in values.
-burned_chain_brick = chain_brick[Int(burn_in_length+1):end, :]
+# No processing done here; doing that outside the calibration
 
-# Calculate mean posterior parameter values.
-mean_brick = vec(mean(burned_chain_brick, dims=1))
+# or maybe processing done here...??
 
-# Calculate posterior correlations between parameters and set column names.
-correlations_brick = DataFrame(cor(burned_chain_brick), :auto)
-rename!(correlations_brick, [Symbol(initial_parameters_brick.parameter[i]) for i in 1:length(mean_brick)])
+# burn in?
+chain_brick_burned = chain_brick[(burnin_length+1):total_chain_length,:]
 
-# Create equally-spaced indices to thin chains down to 10,000 and 100,000 samples.
-thin_indices_100k = trunc.(Int64, collect(range(1, stop=final_chain_length, length=100_000)))
-thin_indices_10k  = trunc.(Int64, collect(range(1, stop=final_chain_length, length=10_000)))
-
-# Create thinned chains (after burn-in period) with 10,000 and 100,000 samples and assign parameter names to each column.
-thin100k_chain_brick = DataFrame(burned_chain_brick[thin_indices_100k, :], :auto)
-thin10k_chain_brick  = DataFrame(burned_chain_brick[thin_indices_10k, :], :auto)
-
-rename!(thin100k_chain_brick, [Symbol(initial_parameters_brick.parameter[i]) for i in 1:length(mean_brick)])
-rename!(thin10k_chain_brick,  [Symbol(initial_parameters_brick.parameter[i]) for i in 1:length(mean_brick)])
+# compute Gelman and Rubin diagnostic for each parameter
+# (potential scale reduction factor)
+num_parameters = size(chain_brick_burned)[2]
+psrf = Array{Float64,1}(undef , num_parameters)
+for p in 1:num_parameters
+    chains = reshape(chain_brick_burned[:,p], Int(size(chain_brick_burned)[1]/num_walkers), num_walkers)
+    chains = [chains[:,k] for k in 1:num_walkers]
+    psrf[p] = potential_scale_reduction(chains...)
+end
 
 #--------------------------------------------------#
 #------------ Save Calibration Results ------------#
@@ -107,7 +107,4 @@ println("Saving calibrated parameters for BRICK.\n")
 # BRICK model calibration.
 save(joinpath(@__DIR__, output, "mcmc_acceptance_rate.csv"), DataFrame(brick_acceptance=accept_rate_brick))
 save(joinpath(@__DIR__, output, "proposal_covariance_matrix.csv"), DataFrame(cov_matrix_brick, :auto))
-save(joinpath(@__DIR__, output, "mean_parameters.csv"), DataFrame(parameter = initial_parameters_brick.parameter[1:length(mean_brick)], brick_mean=mean_brick))
-save(joinpath(@__DIR__, output, "parameters_10k.csv"), thin10k_chain_brick)
-save(joinpath(@__DIR__, output, "parameters_100k.csv"), thin100k_chain_brick)
-save(joinpath(@__DIR__, output, "posterior_correlations.csv"), correlations_brick)
+save(joinpath(@__DIR__, output, "parameters_full_chain.csv"), DataFrame(chain_brick, [Symbol(initial_parameters_brick.parameter[i]) for i in 1:length(mean_brick)]))

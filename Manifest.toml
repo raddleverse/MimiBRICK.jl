@@ -589,6 +589,12 @@ version = "0.3.0"
 [[Logging]]
 uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
 
+[[MCMCDiagnostics]]
+deps = ["Random", "Statistics", "StatsBase", "Test"]
+git-tree-sha1 = "9c898f408400c0bffda7570acd57c98601c33b59"
+uuid = "6e857e4b-079a-58c4-aeab-bc2670384359"
+version = "0.3.0"
+
 [[MKL_jll]]
 deps = ["Artifacts", "IntelOpenMP_jll", "JLLWrappers", "LazyArtifacts", "Libdl", "Pkg"]
 git-tree-sha1 = "c253236b0ed414624b083e6b72bfe891fbd2c7af"
@@ -634,9 +640,11 @@ version = "1.3.0"
 
 [[MimiSNEASY]]
 deps = ["CSVFiles", "DataFrames", "DelimitedFiles", "Mimi", "Query", "SpecialFunctions"]
-git-tree-sha1 = "ca406a6e9bf3b06f335a1fbff346c047194e616b"
+git-tree-sha1 = "b05a18c3a5999832549198039338c072950b1aed"
+repo-rev = "master"
+repo-url = "https://github.com/anthofflab/MimiSNEASY.jl.git"
 uuid = "3f1801d0-c5f8-11e9-1568-bf13fd643260"
-version = "1.0.1"
+version = "1.0.2-DEV"
 
 [[Missings]]
 deps = ["DataAPI"]
