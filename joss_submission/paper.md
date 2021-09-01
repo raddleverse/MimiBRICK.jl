@@ -63,14 +63,16 @@ For users who do not wish to re-run computationally intensive model calibration 
 # Summary
 
 The BRICK semi-empirical model for sea-level rise [@Wong2017_brick] is a model for global and local mean sea-level change.
-Used in a number of recent assessments, including comparisons in the IPCC AR6 (TODO - citation).
+BRICK has been used in a number of recent assessments, including for examining the impacts of sea-level rise as a constraint on estimates of climate sensitivity [@Vega-Westhoff2018], estimates of deep uncertainty in coastal flood risk [@Ruckert2019], and most recently was included in comparisons of sea-level projections in the Sixth Assessment Report of the Intergovernmental Panel on Climate Change [@ipccar6ch9].
 
-The original BRICK model was designed to be flexible and efficient **(TODO - continue)**...
-`MimiBRICK.jl` stays true to these design principles, and enhances the usability of the code by **(TODO - continue)**...
-
-`MimiBRICK.jl` is an implementation of the BRICK model in the Mimi integrated modeling framework
 
 **(TODO - continue, talk about Mimi)**
+
+`MimiBRICK.jl` stays true to these design principles, and enhances the usability of the code by **(TODO - continue, talk about why combine them)**...
+
+# Structure
+
+**(TODO)**
 
 # Acknowledgements
 
