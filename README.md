@@ -29,8 +29,8 @@ This code was created using [Julia v1.6](https://julialang.org/downloads/) and r
 (1) To install these packages, first enter the package manager by hitting the `]` key in the Julia console. Once in the package manager, run the following code:
 
 ```julia
-add CSVFiles  
-add DataFrames  
+add CSVFiles
+add DataFrames
 add Distributions
 add KernelDensity
 add Mimi

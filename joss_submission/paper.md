@@ -52,18 +52,23 @@ Assessment of policies to manage climate risks requires projections of future cl
 For coastal risks, this includes projections of future global and local sea levels.
 Major contributors to global sea-level change include glaciers and ice caps, thermal expansion, land water storage, and the Greenland and Antarctic ice sheets.
 Characterizing coastal hazards and managing the associated risks requires resolving the tails of distributions.
-A common approach for this is semi-empirical models for sea-level rise (cite: Kopp 2017, Mengel 2016, Nauels 2017, Wong 2017)
-**(TODO - finish general introduction to GMSL/LSL modeling, coastal hazards, and integrated modeling/Mimi idea)**
+Semi-empirical models for sea-level rise offer a computationally efficient method for characterizing uncertainties in future coastal hazards and fusing observational data with models [@Kopp2017; @Mengel2016; @Nauels2017; @Wong2017_brick].
+These models can also be flexible and modular, which enables their use in integrated frameworks for assessing climate damages and examining the efficacy of climate risk management policies.
+The Mimi integrated modeling framework (https://www.mimiframework.org/) is a coding platform that facilitates coupling models and running coupled modeling experiments.
+`MimiBRICK.jl` is an implementation of the Building Blocks for Relevant Ice and Climate Knowledge (BRICK) semi-empirical model for sea-level change [@Wong2017_brick] in the Mimi modeling framework.
+`MimiBRICK.jl` is flexible and efficient, purposefully structured to be coupled into integrated assessments of climate impacts.
+This implementation includes examples for using observational data to calibrate the model, as well as various configurations in which `MimiBRICK` is coupled to other climate model components.
+For users who do not wish to re-run computationally intensive model calibration algorithms, this implementation also includes code for using existing calibration output for standard future climate change scenarios, and examples downscaling these global projections for assessments of local impacts.
 
 # Summary
 
-The Building Blocks for Relevant Ice and Climate Knowledge (BRICK) model for sea-level rise [@Wong2017_brick] is a model for global and local mean sea-level change.
+The BRICK semi-empirical model for sea-level rise [@Wong2017_brick] is a model for global and local mean sea-level change.
 Used in a number of recent assessments, including comparisons in the IPCC AR6 (TODO - citation).
 
 The original BRICK model was designed to be flexible and efficient **(TODO - continue)**...
 `MimiBRICK.jl` stays true to these design principles, and enhances the usability of the code by **(TODO - continue)**...
 
-`MimiBRICK.jl` is an implementation of the BRICK model in the Mimi integrated modeling framework (https://www.mimiframework.org/)
+`MimiBRICK.jl` is an implementation of the BRICK model in the Mimi integrated modeling framework
 
 **(TODO - continue, talk about Mimi)**
 
