@@ -37,11 +37,11 @@ calibration_start_year = 1850
 calibration_end_year = 2017
 
 # The length of the chain before burn-in and thinning
-total_chain_length = 100_000
+total_chain_length = 2_000_000
 #total_chain_length = 100 # original was 100_000; this is for testing
 
 # Burn-in length - How many samples from the beginning to immediately discard
-burnin_length = 50_000
+burnin_length = 1_000_000
 
 # Number of individual hchain_brick_burned = chain_brick[(burnin_length+1)ypothetical chains to break the big on up into for testing convergence ("walkers"):total_chain_length,:]
 
@@ -96,6 +96,14 @@ for p in 1:num_parameters
     chains = [chains[:,k] for k in 1:num_walkers]
     psrf[p] = potential_scale_reduction(chains...)
 end
+
+## continuing a chain:
+# set the initial parameter sample
+initial_parameters_brick[:,"starting_point"] = chain_brick[total_chain_length,:]
+# run more iterations
+num_new_samples = 2_000_000
+chain_brick2, accept_rate_brick2, cov_matrix_brick2 = RAM_sample(log_posterior_brick, initial_parameters_brick.starting_point, cov_matrix_brick, Int(num_new_samples), opt_α=0.234)
+full_chain_brick = vcat(chain_brick, chain_brick2)
 
 #--------------------------------------------------#
 #------------ Save Calibration Results ------------#
