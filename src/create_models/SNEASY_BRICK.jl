@@ -153,4 +153,5 @@ function create_sneasy_brick(rcp_scenario::String; end_year::Int=2020)
     connect_param!(m, :antarctic_icesheet => :global_sea_level,            :global_sea_level => :sea_level_rise)
 
 	return m
+    #return Mimi.build(m)
 end

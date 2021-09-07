@@ -82,7 +82,7 @@ parnames = [Symbol(initial_parameters_doeclimbrick.parameter[i]) for i in 1:num_
 
 # Load initial proposal covariance matrix (from previous calibrations) and format so it works with RAM sampler (need to account for rounding errors or Cholesky factorization fails).
 # --> From the same preliminary calibration as the initial parameters above
-initial_covariance_matrix_doeclimbrick = Array(Hermitian(Matrix(DataFrame(load(joinpath(@__DIR__, "..", "data", "calibration_data", "initial_proposal_covariance_matrix_doeclimbrick.csv"))))))
+initial_covariance_matrix_doeclimbrick = Array(Hermitian(Matrix(DataFrame(load(path_initial_covariance)))))
 
 # Create `DOECLIM+BRICK` function used in log-posterior calculations.
 run_doeclimbrick! = construct_run_doeclimbrick(calibration_start_year, calibration_end_year)
