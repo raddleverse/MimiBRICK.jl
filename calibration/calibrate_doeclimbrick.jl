@@ -19,7 +19,9 @@ using LinearAlgebra
 using Mimi
 using NetCDF
 using RobustAdaptiveMetropolisSampler
-
+using MCMCDiagnostics
+using Random
+using StatsBase
 
 # A folder with this name will be created to store all of the replication results.
 results_folder_name = "my_doeclim+brick_results"
@@ -35,13 +37,26 @@ include(joinpath("..", "calibration", "calibration_helper_functions.jl"))
 calibration_start_year = 1850
 calibration_end_year = 2017
 
-# The length of the final chain (i.e. number of samples from joint posterior pdf after discarding burn-in period values).
-#final_chain_length = 100_000
-final_chain_length = 100 # original was 100_000; this is for testing
+# The length of the chain before burn-in and thinning
+total_chain_length = 11_000_000
+#total_chain_length = 100 # original was 100_000; this is for testing
 
-# Length of burn-in period (i.e. number of initial MCMC samples to discard).
-#burn_in_length = 1_000
-burn_in_length = 10 # original was 1_000; this is for testing
+# Burn-in length - How many samples from the beginning to immediately discard
+# --> Not including as much burn-in as we would normally because the initial values are from the end of a 4-million iteration preliminary chain
+burnin_length = 1_000_000
+
+# Threshold for Gelman and Rubin potential scale reduction factor (burn-in/convergence)
+# --> 1.1 or 1.05 are standard practice. Further from 1 is
+threshold_gr = 1.1
+
+# Number of sub-chains that the single larger chain is divided into for convergence check
+# --> Convergence check will chop off the burn-in period from the beginning, then divide the remaining chain into `num_walkers` equal-length chains. Then
+# --> the GR diagnostic (PSRF) will check how the within-chain variance compares to the between-chain variance. Converged if they're similar.
+# --> Note that fewer walkers will also be more permissive, since (all other things being equal) variance is higher with fewer samples (# walkers)
+num_walkers = 2
+
+# Create a subsample of posterior parameters?
+size_subsample = 10_000
 
 
 #-------------------------------------------------------------#
@@ -58,11 +73,15 @@ include(joinpath("..", "calibration", "run_historic_models", "run_doeclim_brick_
 # Load log-posterior script for DOECLIM+BRICK model.
 include(joinpath("..", "calibration", "create_log_posterior_doeclim_brick.jl"))
 
-# Load inital parameter values for DOECLIM+BRICK model.
-# These are from a DOECLIM-BRICK calibration, but with the non-DOECLIM parameters removed
+# Load inital parameter values for BRICK model.
+# --> These are the final values from a preliminary calibration 4 million iterations
+# --> That preliminary calibration started from a SNEASY-BRICK calibration, but with the non-DOECLIM/BRICK parameters removed
 initial_parameters_doeclimbrick = DataFrame(load(joinpath(@__DIR__, "..", "data", "calibration_data", "calibration_initial_values_doeclim_brick.csv"), skiplines_begin=6))
+num_parameters = nrow(initial_parameters_doeclimbrick)
+parnames = [Symbol(initial_parameters_doeclimbrick.parameter[i]) for i in 1:num_parameters]
 
 # Load initial proposal covariance matrix (from previous calibrations) and format so it works with RAM sampler (need to account for rounding errors or Cholesky factorization fails).
+# --> From the same preliminary calibration as the initial parameters above
 initial_covariance_matrix_doeclimbrick = Array(Hermitian(Matrix(DataFrame(load(joinpath(@__DIR__, "..", "data", "calibration_data", "initial_proposal_covariance_matrix_doeclimbrick.csv"))))))
 
 # Create `DOECLIM+BRICK` function used in log-posterior calculations.
@@ -74,28 +93,44 @@ log_posterior_doeclim_brick = construct_doeclimbrick_log_posterior(run_doeclimbr
 println("Begin baseline calibration of DOECLIM+BRICK model.\n")
 
 # Carry out Bayesian calibration using robust adaptive metropolis MCMC algorithm.
-chain_doeclimbrick, accept_rate_doeclimbrick, cov_matrix_doeclimbrick = RAM_sample(log_posterior_doeclim_brick, initial_parameters_doeclimbrick.starting_point, initial_covariance_matrix_doeclimbrick, Int(final_chain_length + burn_in_length), opt_α=0.234)
+Random.seed!(2021) # for reproducibility
+chain_doeclimbrick, accept_rate_doeclimbrick, cov_matrix_doeclimbrick = RAM_sample(log_posterior_doeclim_brick, initial_parameters_doeclimbrick.starting_point, initial_covariance_matrix_doeclimbrick, Int(total_chain_length), opt_α=0.234)
 
-# Discard burn-in values.
-burned_chain_doeclimbrick = chain_doeclimbrick[Int(burn_in_length+1):end, :]
+#-------------------------------------------------------------#
+#-------------------------------------------------------------#
+#------------------ Convergence checks and -------------------#
+#------------------  (possibly) thinning   -------------------#
+#-------------------------------------------------------------#
+#-------------------------------------------------------------#
 
-# Calculate mean posterior parameter values.
-mean_doeclimbrick = vec(mean(burned_chain_doeclimbrick, dims=1))
+# Remove the burn-in period
+chain_doeclimbrick_burned = chain_doeclimbrick[(burnin_length+1):total_chain_length,:]
 
-# Calculate posterior correlations between parameters and set column names.
-correlations_doeclimbrick = DataFrame(cor(burned_chain_doeclimbrick), :auto)
-rename!(correlations_doeclimbrick, [Symbol(initial_parameters_doeclimbrick.parameter[i]) for i in 1:length(mean_doeclimbrick)])
+# Check convergence by computing Gelman and Rubin diagnostic for each parameter (potential scale reduction factor)
+psrf = Array{Float64,1}(undef , num_parameters)
+for p in 1:num_parameters
+    chains = reshape(chain_doeclimbrick_burned[:,p], Int(size(chain_doeclimbrick_burned)[1]/num_walkers), num_walkers)
+    chains = [chains[:,k] for k in 1:num_walkers]
+    psrf[p] = potential_scale_reduction(chains...)
+end
 
-# Create equally-spaced indices to thin chains down to 10,000 and 100,000 samples.
-thin_indices_100k = trunc.(Int64, collect(range(1, stop=final_chain_length, length=100_000)))
-thin_indices_10k  = trunc.(Int64, collect(range(1, stop=final_chain_length, length=10_000)))
+# Check if psrf < threshold_gr for each parameters
+if all(x -> x < threshold_gr, psrf)
+    println("All parameter chains have Gelman and Rubin PSRF < ",threshold_gr)
+else
+    println("WARNING: some parameter chains have Gelman and Rubin PSRF > ",threshold_gr)
+    for p in 1:num_parameters
+        println(initial_parameters_doeclimbrick.parameter[p],"  ",round(psrf[p],digits=4))
+    end
+end
 
-# Create thinned chains (after burn-in period) with 10,000 and 100,000 samples and assign parameter names to each column.
-thin100k_chain_doeclimbrick = DataFrame(burned_chain_doeclimbrick[thin_indices_100k, :], :auto)
-thin10k_chain_doeclimbrick  = DataFrame(burned_chain_doeclimbrick[thin_indices_10k, :], :auto)
+# Thinning? By default, not thinning for BRICK. Can add here though if desired.
+final_chain_doeclimbrick = DataFrame(chain_doeclimbrick_burned, :auto)
+rename!(final_chain_doeclimbrick, [Symbol(initial_parameters_doeclimbrick.parameter[i]) for i in 1:num_parameters])
 
-rename!(thin100k_chain_doeclimbrick, [Symbol(initial_parameters_doeclimbrick.parameter[i]) for i in 1:length(mean_doeclimbrick)])
-rename!(thin10k_chain_doeclimbrick,  [Symbol(initial_parameters_doeclimbrick.parameter[i]) for i in 1:length(mean_doeclimbrick)])
+# Subsample
+idx_subsample = sample(1:size(final_chain_doeclimbrick)[1], size_subsample, replace=false)
+final_sample_doeclimbrick = final_chain_doeclimbrick[idx_subsample,:]
 
 #--------------------------------------------------#
 #------------ Save Calibration Results ------------#
@@ -107,7 +142,5 @@ println("Saving calibrated parameters for DOECLIM+BRICK.\n")
 # DOECLIM-BRICK model calibration.
 save(joinpath(@__DIR__, output, "mcmc_acceptance_rate.csv"), DataFrame(doeclimbrick_acceptance=accept_rate_doeclimbrick))
 save(joinpath(@__DIR__, output, "proposal_covariance_matrix.csv"), DataFrame(cov_matrix_doeclimbrick, :auto))
-save(joinpath(@__DIR__, output, "mean_parameters.csv"), DataFrame(parameter = initial_parameters_doeclimbrick.parameter[1:length(mean_doeclimbrick)], doeclimbrick_mean=mean_doeclimbrick))
-save(joinpath(@__DIR__, output, "parameters_10k.csv"), thin10k_chain_doeclimbrick)
-save(joinpath(@__DIR__, output, "parameters_100k.csv"), thin100k_chain_doeclimbrick)
-save(joinpath(@__DIR__, output, "posterior_correlations.csv"), correlations_doeclimbrick)
+save(joinpath(@__DIR__, output, "parameters_full_chain.csv"), final_chain_doeclimbrick)
+save(joinpath(@__DIR__, output, "parameters_subsample.csv"), final_sample_doeclimbrick)
