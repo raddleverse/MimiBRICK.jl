@@ -156,13 +156,17 @@ function create_brick_doeclim(;rcp_scenario::String = "RCP85", start_year::Int=1
     #-----------------------------------------#
 
     # Set parameter connections (:component needing a value => :value name, :component producing the value => value name).
+
+    # in default BRICK we use a model parameter :model_global_surface_temperature 
+    # here and connect all components to that, but here we will individually
+    # connect the components to :doeclim since they are now pulling from another
+    # component's variable and not from a model shared parameter
+    connect_param!(brick_doeclim, :antarctic_icesheet => :global_surface_temperature,       :doeclim => :temp)
+    connect_param!(brick_doeclim, :antarctic_ocean => :global_surface_temperature,          :doeclim => :temp)
+    connect_param!(brick_doeclim, :glaciers_small_icecaps => :global_surface_temperature,   :doeclim => :temp)
+    connect_param!(brick_doeclim, :greenland_icesheet => :global_surface_temperature,       :doeclim => :temp)
+
     connect_param!(brick_doeclim, :doeclim => :forcing, :radiativeforcing => :rf)
-
-    connect_param!(brick_doeclim, :antarctic_ocean => :global_surface_temperature, :doeclim => :temp)
-
-    connect_param!(brick_doeclim, :glaciers_small_icecaps => :global_surface_temperature, :doeclim => :temp)
-
-    connect_param!(brick_doeclim, :greenland_icesheet => :global_surface_temperature, :doeclim => :temp)
 
     connect_param!(brick_doeclim, :thermal_expansion => :ocean_heat_mixed,    :doeclim => :heat_mixed)
     connect_param!(brick_doeclim, :thermal_expansion => :ocean_heat_interior, :doeclim => :heat_mixed)
@@ -173,7 +177,6 @@ function create_brick_doeclim(;rcp_scenario::String = "RCP85", start_year::Int=1
     connect_param!(brick_doeclim, :global_sea_level => :slr_thermal_expansion,       :thermal_expansion      => :te_sea_level)
     connect_param!(brick_doeclim, :global_sea_level => :slr_landwater_storage,       :landwater_storage      => :lws_sea_level)
 
-    connect_param!(brick_doeclim, :antarctic_icesheet => :global_surface_temperature,  :doeclim          => :temp)
     connect_param!(brick_doeclim, :antarctic_icesheet => :antarctic_ocean_temperature, :antarctic_ocean  => :anto_temperature)
     connect_param!(brick_doeclim, :antarctic_icesheet => :global_sea_level,            :global_sea_level => :sea_level_rise)
 

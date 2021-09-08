@@ -132,9 +132,9 @@ function create_sneasy_brick(; rcp_scenario::String="RCP85", start_year::Int=185
     # Set parameter connections (:component => :parameter).
 
     # in default BRICK we use a model parameter :model_global_surface_temperature 
-    # here and connect all components to that, but here we will just individually
-    # connect the components to :doeclim
-    
+    # here and connect all components to that, but here we will individually
+    # connect the components to :doeclim since they are now pulling from another
+    # component's variable and not from a model shared parameter
     connect_param!(m, :antarctic_icesheet =>        :global_surface_temperature, :doeclim => :temp)
     connect_param!(m, :antarctic_ocean =>           :global_surface_temperature, :doeclim => :temp)
     connect_param!(m, :glaciers_small_icecaps =>    :global_surface_temperature, :doeclim => :temp)
