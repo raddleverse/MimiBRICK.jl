@@ -1,2 +1,4 @@
 .DS_Store
+.ipynb_checkpoints
 results
+data/calibration_data/from_preliminary_chains

@@ -47,7 +47,7 @@ add https://github.com/anthofflab/MimiSNEASY.jl.git
 (3) Run the following line to install the Mimi implementation of BRICK:
 
 ```julia
-add https://github.com/BRICK-SLR/MimiBRICK.jl.git
+add https://github.com/raddleverse/MimiBRICK.jl.git
 ```
 
 (4) To exit back to Julia, hit the `backspace` key.

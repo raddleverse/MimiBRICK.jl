@@ -1,0 +1,51 @@
+Data: Paramater values to initialize the MCMC algorithm for the DOECLIM+BRICK model.,,,,
+,,,,
+Notes: ,(1) The starting point parameter values correspond to values from past model calibrations.,,,
+,"(2) For parameters without lower or upper bounds, a physically informed range was selected based on past calibrations (these bounds are only used to select an initial step size in the adaptive MCMC sampling algorithm).",,,
+,"(3) The initial MCMC step size set to 5% of the difference between a parameter's upper and lower bound. (The proposal covariance matrix from the previous calibration should be used instead, though)",,,
+,,,,
+parameter,lower_bound,upper_bound,starting_point,mcmc_step_size
+sd_temp,0,0.2,0.077393748,0.01
+sd_ocean_heat,0,4,2.78536739,0.2
+sd_glaciers,0,0.0015,0.000561646,0.000075
+sd_greenland,0,0.002,0.000251931,0.0001
+sd_antarctic,0,0.063,0.000290308,0.00315
+sd_gmsl,0,0.05,0.002957147,0.0025
+rho_temperature,-0.99,0.99,0.594570176,0.099
+rho_ocean_heat,-0.99,0.99,0.199802902,0.099
+rho_glaciers,-0.99,0.99,-0.23532114,0.099
+rho_greenland,-0.99,0.99,0.838949131,0.099
+rho_antarctic,-0.99,0.99,0.907301572,0.099
+rho_gmsl,-0.99,0.99,0.988189874,0.099
+temperature_0,-0.3,0.3,0.043926451,0.03
+ocean_heat_0,-100,0,-34.59528616,5
+thermal_s0,0.05,0.3,-0.02110843,0.0125
+greenland_v0,7.16,7.56,7.24636882,0.02
+glaciers_v0,0.31,0.53,0.382296999,0.011
+glaciers_s0,-0.0536,0.0791,-0.012139469,0.006635
+antarctic_s0,-0.04755,0.05585,0.011344455,0.00517
+heat_diffusivity,0.5,10,4.183274064,0.475
+rf_scale_aerosol,0,3,1.434181426,0.15
+climate_sensitivity,0,10,4.554591454,0.5
+thermal_alpha,0.05,0.3,0.284697935,0.0125
+greenland_a,-4,-0.001,-2.518130102,0.19995
+greenland_b,5.888,8.832,8.32461295,0.1472
+greenland_alpha,0,0.001,0.000617518,0.00005
+greenland_beta,0,0.001,1.99E-05,0.00005
+glaciers_beta0,0,0.041,0.000938309,0.00205
+glaciers_n,0.55,1,0.633811265,0.0225
+anto_alpha,0,1,0.753363299,0.05
+anto_beta,0,2,0.227098431,0.1
+antarctic_gamma,0.5,4.25,3.060343419,0.1875
+antarctic_alpha,0,1,0.191676629,0.05
+antarctic_mu,7,13.7,13.15375235,0.335
+antarctic_nu,0,0.015,0.004302063,0.00075
+antarctic_precip0,0.025,1.5,0.927281446,0.07375
+antarctic_kappa,0.025,0.08,0.083616298,0.00275
+antarctic_flow0,0.6,1.8,0.931617061,0.06
+antarctic_runoff_height0,735,2206,1570.760871,73.55
+antarctic_c,47.5,142.5,89.96851324,4.75
+antarctic_bed_height0,740,820,808.1224965,4
+antarctic_slope,0.00045,0.00075,0.000676172,0.000015
+antarctic_lambda,0.0017,0.03,0.00618497,0.001415
+antarctic_temp_threshold,-17,-14,-15.45461917,0.15
