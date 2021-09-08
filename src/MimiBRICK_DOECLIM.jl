@@ -66,87 +66,89 @@ function create_brick_doeclim(;rcp_scenario::String = "RCP85", start_year::Int=1
     # ----- Assign Model Parameters ----- #
     #-------------------------------------#
 
+    # ----- Shared Parameters ----- #
+
+    add_shared_param!(brick_doeclim, :model_deltat, 1.0)
+    connect_param!(brick_doeclim, :radiativeforcing, :deltat, :model_deltat)
+    connect_param!(brick_doeclim, :doeclim, :deltat, :model_deltat)
+
+    add_shared_param!(brick_doeclim, :model_seawater_freeze, -1.8)
+    connect_param!(brick_doeclim, :antarctic_ocean, :seawater_freeze, :model_seawater_freeze)
+    connect_param!(brick_doeclim, :antarctic_icesheet, :seawater_freeze, :model_seawater_freeze)
+
     # ----- Radiative Forcing ----- #
 
-    set_param!(brick_doeclim, :radiativeforcing, :rf_co2, forcing_CO₂)
-    set_param!(brick_doeclim, :radiativeforcing, :rf_aerosol, forcing_aerosols)
-    set_param!(brick_doeclim, :radiativeforcing, :rf_other, forcing_other_sources)
-    set_param!(brick_doeclim, :radiativeforcing, :alpha, 1.0)
-    add_shared_param!(brick_doeclim, :deltat, 1.0)
-    connect_param!(brick_doeclim, :radiativeforcing, :deltat, :deltat)
+    update_param!(brick_doeclim, :radiativeforcing, :rf_co2, forcing_CO₂)
+    update_param!(brick_doeclim, :radiativeforcing, :rf_aerosol, forcing_aerosols)
+    update_param!(brick_doeclim, :radiativeforcing, :rf_other, forcing_other_sources)
+    update_param!(brick_doeclim, :radiativeforcing, :alpha, 1.0)
 
     # ----- DOEclim ----- #
 
-    set_param!(brick_doeclim, :doeclim, :t2co, 3.0)
-    set_param!(brick_doeclim, :doeclim, :kappa, 1.0)
-    connect_param!(brick_doeclim, :doeclim, :deltat, :deltat)
+    update_param!(brick_doeclim, :doeclim, :t2co, 3.0)
+    update_param!(brick_doeclim, :doeclim, :kappa, 1.0)
 
     # ----- Antarctic Ocean ----- #
 
-    set_param!(brick_doeclim, :antarctic_ocean, :anto_α, 0.28)
-    set_param!(brick_doeclim, :antarctic_ocean, :anto_β, 0.95)
-    #set_param!(brick_doeclim, :antarctic_ocean, :seawater_freeze, -1.8)
-    add_shared_param!(brick_doeclim, :seawater_freeze, -1.8)
-    connect_param!(brick_doeclim, :antarctic_ocean, :seawater_freeze, :seawater_freeze)
+    update_param!(brick_doeclim, :antarctic_ocean, :anto_α, 0.28)
+    update_param!(brick_doeclim, :antarctic_ocean, :anto_β, 0.95)
 
     # ----- Antarctic Ice Sheet ----- #
 
-    #set_param!(brick_doeclim, :antarctic_icesheet, :seawater_freeze, -1.8)
-    connect_param!(brick_doeclim, :antarctic_icesheet, :seawater_freeze, :seawater_freeze)
-    set_param!(brick_doeclim, :antarctic_icesheet, :ais_ρ_ice, 917.0)
-    set_param!(brick_doeclim, :antarctic_icesheet, :ais_ρ_seawater, 1030.0)
-    set_param!(brick_doeclim, :antarctic_icesheet, :ais_ρ_rock, 4000.0)
-    set_param!(brick_doeclim, :antarctic_icesheet, :ais_sea_level₀, 0.0)
-    set_param!(brick_doeclim, :antarctic_icesheet, :ais_ocean_temperature₀, 0.72)
-    set_param!(brick_doeclim, :antarctic_icesheet, :ais_radius₀, 1.864e6)
-    set_param!(brick_doeclim, :antarctic_icesheet, :ais_bedheight₀, 781.0)
-    set_param!(brick_doeclim, :antarctic_icesheet, :ais_slope, 0.0006)
-    set_param!(brick_doeclim, :antarctic_icesheet, :ais_μ, 11.0)
-    set_param!(brick_doeclim, :antarctic_icesheet, :ais_runoffline_snowheight₀, 1400.0)
-    set_param!(brick_doeclim, :antarctic_icesheet, :ais_c, 100.0)
-    set_param!(brick_doeclim, :antarctic_icesheet, :ais_precipitation₀, 0.37)
-    set_param!(brick_doeclim, :antarctic_icesheet, :ais_κ, 0.062)
-    set_param!(brick_doeclim, :antarctic_icesheet, :ais_ν, 0.0086)
-    set_param!(brick_doeclim, :antarctic_icesheet, :ais_iceflow₀, 1.2)
-    set_param!(brick_doeclim, :antarctic_icesheet, :ais_γ, 2.9)
-    set_param!(brick_doeclim, :antarctic_icesheet, :ais_α, 0.23)
-    set_param!(brick_doeclim, :antarctic_icesheet, :ais_temperature_coefficient, 0.8365)
-    set_param!(brick_doeclim, :antarctic_icesheet, :ais_temperature_intercept, 15.42)
-    set_param!(brick_doeclim, :antarctic_icesheet, :ais_local_fingerprint, -1.18)
-    set_param!(brick_doeclim, :antarctic_icesheet, :ocean_surface_area, 3.619e14)
-    set_param!(brick_doeclim, :antarctic_icesheet, :temperature_threshold, -15.0)
-    set_param!(brick_doeclim, :antarctic_icesheet, :λ, 0.0093)
-    set_param!(brick_doeclim, :antarctic_icesheet, :include_ais_DSL, true)
+    update_param!(brick_doeclim, :antarctic_icesheet, :ais_ρ_ice, 917.0)
+    update_param!(brick_doeclim, :antarctic_icesheet, :ais_ρ_seawater, 1030.0)
+    update_param!(brick_doeclim, :antarctic_icesheet, :ais_ρ_rock, 4000.0)
+    update_param!(brick_doeclim, :antarctic_icesheet, :ais_sea_level₀, 0.0)
+    update_param!(brick_doeclim, :antarctic_icesheet, :ais_ocean_temperature₀, 0.72)
+    update_param!(brick_doeclim, :antarctic_icesheet, :ais_radius₀, 1.864e6)
+    update_param!(brick_doeclim, :antarctic_icesheet, :ais_bedheight₀, 781.0)
+    update_param!(brick_doeclim, :antarctic_icesheet, :ais_slope, 0.0006)
+    update_param!(brick_doeclim, :antarctic_icesheet, :ais_μ, 11.0)
+    update_param!(brick_doeclim, :antarctic_icesheet, :ais_runoffline_snowheight₀, 1400.0)
+    update_param!(brick_doeclim, :antarctic_icesheet, :ais_c, 100.0)
+    update_param!(brick_doeclim, :antarctic_icesheet, :ais_precipitation₀, 0.37)
+    update_param!(brick_doeclim, :antarctic_icesheet, :ais_κ, 0.062)
+    update_param!(brick_doeclim, :antarctic_icesheet, :ais_ν, 0.0086)
+    update_param!(brick_doeclim, :antarctic_icesheet, :ais_iceflow₀, 1.2)
+    update_param!(brick_doeclim, :antarctic_icesheet, :ais_γ, 2.9)
+    update_param!(brick_doeclim, :antarctic_icesheet, :ais_α, 0.23)
+    update_param!(brick_doeclim, :antarctic_icesheet, :ais_temperature_coefficient, 0.8365)
+    update_param!(brick_doeclim, :antarctic_icesheet, :ais_temperature_intercept, 15.42)
+    update_param!(brick_doeclim, :antarctic_icesheet, :ais_local_fingerprint, -1.18)
+    update_param!(brick_doeclim, :antarctic_icesheet, :ocean_surface_area, 3.619e14)
+    update_param!(brick_doeclim, :antarctic_icesheet, :temperature_threshold, -15.0)
+    update_param!(brick_doeclim, :antarctic_icesheet, :λ, 0.0093)
+    update_param!(brick_doeclim, :antarctic_icesheet, :include_ais_DSL, true)
 
     # ----- Glaciers & Small Ice Caps ----- #
 
-    set_param!(brick_doeclim, :glaciers_small_icecaps, :gsic_β₀, 0.0013)
-    set_param!(brick_doeclim, :glaciers_small_icecaps, :gsic_v₀, 0.376)
-    set_param!(brick_doeclim, :glaciers_small_icecaps, :gsic_s₀, -0.0138)
-    set_param!(brick_doeclim, :glaciers_small_icecaps, :gsic_n, 0.847)
-    set_param!(brick_doeclim, :glaciers_small_icecaps, :gsic_teq, -0.15)
+    update_param!(brick_doeclim, :glaciers_small_icecaps, :gsic_β₀, 0.0013)
+    update_param!(brick_doeclim, :glaciers_small_icecaps, :gsic_v₀, 0.376)
+    update_param!(brick_doeclim, :glaciers_small_icecaps, :gsic_s₀, -0.0138)
+    update_param!(brick_doeclim, :glaciers_small_icecaps, :gsic_n, 0.847)
+    update_param!(brick_doeclim, :glaciers_small_icecaps, :gsic_teq, -0.15)
 
     # ----- Greenland Ice Sheet ----- #
 
-    set_param!(brick_doeclim, :greenland_icesheet, :greenland_a, -1.37)
-    set_param!(brick_doeclim, :greenland_icesheet, :greenland_b, 8.06)
-    set_param!(brick_doeclim, :greenland_icesheet, :greenland_α, 0.0008)
-    set_param!(brick_doeclim, :greenland_icesheet, :greenland_β, 0.00009)
-    set_param!(brick_doeclim, :greenland_icesheet, :greenland_v₀, 7.52)
+    update_param!(brick_doeclim, :greenland_icesheet, :greenland_a, -1.37)
+    update_param!(brick_doeclim, :greenland_icesheet, :greenland_b, 8.06)
+    update_param!(brick_doeclim, :greenland_icesheet, :greenland_α, 0.0008)
+    update_param!(brick_doeclim, :greenland_icesheet, :greenland_β, 0.00009)
+    update_param!(brick_doeclim, :greenland_icesheet, :greenland_v₀, 7.52)
 
     # ----- Thermal Expansion ----- #
 
-    set_param!(brick_doeclim, :thermal_expansion, :te_A, 3.619e14)
-    set_param!(brick_doeclim, :thermal_expansion, :te_C, 3991.86795711963)
-    set_param!(brick_doeclim, :thermal_expansion, :te_ρ, 1027.0)
-    set_param!(brick_doeclim, :thermal_expansion, :te_α, 0.16)
-    set_param!(brick_doeclim, :thermal_expansion, :te_s₀, 0.0)
+    update_param!(brick_doeclim, :thermal_expansion, :te_A, 3.619e14)
+    update_param!(brick_doeclim, :thermal_expansion, :te_C, 3991.86795711963)
+    update_param!(brick_doeclim, :thermal_expansion, :te_ρ, 1027.0)
+    update_param!(brick_doeclim, :thermal_expansion, :te_α, 0.16)
+    update_param!(brick_doeclim, :thermal_expansion, :te_s₀, 0.0)
 
     # ----- Landwater Storage ----- #
 
-    set_param!(brick_doeclim, :landwater_storage, :lws₀, 0.0)
-    set_param!(brick_doeclim, :landwater_storage, :first_projection_year, 2018)
-    set_param!(brick_doeclim, :landwater_storage, :lws_random_sample, rand(Normal(0.0003, 0.00018), length(model_years)))
+    update_param!(brick_doeclim, :landwater_storage, :lws₀, 0.0)
+    update_param!(brick_doeclim, :landwater_storage, :first_projection_year, 2018)
+    update_param!(brick_doeclim, :landwater_storage, :lws_random_sample, rand(Normal(0.0003, 0.00018), length(model_years)))
 
 
     #-----------------------------------------#
@@ -177,6 +179,8 @@ function create_brick_doeclim(;rcp_scenario::String = "RCP85", start_year::Int=1
 
     # Return BRICK + DOEclim model.
     return brick_doeclim
+
+    
 end
 
 end # Module

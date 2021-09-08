@@ -26,10 +26,11 @@ using RobustAdaptiveMetropolisSampler
 using MCMCDiagnostics
 using Random
 using StatsBase
+using Dates 
 
 # Model configuration
 # --> Possible options: (1) "brick", (2) "doeclimbrick", (3) "sneasybrick"
-model_config = "brick"
+model_config = "sneasybrick"
 #for model_config in ["brick", "doeclimbrick", "sneasybrick"]
 
 # Initial conditions from a previous file or from the prior distributions?
