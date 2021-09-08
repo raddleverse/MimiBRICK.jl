@@ -31,13 +31,20 @@ using StatsBase
 # --> Possible options: (1) "brick", (2) "doeclimbrick", (3) "sneasybrick"
 model_config = "brick"
 
+for model_config in ["brick", "doeclimbrick", "sneasybrick"]
+
 # Initial conditions from a previous file or from the prior distributions?
 # --> If you want to use the midpoints of the prior ranges as the starting parameter estimates, and 5% of the prior range width as the step size for MCMC, set `start_from_priors = true`
-start_from_priors = true
+start_from_priors = false
+path_parameter_info = joinpath(@__DIR__, "..", "data", "calibration_data", "calibration_initial_values_"*model_config*".csv")
 # --> If you want to read from a previous run, set these two file names/paths.
 #     NOTE that if `start_from_priors = true`, these will NOT be used, even if they are set appropriately.
+#     Also, the `path_initial_parameters` does not need to be distinct from the `path_parameter_info`.
+#     `path_parameter_info` is just to get the prior ranges and names of the parameters, whereas `path_initial_parameters` will give the starting values for the model parameters.
 if ~start_from_priors
     path_initial_parameters = joinpath(@__DIR__, "..", "data", "calibration_data", "calibration_initial_values_"*model_config*".csv")
+    #     Also, the `path_initial_parameter_values` does not need to be distinct from the `path_initial_parameters`.
+    #     `path_initial_parameters` is just
     path_initial_covariance = joinpath(@__DIR__, "..", "data", "calibration_data", "initial_proposal_covariance_matrix_"*model_config*".csv")
 end
 
@@ -83,7 +90,7 @@ lags = 10:10:50000
 ##------------------------------------------------------------------------------
 
 # A folder with this name will be created to store all of the replication results.
-results_folder_name = "my_"*model_config*"_results"
+results_folder_name = "my_"*model_config*"_results_"*string(Int(total_chain_length/1000))*"K_$(Dates.format(now(),"dd-mm-yyyy"))"
 
 # Create output folder path for convenience and make path.
 output = joinpath(@__DIR__, "..", "results", results_folder_name)
@@ -92,62 +99,64 @@ mkpath(output)
 # Load calibration helper functions file.
 include(joinpath("..", "calibration", "calibration_helper_functions.jl"))
 
+
 ##------------------------------------------------------------------------------
 ## Set up initial parameters and proposal covariance matrix
 ##------------------------------------------------------------------------------
 
 # Either way, need the parameter names and distribution ranges
-initial_parameters = DataFrame(load(joinpath(@__DIR__, "..", "data", "calibration_data", "calibration_initial_values_doeclim_brick.csv"), skiplines_begin=6))
+parameter_info = DataFrame(load(path_parameter_info, skiplines_begin=6))
+num_parameters = nrow(parameter_info)
+parnames = [Symbol(parameter_info.parameter[i]) for i in 1:num_parameters]
 if start_from_priors
-
+    # midpoint and 5% of the prior range width as the starting values and step sizes (step size ~ stdev, so squared to get variance)
+    initial_parameters = 0.5*(parameter_info[:,"upper_bound"]+parameter_info[:,"lower_bound"])
+    initial_covariance_matrix = diagm(0.05*(parameter_info[:,"upper_bound"]-parameter_info[:,"lower_bound"]))^2
 else
-    initial_parameters = DataFrame(load(path_initial_parameters, skiplines_begin=6))
+    initial_parameters = DataFrame(load(path_initial_parameters, skiplines_begin=6)).starting_point
     initial_covariance_matrix = Array(Hermitian(Matrix(DataFrame(load(path_initial_covariance)))))
 end
 
 
-
 ##------------------------------------------------------------------------------
-## Initial Baseline Calibration -------------------#
-#-------------------------------------------------------------#
-#-------------------------------------------------------------#
-
-# NOTE** This version uses the kernel density estimated marginal priors for the Antarctic ice sheet based on a calibration to paleo data.
+## Load functions for running and calibrating the model configuration
+## --> New configurations will need new drivers and posterior distribution calculation scripts, but can follow the format of the examples here
+##------------------------------------------------------------------------------
 
 # Load run historic model file.
-include(joinpath("..", "calibration", "run_historic_models", "run_brick_historic_climate.jl"))
+include(joinpath("..", "calibration", "run_historic_models", "run_"*model_config*"_historic_climate.jl"))
 
-# Load log-posterior script for BRICK model.
-include(joinpath("..", "calibration", "create_log_posterior_brick.jl"))
+# Load log-posterior script for this model configuration.
+include(joinpath("..", "calibration", "create_log_posterior_"*model_config*".jl"))
 
+# NOTE: the following two commands assume a naming convention for the `construct_run_[model_config]`
+# and `construct_[model_config]_log_posterior` functions in the helper scripts included above.
 
-# Create `BRICK` function used in log-posterior calculations.
-run_brick! = construct_run_brick(calibration_start_year, calibration_end_year)
+# Create model run function used in log-posterior calculations.
+@eval run_mymodel! = ($(Symbol("construct_run_$model_config")))(calibration_start_year, calibration_end_year)
 
 # Create log-posterior function.
-log_posterior_brick = construct_brick_log_posterior(run_brick!, model_start_year=1850, calibration_end_year=calibration_end_year, joint_antarctic_prior=false)
+@eval log_posterior_mymodel = ($(Symbol("construct_$model_config"*"_log_posterior")))(run_mymodel!, model_start_year=1850, calibration_end_year=calibration_end_year, joint_antarctic_prior=false)
 
-println("Begin baseline calibration of BRICK model.\n")
+println("Begin baseline calibration of "*model_config*" model.\n")
 
 # Carry out Bayesian calibration using robust adaptive metropolis MCMC algorithm.
 Random.seed!(2021) # for reproducibility
-chain_brick, accept_rate_brick, cov_matrix_brick = RAM_sample(log_posterior_brick, initial_parameters_brick.starting_point, initial_covariance_matrix_brick, Int(total_chain_length), opt_α=0.234)
+chain_raw, accept_rate, cov_matrix = RAM_sample(log_posterior_mymodel, initial_parameters, initial_covariance_matrix, Int(total_chain_length), opt_α=0.234)
 
-#-------------------------------------------------------------#
-#-------------------------------------------------------------#
-#------------------ Convergence checks and -------------------#
-#------------------  (possibly) thinning   -------------------#
-#-------------------------------------------------------------#
-#-------------------------------------------------------------#
+
+##------------------------------------------------------------------------------
+## Burn-in removal and check convergence via Gelman and Rubin potential scale
+## reduction factor (PSRF)
+##------------------------------------------------------------------------------
 
 # Remove the burn-in period
-chain_brick_burned = chain_brick[(burnin_length+1):total_chain_length,:]
+chain_burned = chain_raw[(burnin_length+1):total_chain_length,:]
 
 # Check convergence by computing Gelman and Rubin diagnostic for each parameter (potential scale reduction factor)
-num_parameters = size(chain_brick_burned)[2]
 psrf = Array{Float64,1}(undef , num_parameters)
 for p in 1:num_parameters
-    chains = reshape(chain_brick_burned[:,p], Int(size(chain_brick_burned)[1]/num_walkers), num_walkers)
+    chains = reshape(chain_burned[:,p], Int(size(chain_burned)[1]/num_walkers), num_walkers)
     chains = [chains[:,k] for k in 1:num_walkers]
     psrf[p] = potential_scale_reduction(chains...)
 end
@@ -158,61 +167,84 @@ if all(x -> x < threshold_gr, psrf)
 else
     println("WARNING: some parameter chains have Gelman and Rubin PSRF > ",threshold_gr)
     for p in 1:num_parameters
-        println(initial_parameters_brick.parameter[p],"  ",round(psrf[p],digits=4))
+        println(parnames[p],"  ",round(psrf[p],digits=4))
     end
 end
 
+# this is just an example chunk of code for continuing a chain. to be deleted?
 if false
     ## continuing a chain:
-    # set the initial parameter sample
-    initial_parameters_brick[:,"starting_point"] = chain_brick[total_chain_length,:]
-    # run more iterations
+    # use the last iteration from the previous chain as the initial parameters.
+    # use the last covariance matrix (that is output from RAM_sample) as the initial proposal covariance matrix.
+    # run more iterations:
     num_new_samples = total_chain_length - burnin_length
-    chain_brick2, accept_rate_brick2, cov_matrix_brick2 = RAM_sample(log_posterior_brick, initial_parameters_brick.starting_point, cov_matrix_brick, Int(num_new_samples), opt_α=0.234)
-    full_chain_brick = vcat(chain_brick, chain_brick2)
+    chain_raw_new, accept_rate_new, cov_matrix_new = RAM_sample(log_posterior_mymodel, chain_raw[total_chain_length,:], cov_matrix, Int(num_new_samples), opt_α=0.234)
+    # reset to combine
+    chain_raw = vcat(chain_raw, chain_raw_new)
+    accept_rate = (total_chain_length*accept_rate + num_new_samples*accept_rate_new)/(total_chain_length+num_new_samples)
+    cov_matrix = cov_matrix_new
 end
 
 
-# Thinning
+##------------------------------------------------------------------------------
+## Thinning - probably not done by default, just running many iterations and then subsampling
+##------------------------------------------------------------------------------
+
 if do_thinning
     # --> start the thinning lag out at the minimum `lags`
     # --> loop through the parameters and calculate the lag at which autocorrelation < threshold_acf
     # --> increase thinning lag whenever you encounter a higher needed lag
     thinlag = minimum(lags) # initialize
     for p in 1:num_parameters
-        acf = autocor(chain_brick_burned[:,p], lags)
+        acf = autocor(chain_burned[:,p], lags)
         idx_low_enough = findall(x -> x <= threshold_acf, acf)
         if length(idx_low_enough) >= 1
             idx_low_enough = idx_low_enough[1]
         else
             longer_lags = lags[1]:(lags[2]-lags[1]):Int(0.5*(total_chain_length-burnin_length)) # increase the max lags
-            acf = autocor(chain_brick_burned[:,p], longer_lags)
+            acf = autocor(chain_burned[:,p], longer_lags)
             idx_low_enough = findall(x -> x <= threshold_acf, acf)[1]
             # TODO - the above will error out if there are still no lags at which ACF < threshold_acf
         end
         thinlag = maximum([thinlag, lags[idx_low_enough]])
     end
     # TODO - subsample the chain
-    final_chain_brick = DataFrame(chain_brick_burned, :auto)
-    rename!(final_chain_brick, [Symbol(initial_parameters_brick.parameter[i]) for i in 1:num_parameters])
+    final_chain = DataFrame(chain_burned, :auto)
+    rename!(final_chain, parnames)
 else
-    final_chain_brick = DataFrame(chain_brick_burned, :auto)
-    rename!(final_chain_brick, [Symbol(initial_parameters_brick.parameter[i]) for i in 1:num_parameters])
+    final_chain = DataFrame(chain_burned, :auto)
+    rename!(final_chain, parnames)
 end
 
-# Subsample
-idx_subsample = sample(1:size(final_chain_brick)[1], size_subsample, replace=false)
-final_sample_brick = final_chain_brick[idx_subsample,:]
 
-#--------------------------------------------------#
-#------------ Save Calibration Results ------------#
-#--------------------------------------------------#
+##------------------------------------------------------------------------------
+## Subsampling the final chains
+##------------------------------------------------------------------------------
+
+idx_subsample = sample(1:size(final_chain)[1], size_subsample, replace=false)
+final_sample = final_chain[idx_subsample,:]
+
+
+##------------------------------------------------------------------------------
+## Save the results
+##------------------------------------------------------------------------------
 
 # Save calibrated parameter samples
-println("Saving calibrated parameters for BRICK.\n")
+println("Saving calibrated parameters for "*model_config*".\n")
 
-# BRICK model calibration.
-save(joinpath(@__DIR__, output, "mcmc_acceptance_rate.csv"), DataFrame(brick_acceptance=accept_rate_brick))
-save(joinpath(@__DIR__, output, "proposal_covariance_matrix.csv"), DataFrame(cov_matrix_brick, :auto))
-save(joinpath(@__DIR__, output, "parameters_full_chain.csv"), final_chain_brick)
-save(joinpath(@__DIR__, output, "parameters_subsample.csv"), final_sample_brick)
+save(joinpath(@__DIR__, output, "mcmc_acceptance_rate.csv"), DataFrame(acceptance_rate=accept_rate))
+save(joinpath(@__DIR__, output, "proposal_covariance_matrix.csv"), DataFrame(cov_matrix, :auto))
+save(joinpath(@__DIR__, output, "parameters_full_chain.csv"), final_chain)
+save(joinpath(@__DIR__, output, "parameters_subsample.csv"), final_sample)
+
+# Save initial conditions for future runs
+filename_new_initial_parameters = "calibration_initial_values_"*model_config*"_"*string(Int(total_chain_length/1000))*"K_$(Dates.format(now(),"dd-mm-yyyy")).csv"
+new_initial_parameters = DataFrame(parameter_names = parnames, parameter_values = Vector(final_chain[size(final_chain)[1],:]))
+save(joinpath(@__DIR__, "..", "data", "calibration_data", filename_new_initial_parameters), new_initial_parameters)
+filename_new_initial_covariance = "initial_proposal_covariance_matrix_"*model_config*"_"*string(Int(total_chain_length/1000))*"K_$(Dates.format(now(),"dd-mm-yyyy")).csv"
+save(joinpath(@__DIR__, "..", "data", "calibration_data", filename_new_initial_covariance), DataFrame(cov_matrix, :auto))
+
+
+##------------------------------------------------------------------------------
+## End
+##------------------------------------------------------------------------------

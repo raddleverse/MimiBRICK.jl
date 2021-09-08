@@ -88,6 +88,8 @@ include(joinpath("..", "calibration", "create_log_posterior_brick.jl"))
 # --> These are the final values from a preliminary calibration 4 million iterations
 # --> That preliminary calibration started from a SNEASY-BRICK calibration, but with the non-BRICK parameters removed
 initial_parameters_brick = DataFrame(load(joinpath(@__DIR__, "..", "data", "calibration_data", "calibration_initial_values_brick.csv"), skiplines_begin=6))
+num_parameters = nrow(initial_parameters_brick)
+parnames = [Symbol(initial_parameters_brick.parameter[i]) for i in 1:num_parameters]
 
 # Load initial proposal covariance matrix (from previous calibrations) and format so it works with RAM sampler (need to account for rounding errors or Cholesky factorization fails).
 # --> From the same preliminary calibration as the initial parameters above
