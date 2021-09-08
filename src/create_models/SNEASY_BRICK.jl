@@ -6,14 +6,11 @@ using MimiBRICK
 using MimiSNEASY
 
 # Create a function to run SNEASY-BRICK climate model over historic period.
-function create_sneasy_brick(rcp_scenario::String; end_year::Int=2020)
+function create_sneasy_brick(; rcp_scenario::String="RCP85", start_year::Int=1850, end_year::Int=2020)
 
  	# ---------------------------------------------
     # Load and clean up necessary data.
     # ---------------------------------------------
-
-    # Set start year.
-    start_year = 1850
 
 	# Set model years.
 	model_years = collect(start_year:end_year)
@@ -54,6 +51,13 @@ function create_sneasy_brick(rcp_scenario::String; end_year::Int=2020)
 	# Set all BRICK parameters and create model connections.
 
 	# ----- Antarctic Ocean ----- #
+
+#example usage of update_param!                  TODO  HERE NOW    TODO  HERE NOW    TODO  HERE NOW    TODO  HERE NOW
+#update_param!(m, :t2co,  ECS)                   TODO  HERE NOW    TODO  HERE NOW    TODO  HERE NOW    TODO  HERE NOW
+# Or, in the new Mimi doc:
+#"In addition, we now present a new update_param!:
+#update_param!(m, comp_name, param_name, value)"
+
 
     set_param!(m, :antarctic_ocean, :anto_α, 0.28)
     set_param!(m, :antarctic_ocean, :anto_β, 0.95)

@@ -30,8 +30,7 @@ using StatsBase
 # Model configuration
 # --> Possible options: (1) "brick", (2) "doeclimbrick", (3) "sneasybrick"
 model_config = "brick"
-
-for model_config in ["brick", "doeclimbrick", "sneasybrick"]
+#for model_config in ["brick", "doeclimbrick", "sneasybrick"]
 
 # Initial conditions from a previous file or from the prior distributions?
 # --> If you want to use the midpoints of the prior ranges as the starting parameter estimates, and 5% of the prior range width as the step size for MCMC, set `start_from_priors = true`
@@ -238,11 +237,13 @@ save(joinpath(@__DIR__, output, "parameters_full_chain.csv"), final_chain)
 save(joinpath(@__DIR__, output, "parameters_subsample.csv"), final_sample)
 
 # Save initial conditions for future runs
+path_new_initial_conditions = joinpath(@__DIR__, "..", "data", "calibration_data", "from_preliminary_chains")
+mkpath(path_new_initial_conditions)
 filename_new_initial_parameters = "calibration_initial_values_"*model_config*"_"*string(Int(total_chain_length/1000))*"K_$(Dates.format(now(),"dd-mm-yyyy")).csv"
 new_initial_parameters = DataFrame(parameter_names = parnames, parameter_values = Vector(final_chain[size(final_chain)[1],:]))
-save(joinpath(@__DIR__, "..", "data", "calibration_data", filename_new_initial_parameters), new_initial_parameters)
+save(joinpath(path_new_initial_conditions, filename_new_initial_parameters), new_initial_parameters)
 filename_new_initial_covariance = "initial_proposal_covariance_matrix_"*model_config*"_"*string(Int(total_chain_length/1000))*"K_$(Dates.format(now(),"dd-mm-yyyy")).csv"
-save(joinpath(@__DIR__, "..", "data", "calibration_data", filename_new_initial_covariance), DataFrame(cov_matrix, :auto))
+save(joinpath(path_new_initial_conditions, filename_new_initial_covariance), DataFrame(cov_matrix, :auto))
 
 
 ##------------------------------------------------------------------------------
