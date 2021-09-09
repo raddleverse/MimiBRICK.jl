@@ -137,6 +137,7 @@ function construct_sneasybrick_log_prior(joint_antarctic_prior::Bool, uniform_EC
     # Climate & Radiative Forcing Priors.
     # -----------------------------------------
     prior_heat_diffusivity   = LogNormal(1.1, 0.3)
+    #prior_heat_diffusivity   = Uniform(0.1, 4) # from BRICK paper
     prior_rf_scale_aerosol   = TriangularDist(0., 3., 1.)
 
     # Decide whether to use a uniform or paleo-informed ECS prior.
@@ -220,6 +221,26 @@ function construct_sneasybrick_log_prior(joint_antarctic_prior::Bool, uniform_EC
                     logpdf(prior_glaciers_β₀, glaciers_β₀) + logpdf(prior_glaciers_n, glaciers_n) +
                     antarctic_total_prior(antarctic_params)
 
+
+        # TW-DEBUG
+        if false
+        println("=======================================")
+        println("here02 - antarctic_total_prior = ",antarctic_total_prior(antarctic_params))
+        #println("here02 - line1 = ",logpdf(prior_σ_temperature, σ_temperature) + logpdf(prior_σ_ocean_heat, σ_ocean_heat) + logpdf(prior_σ_glaciers, σ_glaciers) + logpdf(prior_σ_greenland, σ_greenland) + logpdf(prior_σ_antarctic, σ_antarctic) + logpdf(prior_σ_gmsl, σ_gmsl) + logpdf(prior_σ²_white_noise_CO₂, σ²_white_noise_CO₂))
+        #println("here02 - line2 = ",logpdf(prior_ρ_temperature, ρ_temperature) + logpdf(prior_ρ_ocean_heat, ρ_ocean_heat) + logpdf(prior_ρ_glaciers, ρ_glaciers) + logpdf(prior_ρ_greenland, ρ_greenland) + logpdf(prior_ρ_antarctic, ρ_antarctic) + logpdf(prior_ρ_gmsl, ρ_gmsl) + logpdf(prior_α₀_CO₂, α₀_CO₂))
+        println("here02 - line3 = ",logpdf(prior_CO₂_0, CO₂_0) + logpdf(prior_N₂O_0, N₂O_0) + logpdf(prior_temperature_0, temperature_0) + logpdf(prior_ocean_heat_0, ocean_heat_0) + logpdf(prior_thermal_s₀, thermal_s₀) + logpdf(prior_greenland_v₀, greenland_v₀) + logpdf(prior_glaciers_v₀, glaciers_v₀) + logpdf(prior_glaciers_s₀, glaciers_s₀) + logpdf(prior_antarctic_s₀, antarctic_s₀))
+        println("here02 - co20, n2o0, temp0, ocheat0, thermalS0, gisV0, glacV0, glacS0, aisS0 = ", logpdf(prior_CO₂_0, CO₂_0), logpdf(prior_N₂O_0, N₂O_0), logpdf(prior_temperature_0, temperature_0), logpdf(prior_ocean_heat_0, ocean_heat_0), logpdf(prior_thermal_s₀, thermal_s₀),  logpdf(prior_greenland_v₀, greenland_v₀), logpdf(prior_glaciers_v₀, glaciers_v₀), logpdf(prior_glaciers_s₀, glaciers_s₀), logpdf(prior_antarctic_s₀, antarctic_s₀))
+        println("here02 - thermal_s₀, prior_thermal_s₀ = ",thermal_s₀, logpdf(prior_thermal_s₀, thermal_s₀))
+        #println("here02 - line4 = ",logpdf(prior_Q10, Q10) + logpdf(prior_CO₂_fertilization, CO₂_fertilization) + logpdf(prior_CO₂_diffusivity, CO₂_diffusivity))
+        #println("here02 - line5 = ",logpdf(prior_heat_diffusivity, heat_diffusivity) + logpdf(prior_rf_scale_aerosol, rf_scale_aerosol) + logpdf(prior_ECS, ECS))
+        #println("here02 - line6 = ",logpdf(prior_thermal_α, thermal_α))
+        #println("here02 - line7 = ",logpdf(prior_greenland_a, greenland_a) + logpdf(prior_greenland_b, greenland_b) + logpdf(prior_greenland_α, greenland_α) + logpdf(prior_greenland_β, greenland_β))
+        #println("here02 - line8 = ",logpdf(prior_glaciers_β₀, glaciers_β₀) + logpdf(prior_glaciers_n, glaciers_n))
+        println("here02 - log_prior = ", log_prior)
+        #println("here02 - heat_diffusivity = ", heat_diffusivity)
+        println("here02 - all params = ",p)
+    end
+    
         return log_prior
     end
 
@@ -478,6 +499,20 @@ function construct_sneasybrick_log_posterior(f_run_model!; model_start_year::Int
         # Calculate the total log-likelihood (assuming residual independence across data sets).
         llik = llik_temperature + llik_ocean_heat + llik_co2 + llik_oceanco2_flux + llik_glaciers + llik_greenland + llik_antarctic + llik_thermal_trend + llik_gmsl
 
+        # TW DEBUG
+        if false
+        println("here03 - llik = ", llik)
+        println("here03 - llik_temperature = ", llik_temperature)
+        println("here03 - llik_ocean_heat = ", llik_ocean_heat)
+        println("here03 - llik_co2 = ", llik_co2)
+        println("here03 - llik_oceanco2_flux = ", llik_oceanco2_flux)
+        println("here03 - llik_glaciers = ", llik_glaciers)
+        println("here03 - llik_greenland = ", llik_greenland)
+        println("here03 - llik_antarctic = ", llik_antarctic)
+        println("here03 - llik_thermal_trend = ", llik_thermal_trend)
+        println("here03 - llik_gmsl = ", llik_gmsl)
+end
+
         return llik
     end
 
@@ -489,6 +524,14 @@ function construct_sneasybrick_log_posterior(f_run_model!; model_start_year::Int
 
         # Calculate log-prior
         log_prior = sneasybrick_log_prior(p)
+
+        # TW-DEBUG
+        #llike = sneasybrick_log_likelihood(p)
+
+        #println("here01 - logprior = ",log_prior)
+        #println("here01 - isfinite(log_prior) = ", isfinite(log_prior))
+        #println("here01 - loglike  = ",llike)
+
 
         # In case a parameter sample leads to non-physical model outcomes, return -Inf rather than erroring out.
         try

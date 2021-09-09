@@ -9,6 +9,7 @@ function construct_run_sneasybrick(calibration_start_year::Int, calibration_end_
 
     # Load an instance of SNEASY+BRICK model.
     m = Mimi.build(create_sneasy_brick(; rcp_scenario = "RCP85", start_year=calibration_start_year, end_year=calibration_end_year))
+    #m = create_sneasy_brick(; rcp_scenario = "RCP85", start_year=calibration_start_year, end_year=calibration_end_year)
 
     # Get indices needed to normalize temperature anomalies relative to 1861-1880 mean (SNEASY+BRICK starts in 1850 by default).
     temperature_norm_indices = findall((in)(1861:1880), 1850:calibration_end_year)
@@ -137,7 +138,8 @@ function construct_run_sneasybrick(calibration_start_year::Int, calibration_end_
         #----------------------------------------------------------
 
         # Atmospheric concentration of CO₂.
-        modeled_CO₂[:] = m[:ccm, :CO₂_0]
+        #modeled_CO₂[:] = m[:ccm, :CO₂_0]
+        modeled_CO₂[:] = m[:ccm, :atmco2]
 
         # Global surface temperature anomaly (normalized to 1861-1880 mean with initial condition offset).
         modeled_temperature[:] = m[:doeclim, :temp] .- mean(m[:doeclim, :temp][temperature_norm_indices]) .+ temperature_0
