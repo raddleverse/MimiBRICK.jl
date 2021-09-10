@@ -137,6 +137,7 @@ function construct_sneasybrick_log_prior(joint_antarctic_prior::Bool, uniform_EC
     # Climate & Radiative Forcing Priors.
     # -----------------------------------------
     prior_heat_diffusivity   = LogNormal(1.1, 0.3)
+    #prior_heat_diffusivity   = Uniform(0.1, 4) # from BRICK paper
     prior_rf_scale_aerosol   = TriangularDist(0., 3., 1.)
 
     # Decide whether to use a uniform or paleo-informed ECS prior.

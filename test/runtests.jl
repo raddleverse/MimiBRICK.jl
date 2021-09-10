@@ -26,7 +26,7 @@ m = MimiBRICK_DOECLIM.create_brick_doeclim()
 run(m)
 
 ## SNEASY+BRICK
-m = create_sneasy_brick("RCP85")
+m = create_sneasy_brick()
 run(m)
 
 ##==============================================================================
@@ -52,8 +52,8 @@ run(m)
 ## SNEASY+BRICK
 
 #TODO - check what the parameter values used are - can we get these on a CSV file for reading/writing?
-#function create_sneasy_brick(rcp_scenario::String; end_year::Int=2020)
-m = create_sneasy_brick("RCP85")
+# function create_sneasy_brick(; rcp_scenario::String="RCP85", start_year::Int=1850, end_year::Int=2020)
+m = create_sneasy_brick()
 run(m)
 
 ##==============================================================================

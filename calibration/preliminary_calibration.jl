@@ -26,11 +26,11 @@ using RobustAdaptiveMetropolisSampler
 using MCMCDiagnostics
 using Random
 using StatsBase
+using Dates
 
 # Model configuration
 # --> Possible options: (1) "brick", (2) "doeclimbrick", (3) "sneasybrick"
-model_config = "brick"
-#for model_config in ["brick", "doeclimbrick", "sneasybrick"]
+model_config = "sneasybrick"
 
 # Initial conditions from a previous file or from the prior distributions?
 # --> If you want to use the midpoints of the prior ranges as the starting parameter estimates, and 5% of the prior range width as the step size for MCMC, set `start_from_priors = true`
@@ -52,12 +52,12 @@ calibration_start_year = 1850
 calibration_end_year = 2017
 
 # The length of the chain before burn-in and thinning
-total_chain_length = 10_000
+total_chain_length = 100_000
 #total_chain_length = 100 # original was 100_000; this is for testing
 
 # Burn-in length - How many samples from the beginning to immediately discard
 # --> Not including as much burn-in as we would normally because the initial values are from the end of a 4-million iteration preliminary chain
-burnin_length = 1_000
+burnin_length = 10_000
 
 # Threshold for Gelman and Rubin potential scale reduction factor (burn-in/convergence)
 # --> 1.1 or 1.05 are standard practice. Further from 1 is
@@ -70,7 +70,7 @@ threshold_gr = 1.1
 num_walkers = 2
 
 # Create a subsample of posterior parameters?
-size_subsample = 1_000
+size_subsample = 10_000
 
 # Do thinning?
 # --> There are good reasons for thinning (accounting for autocorrelation in the Markov chain samples) and good reasons not to (e.g. Link and Eaton 2012; Maceachern and Berliner 1994)
@@ -141,7 +141,8 @@ println("Begin baseline calibration of "*model_config*" model.\n")
 
 # Carry out Bayesian calibration using robust adaptive metropolis MCMC algorithm.
 Random.seed!(2021) # for reproducibility
-chain_raw, accept_rate, cov_matrix = RAM_sample(log_posterior_mymodel, initial_parameters, initial_covariance_matrix, Int(total_chain_length), opt_α=0.234)
+#chain_raw, accept_rate, cov_matrix = RAM_sample(log_posterior_mymodel, initial_parameters, initial_covariance_matrix, Int(total_chain_length), opt_α=0.234)
+chain_raw, accept_rate, cov_matrix, log_post = RAM_sample(log_posterior_mymodel, initial_parameters, initial_covariance_matrix, Int(total_chain_length), opt_α=0.234, output_log_probability_x=true)
 
 
 ##------------------------------------------------------------------------------
