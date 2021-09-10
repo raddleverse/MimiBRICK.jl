@@ -137,6 +137,7 @@ function construct_run_sneasybrick(calibration_start_year::Int, calibration_end_
         #----------------------------------------------------------
 
         # Atmospheric concentration of CO₂.
+        #modeled_CO₂[:] = m[:ccm, :CO₂_0]
         modeled_CO₂[:] = m[:ccm, :atmco2]
 
         # Global surface temperature anomaly (normalized to 1861-1880 mean with initial condition offset).

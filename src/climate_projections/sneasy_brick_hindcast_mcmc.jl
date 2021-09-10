@@ -95,7 +95,7 @@ function construct_sneasybrick_baseline(rcp_scenario::String,  pulse_year::Int, 
     sneasybrick_pulse = create_sneasy_brick(rcp_scenario, end_year = end_year)
 
     # Update pulse model to use emission scneario with an extra emissions pulse in a single year.
-    set_param!(sneasybrick_pulse, :ccm, :CO2_emissions, rcp_co2_emissions_pulse)
+    update_param!(sneasybrick_pulse, :ccm, :CO2_emissions, rcp_co2_emissions_pulse)
 
     #---------------------------------------------------------------------------------------------------------------------
     # Create a function to run SNEASY+BRICK over the calibrated posterior model parameters.
@@ -178,85 +178,103 @@ function construct_sneasybrick_baseline(rcp_scenario::String,  pulse_year::Int, 
             antarctic_temp_threshold = calibrated_parameters[i,51]
 
             # Set parameters for base version of SNEASY+BRICK.
-            set_param!(sneasybrick_base, :doeclim, :t2co, ECS)
-            set_param!(sneasybrick_base, :doeclim, :kappa, heat_diffusivity)
-            set_param!(sneasybrick_base, :ccm, :Q10, Q10)
-            set_param!(sneasybrick_base, :ccm, :Beta, CO₂_fertilization)
-            set_param!(sneasybrick_base, :ccm, :Eta, CO₂_diffusivity)
-            set_param!(sneasybrick_base, :ccm, :atmco20, CO₂_0)
-            set_param!(sneasybrick_base, :rfco2, :CO₂_0, CO₂_0)
-            set_param!(sneasybrick_base, :rfco2, :N₂O_0, N₂O_0)
-            set_param!(sneasybrick_base, :radiativeforcing, :alpha, rf_scale_aerosol)
-            set_param!(sneasybrick_base, :antarctic_ocean, :anto_α, anto_α)
-            set_param!(sneasybrick_base, :antarctic_ocean, :anto_β, anto_β)
-            set_param!(sneasybrick_base, :antarctic_icesheet, :ais_sea_level₀, antarctic_s₀)
-            set_param!(sneasybrick_base, :antarctic_icesheet, :ais_bedheight₀, antarctic_bedheight₀)
-            set_param!(sneasybrick_base, :antarctic_icesheet, :ais_slope, antarctic_slope)
-            set_param!(sneasybrick_base, :antarctic_icesheet, :ais_μ, antarctic_μ)
-            set_param!(sneasybrick_base, :antarctic_icesheet, :ais_runoffline_snowheight₀, antarctic_runoff_height₀)
-            set_param!(sneasybrick_base, :antarctic_icesheet, :ais_c, antarctic_c)
-            set_param!(sneasybrick_base, :antarctic_icesheet, :ais_precipitation₀, antarctic_precip₀)
-            set_param!(sneasybrick_base, :antarctic_icesheet, :ais_κ, antarctic_κ)
-            set_param!(sneasybrick_base, :antarctic_icesheet, :ais_ν, antarctic_ν)
-            set_param!(sneasybrick_base, :antarctic_icesheet, :ais_iceflow₀, antarctic_flow₀)
-            set_param!(sneasybrick_base, :antarctic_icesheet, :ais_γ, antarctic_γ)
-            set_param!(sneasybrick_base, :antarctic_icesheet, :ais_α, antarctic_α)
-            set_param!(sneasybrick_base, :antarctic_icesheet, :temperature_threshold, antarctic_temp_threshold)
-            set_param!(sneasybrick_base, :antarctic_icesheet, :λ, antarctic_λ)
-            set_param!(sneasybrick_base, :glaciers_small_icecaps, :gsic_β₀, glaciers_β₀)
-            set_param!(sneasybrick_base, :glaciers_small_icecaps, :gsic_v₀, glaciers_v₀)
-            set_param!(sneasybrick_base, :glaciers_small_icecaps, :gsic_s₀, glaciers_s₀)
-            set_param!(sneasybrick_base, :glaciers_small_icecaps, :gsic_n, glaciers_n)
-            set_param!(sneasybrick_base, :greenland_icesheet, :greenland_a, greenland_a)
-            set_param!(sneasybrick_base, :greenland_icesheet, :greenland_b, greenland_b)
-            set_param!(sneasybrick_base, :greenland_icesheet, :greenland_α, greenland_α)
-            set_param!(sneasybrick_base, :greenland_icesheet, :greenland_β, greenland_β)
-            set_param!(sneasybrick_base, :greenland_icesheet, :greenland_v₀, greenland_v₀)
-            set_param!(sneasybrick_base, :thermal_expansion, :te_α, thermal_α)
-            set_param!(sneasybrick_base, :thermal_expansion, :te_s₀, thermal_s₀)
+
+            update_param!(sneasybrick_base, :model_CO₂_0, CO₂_0) # shared parameter linked to both :rfco2 and :ccm
+
+            update_param!(sneasybrick_base, :doeclim, :t2co, ECS)
+            update_param!(sneasybrick_base, :doeclim, :kappa, heat_diffusivity)
+
+            update_param!(sneasybrick_base, :ccm, :Q10, Q10)
+            update_param!(sneasybrick_base, :ccm, :Beta, CO₂_fertilization)
+            update_param!(sneasybrick_base, :ccm, :Eta, CO₂_diffusivity)
+
+            update_param!(sneasybrick_base, :rfco2, :N₂O_0, N₂O_0)
+
+            update_param!(sneasybrick_base, :radiativeforcing, :alpha, rf_scale_aerosol)
+
+            update_param!(sneasybrick_base, :antarctic_ocean, :anto_α, anto_α)
+            update_param!(sneasybrick_base, :antarctic_ocean, :anto_β, anto_β)
+
+            update_param!(sneasybrick_base, :antarctic_icesheet, :ais_sea_level₀, antarctic_s₀)
+            update_param!(sneasybrick_base, :antarctic_icesheet, :ais_bedheight₀, antarctic_bedheight₀)
+            update_param!(sneasybrick_base, :antarctic_icesheet, :ais_slope, antarctic_slope)
+            update_param!(sneasybrick_base, :antarctic_icesheet, :ais_μ, antarctic_μ)
+            update_param!(sneasybrick_base, :antarctic_icesheet, :ais_runoffline_snowheight₀, antarctic_runoff_height₀)
+            update_param!(sneasybrick_base, :antarctic_icesheet, :ais_c, antarctic_c)
+            update_param!(sneasybrick_base, :antarctic_icesheet, :ais_precipitation₀, antarctic_precip₀)
+            update_param!(sneasybrick_base, :antarctic_icesheet, :ais_κ, antarctic_κ)
+            update_param!(sneasybrick_base, :antarctic_icesheet, :ais_ν, antarctic_ν)
+            update_param!(sneasybrick_base, :antarctic_icesheet, :ais_iceflow₀, antarctic_flow₀)
+            update_param!(sneasybrick_base, :antarctic_icesheet, :ais_γ, antarctic_γ)
+            update_param!(sneasybrick_base, :antarctic_icesheet, :ais_α, antarctic_α)
+            update_param!(sneasybrick_base, :antarctic_icesheet, :temperature_threshold, antarctic_temp_threshold)
+            update_param!(sneasybrick_base, :antarctic_icesheet, :λ, antarctic_λ)
+
+            update_param!(sneasybrick_base, :glaciers_small_icecaps, :gsic_β₀, glaciers_β₀)
+            update_param!(sneasybrick_base, :glaciers_small_icecaps, :gsic_v₀, glaciers_v₀)
+            update_param!(sneasybrick_base, :glaciers_small_icecaps, :gsic_s₀, glaciers_s₀)
+            update_param!(sneasybrick_base, :glaciers_small_icecaps, :gsic_n, glaciers_n)
+
+            update_param!(sneasybrick_base, :greenland_icesheet, :greenland_a, greenland_a)
+            update_param!(sneasybrick_base, :greenland_icesheet, :greenland_b, greenland_b)
+            update_param!(sneasybrick_base, :greenland_icesheet, :greenland_α, greenland_α)
+            update_param!(sneasybrick_base, :greenland_icesheet, :greenland_β, greenland_β)
+            update_param!(sneasybrick_base, :greenland_icesheet, :greenland_v₀, greenland_v₀)
+
+            update_param!(sneasybrick_base, :thermal_expansion, :te_α, thermal_α)
+            update_param!(sneasybrick_base, :thermal_expansion, :te_s₀, thermal_s₀)
 
             # Set parameters for pulse version of SNEASY+BRICK.
-            set_param!(sneasybrick_pulse, :doeclim, :t2co, ECS)
-            set_param!(sneasybrick_pulse, :doeclim, :kappa, heat_diffusivity)
-            set_param!(sneasybrick_pulse, :ccm, :Q10, Q10)
-            set_param!(sneasybrick_pulse, :ccm, :Beta, CO₂_fertilization)
-            set_param!(sneasybrick_pulse, :ccm, :Eta, CO₂_diffusivity)
-            set_param!(sneasybrick_pulse, :ccm, :atmco20, CO₂_0)
-            set_param!(sneasybrick_pulse, :rfco2, :CO₂_0, CO₂_0)
-            set_param!(sneasybrick_pulse, :rfco2, :N₂O_0, N₂O_0)
-            set_param!(sneasybrick_pulse, :radiativeforcing, :alpha, rf_scale_aerosol)
-            set_param!(sneasybrick_pulse, :antarctic_ocean, :anto_α, anto_α)
-            set_param!(sneasybrick_pulse, :antarctic_ocean, :anto_β, anto_β)
-            set_param!(sneasybrick_pulse, :antarctic_icesheet, :ais_sea_level₀, antarctic_s₀)
-            set_param!(sneasybrick_pulse, :antarctic_icesheet, :ais_bedheight₀, antarctic_bedheight₀)
-            set_param!(sneasybrick_pulse, :antarctic_icesheet, :ais_slope, antarctic_slope)
-            set_param!(sneasybrick_pulse, :antarctic_icesheet, :ais_μ, antarctic_μ)
-            set_param!(sneasybrick_pulse, :antarctic_icesheet, :ais_runoffline_snowheight₀, antarctic_runoff_height₀)
-            set_param!(sneasybrick_pulse, :antarctic_icesheet, :ais_c, antarctic_c)
-            set_param!(sneasybrick_pulse, :antarctic_icesheet, :ais_precipitation₀, antarctic_precip₀)
-            set_param!(sneasybrick_pulse, :antarctic_icesheet, :ais_κ, antarctic_κ)
-            set_param!(sneasybrick_pulse, :antarctic_icesheet, :ais_ν, antarctic_ν)
-            set_param!(sneasybrick_pulse, :antarctic_icesheet, :ais_iceflow₀, antarctic_flow₀)
-            set_param!(sneasybrick_pulse, :antarctic_icesheet, :ais_γ, antarctic_γ)
-            set_param!(sneasybrick_pulse, :antarctic_icesheet, :ais_α, antarctic_α)
-            set_param!(sneasybrick_pulse, :antarctic_icesheet, :temperature_threshold, antarctic_temp_threshold)
-            set_param!(sneasybrick_pulse, :antarctic_icesheet, :λ, antarctic_λ)
-            set_param!(sneasybrick_pulse, :glaciers_small_icecaps, :gsic_β₀, glaciers_β₀)
-            set_param!(sneasybrick_pulse, :glaciers_small_icecaps, :gsic_v₀, glaciers_v₀)
-            set_param!(sneasybrick_pulse, :glaciers_small_icecaps, :gsic_s₀, glaciers_s₀)
-            set_param!(sneasybrick_pulse, :glaciers_small_icecaps, :gsic_n, glaciers_n)
-            set_param!(sneasybrick_pulse, :greenland_icesheet, :greenland_a, greenland_a)
-            set_param!(sneasybrick_pulse, :greenland_icesheet, :greenland_b, greenland_b)
-            set_param!(sneasybrick_pulse, :greenland_icesheet, :greenland_α, greenland_α)
-            set_param!(sneasybrick_pulse, :greenland_icesheet, :greenland_β, greenland_β)
-            set_param!(sneasybrick_pulse, :greenland_icesheet, :greenland_v₀, greenland_v₀)
-            set_param!(sneasybrick_pulse, :thermal_expansion, :te_α, thermal_α)
-            set_param!(sneasybrick_pulse, :thermal_expansion, :te_s₀, thermal_s₀)
+            
+            update_param!(sneasybrick_pulse, :model_CO₂_0, CO₂_0) # shared parameter linked to both :rfco2 and :ccm
+
+            update_param!(sneasybrick_pulse, :doeclim, :t2co, ECS)
+            update_param!(sneasybrick_pulse, :doeclim, :kappa, heat_diffusivity)
+
+            update_param!(sneasybrick_pulse, :ccm, :Q10, Q10)
+            update_param!(sneasybrick_pulse, :ccm, :Beta, CO₂_fertilization)
+            update_param!(sneasybrick_pulse, :ccm, :Eta, CO₂_diffusivity)
+
+            update_param!(sneasybrick_pulse, :rfco2, :N₂O_0, N₂O_0)
+
+            update_param!(sneasybrick_pulse, :radiativeforcing, :alpha, rf_scale_aerosol)
+
+            update_param!(sneasybrick_pulse, :antarctic_ocean, :anto_α, anto_α)
+            update_param!(sneasybrick_pulse, :antarctic_ocean, :anto_β, anto_β)
+
+            update_param!(sneasybrick_pulse, :antarctic_icesheet, :ais_sea_level₀, antarctic_s₀)
+            update_param!(sneasybrick_pulse, :antarctic_icesheet, :ais_bedheight₀, antarctic_bedheight₀)
+            update_param!(sneasybrick_pulse, :antarctic_icesheet, :ais_slope, antarctic_slope)
+            update_param!(sneasybrick_pulse, :antarctic_icesheet, :ais_μ, antarctic_μ)
+            update_param!(sneasybrick_pulse, :antarctic_icesheet, :ais_runoffline_snowheight₀, antarctic_runoff_height₀)
+            update_param!(sneasybrick_pulse, :antarctic_icesheet, :ais_c, antarctic_c)
+            update_param!(sneasybrick_pulse, :antarctic_icesheet, :ais_precipitation₀, antarctic_precip₀)
+            update_param!(sneasybrick_pulse, :antarctic_icesheet, :ais_κ, antarctic_κ)
+            update_param!(sneasybrick_pulse, :antarctic_icesheet, :ais_ν, antarctic_ν)
+            update_param!(sneasybrick_pulse, :antarctic_icesheet, :ais_iceflow₀, antarctic_flow₀)
+            update_param!(sneasybrick_pulse, :antarctic_icesheet, :ais_γ, antarctic_γ)
+            update_param!(sneasybrick_pulse, :antarctic_icesheet, :ais_α, antarctic_α)
+            update_param!(sneasybrick_pulse, :antarctic_icesheet, :temperature_threshold, antarctic_temp_threshold)
+            update_param!(sneasybrick_pulse, :antarctic_icesheet, :λ, antarctic_λ)
+
+            update_param!(sneasybrick_pulse, :glaciers_small_icecaps, :gsic_β₀, glaciers_β₀)
+            update_param!(sneasybrick_pulse, :glaciers_small_icecaps, :gsic_v₀, glaciers_v₀)
+            update_param!(sneasybrick_pulse, :glaciers_small_icecaps, :gsic_s₀, glaciers_s₀)
+            update_param!(sneasybrick_pulse, :glaciers_small_icecaps, :gsic_n, glaciers_n)
+
+            update_param!(sneasybrick_pulse, :greenland_icesheet, :greenland_a, greenland_a)
+            update_param!(sneasybrick_pulse, :greenland_icesheet, :greenland_b, greenland_b)
+            update_param!(sneasybrick_pulse, :greenland_icesheet, :greenland_α, greenland_α)
+            update_param!(sneasybrick_pulse, :greenland_icesheet, :greenland_β, greenland_β)
+            update_param!(sneasybrick_pulse, :greenland_icesheet, :greenland_v₀, greenland_v₀)
+
+            update_param!(sneasybrick_pulse, :thermal_expansion, :te_α, thermal_α)
+            update_param!(sneasybrick_pulse, :thermal_expansion, :te_s₀, thermal_s₀)
 
             # Calculate land water storage contribution to sea level rise (sampled from Normal distribution) and set same scenario for base and pulse runs.
             landwater_storage_sl[:] = rand(Normal(0.0003, 0.00018), number_years)
-            set_param!(sneasybrick_base,  :landwater_storage, :lws_random_sample, landwater_storage_sl)
-            set_param!(sneasybrick_pulse, :landwater_storage, :lws_random_sample, landwater_storage_sl)
+            update_param!(sneasybrick_base,  :landwater_storage, :lws_random_sample, landwater_storage_sl)
+            update_param!(sneasybrick_pulse, :landwater_storage, :lws_random_sample, landwater_storage_sl)
 
             # Add a check for cases where non-physical parameter samples cause a model error (may occur during sensitivity experiements).
             try
