@@ -30,8 +30,7 @@ using Dates
 
 # Model configuration
 # --> Possible options: (1) "brick", (2) "doeclimbrick", (3) "sneasybrick"
-#model_config = "sneasybrick"
-for model_config in ["brick", "doeclimbrick", "sneasybrick"]
+model_config = "sneasybrick"
 
 # Initial conditions from a previous file or from the prior distributions?
 # --> If you want to use the midpoints of the prior ranges as the starting parameter estimates, and 5% of the prior range width as the step size for MCMC, set `start_from_priors = true`
