@@ -297,7 +297,7 @@ function construct_sneasybrick_baseline(rcp_scenario::String,  pulse_year::Int, 
 
                 # Store model projections resulting from parameter sample `i` for base model and normalize relative to appropriate time period.
                 base_temperature[i,:] = sneasybrick_base[:doeclim, :temp] .- mean(sneasybrick_base[:doeclim, :temp][temperature_norm_indices]) .+ ar1_noise_temperature .+ temperature_0
-                base_co2[i,:]         = sneasybrick_base[:ccm, :CO₂_0] .+ car1_noise_co2
+                base_co2[i,:]         = sneasybrick_base[:ccm, :atmco2] .+ car1_noise_co2
                 base_ocean_heat[i,:]  = sneasybrick_base[:doeclim, :heat_mixed] .+ sneasybrick_base[:doeclim, :heat_interior] .+ ar1_noise_ocean_heat .+ ocean_heat_0
                 base_oceanco2[i,:]    = sneasybrick_base[:ccm, :atm_oc_flux] .+ normal_noise_oceanco2
                 base_glaciers[i,:]    = sneasybrick_base[:glaciers_small_icecaps, :gsic_sea_level] .- mean(sneasybrick_base[:glaciers_small_icecaps, :gsic_sea_level][sealevel_norm_indices_1961_1990]) .+ ar1_noise_glaciers
@@ -308,7 +308,7 @@ function construct_sneasybrick_baseline(rcp_scenario::String,  pulse_year::Int, 
 
                 # Store and normalize tempeature, CO₂, and sea level projections resulting from parameter sample `i` for pulse model (used for estimating the SC-CO₂).
                 pulse_temperature[i,:] = sneasybrick_pulse[:doeclim, :temp] .- mean(sneasybrick_pulse[:doeclim, :temp][temperature_norm_indices]) .+ ar1_noise_temperature .+ temperature_0
-                pulse_co2[i,:]         = sneasybrick_pulse[:ccm, :CO₂_0] .+ car1_noise_co2
+                pulse_co2[i,:]         = sneasybrick_pulse[:ccm, :atmco2] .+ car1_noise_co2
                 pulse_gmsl[i,:]        = sneasybrick_pulse[:global_sea_level, :sea_level_rise] .- mean(sneasybrick_pulse[:global_sea_level, :sea_level_rise][sealevel_norm_indices_1961_1990]) .+ ar1_noise_gmsl
 
             catch
