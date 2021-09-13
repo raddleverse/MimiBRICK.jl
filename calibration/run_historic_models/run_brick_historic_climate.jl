@@ -8,8 +8,8 @@ using MimiBRICK
 function construct_run_brick(calibration_start_year::Int, calibration_end_year::Int)
 
     # Load an instance of DOECLIM+BRICK model.
-    #m = MimiBRICK_DOECLIM.create_brick_doeclim(rcp_scenario="RCP85", start_year=calibration_start_year, end_year=calibration_end_year)
-    m = Mimi.build(MimiBRICK.get_model(rcp_scenario="RCP85", start_year=calibration_start_year, end_year=calibration_end_year)) # TODO - add optional arguments for RCP scenario, beg/end years?
+    # WARNING: for general use, use `m = MimiBRICK.get_model!(...[arguments here]...)`  instead
+    m = Mimi.build(MimiBRICK.get_model(rcp_scenario="RCP85", start_year=calibration_start_year, end_year=calibration_end_year))
 
     # Get indices needed to normalize temperature anomalies relative to 1861-1880 mean (DOECLIM+BRICK starts in 1850 by default).
     temperature_norm_indices = findall((in)(1861:1880), 1850:calibration_end_year)
