@@ -30,7 +30,8 @@ using Dates
 
 # Model configuration
 # --> Possible options: (1) "brick", (2) "doeclimbrick", (3) "sneasybrick"
-model_config = "sneasybrick"
+model_config = "brick"
+#for model_config in ["brick","doeclimbrick","sneasybrick"]
 
 # Initial conditions from a previous file or from the prior distributions?
 # --> If you want to use the midpoints of the prior ranges as the starting parameter estimates, and 5% of the prior range width as the step size for MCMC, set `start_from_priors = true`
@@ -52,12 +53,12 @@ calibration_start_year = 1850
 calibration_end_year = 2017
 
 # The length of the chain before burn-in and thinning
-total_chain_length = 100_000
+total_chain_length = 5_000_000
 #total_chain_length = 100 # original was 100_000; this is for testing
 
 # Burn-in length - How many samples from the beginning to immediately discard
 # --> Not including as much burn-in as we would normally because the initial values are from the end of a 4-million iteration preliminary chain
-burnin_length = 10_000
+burnin_length = 500_000
 
 # Threshold for Gelman and Rubin potential scale reduction factor (burn-in/convergence)
 # --> 1.1 or 1.05 are standard practice. Further from 1 is
@@ -89,7 +90,18 @@ lags = 10:10:50000
 ##------------------------------------------------------------------------------
 
 # A folder with this name will be created to store all of the replication results.
-results_folder_name = "my_"*model_config*"_results_"*string(Int(total_chain_length/1000))*"K_$(Dates.format(now(),"dd-mm-yyyy"))"
+if total_chain_length < 1_000 # hundreds of iterations
+    chain_len_str = string(Int(total_chain_length))
+elseif total_chain_length < 1_000_000 # thousands of iterations
+    chain_len_str = string(Int(total_chain_length/1000))*"K"
+elseif total_chain_length < 1_000_000_000 # millions of iterations
+    chain_len_str = string(Int(total_chain_length/1000000))*"M"
+elseif total_chain_length < 1_000_000_000_000 # billions of iterations
+    chain_len_str = string(Int(total_chain_length/1000000000))*"B"
+else
+    chain_len_str = "AGreatManyIterations"
+end
+results_folder_name = "my_"*model_config*"_results_"*chain_len_str*"_$(Dates.format(now(),"dd-mm-yyyy"))"
 
 # Create output folder path for convenience and make path.
 output = joinpath(@__DIR__, "..", "results", results_folder_name)
@@ -240,10 +252,10 @@ save(joinpath(@__DIR__, output, "parameters_subsample.csv"), final_sample)
 # Save initial conditions for future runs
 path_new_initial_conditions = joinpath(@__DIR__, "..", "data", "calibration_data", "from_preliminary_chains")
 mkpath(path_new_initial_conditions)
-filename_new_initial_parameters = "calibration_initial_values_"*model_config*"_"*string(Int(total_chain_length/1000))*"K_$(Dates.format(now(),"dd-mm-yyyy")).csv"
+filename_new_initial_parameters = "calibration_initial_values_"*model_config*"_"*chain_len_str*"_$(Dates.format(now(),"dd-mm-yyyy")).csv"
 new_initial_parameters = DataFrame(parameter_names = parnames, parameter_values = Vector(final_chain[size(final_chain)[1],:]))
 save(joinpath(path_new_initial_conditions, filename_new_initial_parameters), new_initial_parameters)
-filename_new_initial_covariance = "initial_proposal_covariance_matrix_"*model_config*"_"*string(Int(total_chain_length/1000))*"K_$(Dates.format(now(),"dd-mm-yyyy")).csv"
+filename_new_initial_covariance = "initial_proposal_covariance_matrix_"*model_config*"_"*chain_len_str*"_$(Dates.format(now(),"dd-mm-yyyy")).csv"
 save(joinpath(path_new_initial_conditions, filename_new_initial_covariance), DataFrame(cov_matrix, :auto))
 
 
