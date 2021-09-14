@@ -30,17 +30,17 @@ using Dates
 
 # Model configuration
 # --> Possible options: (1) "brick", (2) "doeclimbrick", (3) "sneasybrick"
-model_config = "brick"
-#for model_config in ["brick","doeclimbrick","sneasybrick"]
+model_config = "sneasybrick"
 
 # Initial conditions from a previous file or from the prior distributions?
 # --> If you want to use the midpoints of the prior ranges as the starting parameter estimates, and 5% of the prior range width as the step size for MCMC, set `start_from_priors = true`
 start_from_priors = false
+# --> File name and path to obtain the parameter names (*in order*)
 path_parameter_info = joinpath(@__DIR__, "..", "data", "calibration_data", "calibration_initial_values_"*model_config*".csv")
 # --> If you want to read from a previous run, set these two file names/paths.
 #     NOTE that if `start_from_priors = true`, these will NOT be used, even if they are set appropriately.
 #     Also, the `path_initial_parameters` does not need to be distinct from the `path_parameter_info`.
-#     `path_parameter_info` is just to get the prior ranges and names of the parameters, whereas `path_initial_parameters` will give the starting values for the model parameters.
+#     `path_parameter_info` is just to get the names of the parameters, whereas `path_initial_parameters` will provide the starting values for the model parameters as well.
 if ~start_from_priors
     path_initial_parameters = joinpath(@__DIR__, "..", "data", "calibration_data", "calibration_initial_values_"*model_config*".csv")
     #     Also, the `path_initial_parameter_values` does not need to be distinct from the `path_initial_parameters`.
@@ -54,7 +54,6 @@ calibration_end_year = 2017
 
 # The length of the chain before burn-in and thinning
 total_chain_length = 5_000_000
-#total_chain_length = 100 # original was 100_000; this is for testing
 
 # Burn-in length - How many samples from the beginning to immediately discard
 # --> Not including as much burn-in as we would normally because the initial values are from the end of a 4-million iteration preliminary chain
@@ -96,10 +95,8 @@ elseif total_chain_length < 1_000_000 # thousands of iterations
     chain_len_str = string(Int(total_chain_length/1000))*"K"
 elseif total_chain_length < 1_000_000_000 # millions of iterations
     chain_len_str = string(Int(total_chain_length/1000000))*"M"
-elseif total_chain_length < 1_000_000_000_000 # billions of iterations
+else # billions of iterations (or more, but probably not)
     chain_len_str = string(Int(total_chain_length/1000000000))*"B"
-else
-    chain_len_str = "AGreatManyIterations"
 end
 results_folder_name = "my_"*model_config*"_results_"*chain_len_str*"_$(Dates.format(now(),"dd-mm-yyyy"))"
 
@@ -116,15 +113,16 @@ include(joinpath("..", "calibration", "calibration_helper_functions.jl"))
 ##------------------------------------------------------------------------------
 
 # Either way, need the parameter names and distribution ranges
-parameter_info = DataFrame(load(path_parameter_info, skiplines_begin=6))
+parameter_info = DataFrame(load(path_parameter_info))
 num_parameters = nrow(parameter_info)
-parnames = [Symbol(parameter_info.parameter[i]) for i in 1:num_parameters]
+parnames = [Symbol(parameter_info.parameter_names[i]) for i in 1:num_parameters]
 if start_from_priors
+    error("Starting from priors not supported yet.")
     # midpoint and 5% of the prior range width as the starting values and step sizes (step size ~ stdev, so squared to get variance)
     initial_parameters = 0.5*(parameter_info[:,"upper_bound"]+parameter_info[:,"lower_bound"])
     initial_covariance_matrix = diagm(0.05*(parameter_info[:,"upper_bound"]-parameter_info[:,"lower_bound"]))^2
 else
-    initial_parameters = DataFrame(load(path_initial_parameters, skiplines_begin=6)).starting_point
+    initial_parameters = DataFrame(load(path_initial_parameters)).parameter_values
     initial_covariance_matrix = Array(Hermitian(Matrix(DataFrame(load(path_initial_covariance)))))
 end
 
@@ -153,7 +151,6 @@ println("Begin baseline calibration of "*model_config*" model.\n")
 
 # Carry out Bayesian calibration using robust adaptive metropolis MCMC algorithm.
 Random.seed!(2021) # for reproducibility
-#chain_raw, accept_rate, cov_matrix = RAM_sample(log_posterior_mymodel, initial_parameters, initial_covariance_matrix, Int(total_chain_length), opt_α=0.234)
 chain_raw, accept_rate, cov_matrix, log_post = RAM_sample(log_posterior_mymodel, initial_parameters, initial_covariance_matrix, Int(total_chain_length), opt_α=0.234, output_log_probability_x=true)
 
 
