@@ -1,10 +1,12 @@
 ##------------------------------------------------------------------------------
 ##------------------------------------------------------------------------------
-## This file carries out a preliminary Markov chain Monte Carlo calibration of BRICK.
+## This file carries out a longer "production" Markov chain Monte Carlo calibration of BRICK.
 ## This includes one of the following possible model configurations:
 ## (1) BRICK standalone (forced by input global mean surface temperatures and ocean heat uptake data)
 ## (2) DOECLIM+BRICK
 ## (3) SNEASY+BRICK
+## These calibrations are initialized from the ending conditions of the calibrations
+## done in `preliminary_calibration.jl`.
 ##------------------------------------------------------------------------------
 ##------------------------------------------------------------------------------
 
@@ -42,10 +44,10 @@ path_parameter_info = joinpath(@__DIR__, "..", "data", "calibration_data", "cali
 #     Also, the `path_initial_parameters` does not need to be distinct from the `path_parameter_info`.
 #     `path_parameter_info` is just to get the names of the parameters, whereas `path_initial_parameters` will provide the starting values for the model parameters as well.
 if ~start_from_priors
-    path_initial_parameters = joinpath(@__DIR__, "..", "data", "calibration_data", "calibration_initial_values_"*model_config*".csv")
+    path_initial_parameters = joinpath(@__DIR__, "..", "data", "calibration_data", "from_preliminary_chains", "calibration_initial_values_"*model_config*"_5M_13-09-2021.csv")
     #     Also, the `path_initial_parameter_values` does not need to be distinct from the `path_initial_parameters`.
     #     `path_initial_parameters` is just
-    path_initial_covariance = joinpath(@__DIR__, "..", "data", "calibration_data", "initial_proposal_covariance_matrix_"*model_config*".csv")
+    path_initial_covariance = joinpath(@__DIR__, "..", "data", "calibration_data", "from_preliminary_chains", "initial_proposal_covariance_matrix_"*model_config*"_5M_13-09-2021.csv")
 end
 
 # Set years for model calibration.
@@ -53,11 +55,11 @@ calibration_start_year = 1850
 calibration_end_year = 2017
 
 # The length of the chain before burn-in and thinning
-total_chain_length = 5_000_000
+total_chain_length = 10_000
 
 # Burn-in length - How many samples from the beginning to immediately discard
 # --> Not including as much burn-in as we would normally because the initial values are from the end of a 4-million iteration preliminary chain
-burnin_length = 500_000
+burnin_length = 1_000
 
 # Threshold for Gelman and Rubin potential scale reduction factor (burn-in/convergence)
 # --> 1.1 or 1.05 are standard practice. Further from 1 is
@@ -70,7 +72,7 @@ threshold_gr = 1.1
 num_walkers = 2
 
 # Create a subsample of posterior parameters?
-size_subsample = 10_000
+size_subsample = 10
 
 # Do thinning?
 # --> There are good reasons for thinning (accounting for autocorrelation in the Markov chain samples) and good reasons not to (e.g. Link and Eaton 2012; Maceachern and Berliner 1994)
@@ -147,7 +149,7 @@ include(joinpath("..", "calibration", "create_log_posterior_"*model_config*".jl"
 # Create log-posterior function.
 @eval log_posterior_mymodel = ($(Symbol("construct_$model_config"*"_log_posterior")))(run_mymodel!, model_start_year=1850, calibration_end_year=calibration_end_year, joint_antarctic_prior=false)
 
-println("Begin baseline calibration of "*model_config*" model.\n")
+println("Begin calibration of "*model_config*" model.\n")
 
 # Carry out Bayesian calibration using robust adaptive metropolis MCMC algorithm.
 Random.seed!(2021) # for reproducibility
@@ -161,6 +163,7 @@ chain_raw, accept_rate, cov_matrix, log_post = RAM_sample(log_posterior_mymodel,
 
 # Remove the burn-in period
 chain_burned = chain_raw[(burnin_length+1):total_chain_length,:]
+logpost_burned = log_post[(burnin_length+1):total_chain_length,:]
 
 # Check convergence by computing Gelman and Rubin diagnostic for each parameter (potential scale reduction factor)
 psrf = Array{Float64,1}(undef , num_parameters)
@@ -220,9 +223,11 @@ if do_thinning
     # TODO - subsample the chain
     final_chain = DataFrame(chain_burned, :auto)
     rename!(final_chain, parnames)
+    final_logpost = logpost_burned
 else
     final_chain = DataFrame(chain_burned, :auto)
     rename!(final_chain, parnames)
+    final_logpost = logpost_burned
 end
 
 
@@ -232,7 +237,7 @@ end
 
 idx_subsample = sample(1:size(final_chain)[1], size_subsample, replace=false)
 final_sample = final_chain[idx_subsample,:]
-
+final_sample_logpost = final_logpost[idx_subsample]
 
 ##------------------------------------------------------------------------------
 ## Save the results
@@ -241,19 +246,12 @@ final_sample = final_chain[idx_subsample,:]
 # Save calibrated parameter samples
 println("Saving calibrated parameters for "*model_config*".\n")
 
-save(joinpath(@__DIR__, output, "prel_mcmc_acceptance_rate.csv"), DataFrame(acceptance_rate=accept_rate))
-save(joinpath(@__DIR__, output, "prel_proposal_covariance_matrix.csv"), DataFrame(cov_matrix, :auto))
-save(joinpath(@__DIR__, output, "prel_parameters_full_chain.csv"), final_chain)
-save(joinpath(@__DIR__, output, "prel_parameters_subsample.csv"), final_sample)
-
-# Save initial conditions for future runs
-path_new_initial_conditions = joinpath(@__DIR__, "..", "data", "calibration_data", "from_preliminary_chains")
-mkpath(path_new_initial_conditions)
-filename_new_initial_parameters = "calibration_initial_values_"*model_config*"_"*chain_len_str*"_$(Dates.format(now(),"dd-mm-yyyy")).csv"
-new_initial_parameters = DataFrame(parameter_names = parnames, parameter_values = Vector(final_chain[size(final_chain)[1],:]))
-save(joinpath(path_new_initial_conditions, filename_new_initial_parameters), new_initial_parameters)
-filename_new_initial_covariance = "initial_proposal_covariance_matrix_"*model_config*"_"*chain_len_str*"_$(Dates.format(now(),"dd-mm-yyyy")).csv"
-save(joinpath(path_new_initial_conditions, filename_new_initial_covariance), DataFrame(cov_matrix, :auto))
+save(joinpath(@__DIR__, output, "prod_mcmc_acceptance_rate.csv"), DataFrame(acceptance_rate=accept_rate))
+save(joinpath(@__DIR__, output, "prod_proposal_covariance_matrix.csv"), DataFrame(cov_matrix, :auto))
+save(joinpath(@__DIR__, output, "prod_parameters_full_chain.csv"), final_chain)
+save(joinpath(@__DIR__, output, "prod_logpost_full_chain.csv"), DataFrame(final_logpost, ["logpost"]))
+save(joinpath(@__DIR__, output, "prod_parameters_subsample.csv"), final_sample)
+save(joinpath(@__DIR__, output, "prod_logpost_subsample.csv"), DataFrame(final_sample_logpost, ["logpost"]))
 
 ##------------------------------------------------------------------------------
 ## End
