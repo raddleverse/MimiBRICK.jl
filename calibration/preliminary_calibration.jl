@@ -30,7 +30,7 @@ using Dates
 
 # Model configuration
 # --> Possible options: (1) "brick", (2) "doeclimbrick", (3) "sneasybrick"
-model_config = "sneasybrick"
+model_config = "brick"
 
 # Initial conditions from a previous file or from the prior distributions?
 # --> If you want to use the midpoints of the prior ranges as the starting parameter estimates, and 5% of the prior range width as the step size for MCMC, set `start_from_priors = true`
@@ -53,11 +53,11 @@ calibration_start_year = 1850
 calibration_end_year = 2017
 
 # The length of the chain before burn-in and thinning
-total_chain_length = 5_000_000
+total_chain_length = 20_000_000
 
 # Burn-in length - How many samples from the beginning to immediately discard
 # --> Not including as much burn-in as we would normally because the initial values are from the end of a 4-million iteration preliminary chain
-burnin_length = 500_000
+burnin_length = 1_000_000
 
 # Threshold for Gelman and Rubin potential scale reduction factor (burn-in/convergence)
 # --> 1.1 or 1.05 are standard practice. Further from 1 is
@@ -70,7 +70,7 @@ threshold_gr = 1.1
 num_walkers = 2
 
 # Create a subsample of posterior parameters?
-size_subsample = 10_000
+size_subsample = 1_000
 
 # Do thinning?
 # --> There are good reasons for thinning (accounting for autocorrelation in the Markov chain samples) and good reasons not to (e.g. Link and Eaton 2012; Maceachern and Berliner 1994)
@@ -81,7 +81,7 @@ do_thinning = false
 threshold_acf = 0.05
 
 # Lags - Which lags to check for computing the ACF? increments that aren't 1 are only used here for speed
-lags = 10:10:50000
+lags = 10:10:500
 
 
 ##------------------------------------------------------------------------------
@@ -218,10 +218,10 @@ if do_thinning
         thinlag = maximum([thinlag, lags[idx_low_enough]])
     end
     # TODO - subsample the chain
-    final_chain = DataFrame(chain_burned, :auto)
+    final_chain = DataFrame(chain_burned, parnames)
     rename!(final_chain, parnames)
 else
-    final_chain = DataFrame(chain_burned, :auto)
+    final_chain = DataFrame(chain_burned, parnames)
     rename!(final_chain, parnames)
 end
 
@@ -243,7 +243,7 @@ println("Saving calibrated parameters for "*model_config*".\n")
 
 save(joinpath(@__DIR__, output, "prel_mcmc_acceptance_rate.csv"), DataFrame(acceptance_rate=accept_rate))
 save(joinpath(@__DIR__, output, "prel_proposal_covariance_matrix.csv"), DataFrame(cov_matrix, :auto))
-save(joinpath(@__DIR__, output, "prel_parameters_full_chain.csv"), final_chain)
+save(joinpath(@__DIR__, output, "prel_parameters_full_chain.csv"), DataFrame(chain_raw,parnames))
 save(joinpath(@__DIR__, output, "prel_parameters_subsample.csv"), final_sample)
 
 # Save initial conditions for future runs

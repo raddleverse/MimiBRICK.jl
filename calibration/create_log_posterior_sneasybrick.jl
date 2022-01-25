@@ -110,7 +110,7 @@ function construct_sneasybrick_log_prior(joint_antarctic_prior::Bool, uniform_EC
     prior_ρ_glaciers         = Uniform(-0.99, 0.99)
     prior_ρ_greenland        = Uniform(-0.99, 0.99)
     prior_ρ_antarctic        = Uniform(-0.99, 0.99)
-    prior_ρ_gmsl             = Uniform(-0.99, 0.99)
+    prior_ρ_gmsl             = Truncated(Normal(0.8, .25), -1.0, 1.0)
     prior_α₀_CO₂             = Uniform(0.01, 11.5) # SC-CH4 paper.
 
     # -----------------------------------------

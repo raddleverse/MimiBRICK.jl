@@ -1,5 +1,5 @@
 ---
-title: 'MimiBRICK.jl: A Julia package for running and coupling the BRICK model for sea-level change in the Mimi integrated modeling framework'
+title: 'MimiBRICK.jl: A Julia package for the BRICK model for sea-level change in the Mimi integrated modeling framework'
 tags:
   - sea level
   - climate
@@ -39,7 +39,7 @@ affiliations:
    index: 4
  - name: Rijkswaterstaat, Ministry of Infrastructure and Water Management, The Netherlands
    index: 5
- - name: Department of Geosciences, Pennsylvania State University, USA
+ - name: Thayer School of Engineering, Dartmouth College, USA
    index: 6
 date: 27 August 2021
 bibliography: paper.bib
