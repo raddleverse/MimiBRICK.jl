@@ -53,7 +53,7 @@ calibration_start_year = 1850
 calibration_end_year = 2017
 
 # The length of the chain before burn-in and thinning
-total_chain_length = 20_000_000
+total_chain_length = 10_000_000
 
 # Burn-in length - How many samples from the beginning to immediately discard
 # --> Not including as much burn-in as we would normally because the initial values are from the end of a 4-million iteration preliminary chain
@@ -76,12 +76,6 @@ size_subsample = 1_000
 # --> There are good reasons for thinning (accounting for autocorrelation in the Markov chain samples) and good reasons not to (e.g. Link and Eaton 2012; Maceachern and Berliner 1994)
 # --> If `false`, the `threshold_acf` and `lags` below are not used.
 do_thinning = false
-
-# Threshold for the autocorrelation function (thinning; higher -> more permissive of autocorrelation in our samples)
-threshold_acf = 0.05
-
-# Lags - Which lags to check for computing the ACF? increments that aren't 1 are only used here for speed
-lags = 10:10:500
 
 
 ##------------------------------------------------------------------------------
@@ -151,8 +145,7 @@ println("Begin baseline calibration of "*model_config*" model.\n")
 
 # Carry out Bayesian calibration using robust adaptive metropolis MCMC algorithm.
 Random.seed!(2021) # for reproducibility
-chain_raw, accept_rate, cov_matrix, log_post = RAM_sample(log_posterior_mymodel, initial_parameters, initial_covariance_matrix, Int(total_chain_length), opt_α=0.234, output_log_probability_x=true)
-
+@time chain_raw, accept_rate, cov_matrix, log_post = RAM_sample(log_posterior_mymodel, initial_parameters, initial_covariance_matrix, Int(total_chain_length), opt_α=0.234, output_log_probability_x=true)
 
 ##------------------------------------------------------------------------------
 ## Burn-in removal and check convergence via Gelman and Rubin potential scale
@@ -179,6 +172,14 @@ else
         println(parnames[p],"  ",round(psrf[p],digits=4))
     end
 end
+
+# Check effective sample size
+ess = Array{Float64,1}(undef , num_parameters)
+for p in 1:num_parameters
+    ess[p] = effective_sample_size(chain_burned[:,p])
+end
+ess_min = round(minimum(ess))
+println("Minimum effective sample size:",ess_min)
 
 # this is just an example chunk of code for continuing a chain. to be deleted?
 if false
