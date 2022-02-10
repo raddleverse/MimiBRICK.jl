@@ -53,11 +53,17 @@ calibration_start_year = 1850
 calibration_end_year = 2017
 
 # The length of the chain before burn-in and thinning
-total_chain_length = 10_000_000
+total_chain_length = 20_000_000
 
 # Burn-in length - How many samples from the beginning to immediately discard
 # --> Not including as much burn-in as we would normally because the initial values are from the end of a 4-million iteration preliminary chain
-burnin_length = 1_000_000
+if model_config=="brick"
+    burnin_length = 1_000_000
+elseif model_config=="doeclimbrick"
+    burnin_length = 7_000_000
+elseif model_config=="sneasybrick"
+    burnin_length = 1_000_000
+end
 
 # Threshold for Gelman and Rubin potential scale reduction factor (burn-in/convergence)
 # --> 1.1 or 1.05 are standard practice. Further from 1 is
@@ -70,12 +76,7 @@ threshold_gr = 1.1
 num_walkers = 2
 
 # Create a subsample of posterior parameters?
-size_subsample = 1_000
-
-# Do thinning?
-# --> There are good reasons for thinning (accounting for autocorrelation in the Markov chain samples) and good reasons not to (e.g. Link and Eaton 2012; Maceachern and Berliner 1994)
-# --> If `false`, the `threshold_acf` and `lags` below are not used.
-do_thinning = false
+size_subsample = 10_000
 
 
 ##------------------------------------------------------------------------------
@@ -173,66 +174,15 @@ else
     end
 end
 
-# Check effective sample size
-ess = Array{Float64,1}(undef , num_parameters)
-for p in 1:num_parameters
-    ess[p] = effective_sample_size(chain_burned[:,p])
-end
-ess_min = round(minimum(ess))
-println("Minimum effective sample size:",ess_min)
-
-# this is just an example chunk of code for continuing a chain. to be deleted?
-if false
-    ## continuing a chain:
-    # use the last iteration from the previous chain as the initial parameters.
-    # use the last covariance matrix (that is output from RAM_sample) as the initial proposal covariance matrix.
-    # run more iterations:
-    num_new_samples = total_chain_length - burnin_length
-    chain_raw_new, accept_rate_new, cov_matrix_new = RAM_sample(log_posterior_mymodel, chain_raw[total_chain_length,:], cov_matrix, Int(num_new_samples), opt_α=0.234)
-    # reset to combine
-    chain_raw = vcat(chain_raw, chain_raw_new)
-    accept_rate = (total_chain_length*accept_rate + num_new_samples*accept_rate_new)/(total_chain_length+num_new_samples)
-    cov_matrix = cov_matrix_new
-end
-
-
-##------------------------------------------------------------------------------
-## Thinning - probably not done by default, just running many iterations and then subsampling
-##------------------------------------------------------------------------------
-
-if do_thinning
-    # --> start the thinning lag out at the minimum `lags`
-    # --> loop through the parameters and calculate the lag at which autocorrelation < threshold_acf
-    # --> increase thinning lag whenever you encounter a higher needed lag
-    thinlag = minimum(lags) # initialize
-    for p in 1:num_parameters
-        acf = autocor(chain_burned[:,p], lags)
-        idx_low_enough = findall(x -> x <= threshold_acf, acf)
-        if length(idx_low_enough) >= 1
-            idx_low_enough = idx_low_enough[1]
-        else
-            longer_lags = lags[1]:(lags[2]-lags[1]):Int(0.5*(total_chain_length-burnin_length)) # increase the max lags
-            acf = autocor(chain_burned[:,p], longer_lags)
-            idx_low_enough = findall(x -> x <= threshold_acf, acf)[1]
-            # TODO - the above will error out if there are still no lags at which ACF < threshold_acf
-        end
-        thinlag = maximum([thinlag, lags[idx_low_enough]])
-    end
-    # TODO - subsample the chain
-    final_chain = DataFrame(chain_burned, parnames)
-    rename!(final_chain, parnames)
-else
-    final_chain = DataFrame(chain_burned, parnames)
-    rename!(final_chain, parnames)
-end
 
 
 ##------------------------------------------------------------------------------
 ## Subsampling the final chains
 ##------------------------------------------------------------------------------
 
-idx_subsample = sample(1:size(final_chain)[1], size_subsample, replace=false)
-final_sample = final_chain[idx_subsample,:]
+Random.seed!(2022) # for reproducibility
+idx_subsample = sample(1:size(chain_burned)[1], size_subsample, replace=false)
+final_sample = chain_burned[idx_subsample,:]
 
 
 ##------------------------------------------------------------------------------
@@ -242,16 +192,16 @@ final_sample = final_chain[idx_subsample,:]
 # Save calibrated parameter samples
 println("Saving calibrated parameters for "*model_config*".\n")
 
-save(joinpath(@__DIR__, output, "prel_mcmc_acceptance_rate.csv"), DataFrame(acceptance_rate=accept_rate))
-save(joinpath(@__DIR__, output, "prel_proposal_covariance_matrix.csv"), DataFrame(cov_matrix, :auto))
-save(joinpath(@__DIR__, output, "prel_parameters_full_chain.csv"), DataFrame(chain_raw,parnames))
-save(joinpath(@__DIR__, output, "prel_parameters_subsample.csv"), final_sample)
+save(joinpath(@__DIR__, output, "mcmc_acceptance_rate.csv"), DataFrame(acceptance_rate=accept_rate))
+save(joinpath(@__DIR__, output, "proposal_covariance_matrix.csv"), DataFrame(cov_matrix, :auto))
+save(joinpath(@__DIR__, output, "parameters_full_chain.csv"), DataFrame(chain_raw,parnames))
+save(joinpath(@__DIR__, output, "parameters_subsample.csv"), DataFrame(final_sample,parnames))
 
 # Save initial conditions for future runs
-path_new_initial_conditions = joinpath(@__DIR__, "..", "data", "calibration_data", "from_preliminary_chains")
+path_new_initial_conditions = joinpath(@__DIR__, "..", "data", "calibration_data", "from_calibration_chains")
 mkpath(path_new_initial_conditions)
 filename_new_initial_parameters = "calibration_initial_values_"*model_config*"_"*chain_len_str*"_$(Dates.format(now(),"dd-mm-yyyy")).csv"
-new_initial_parameters = DataFrame(parameter_names = parnames, parameter_values = Vector(final_chain[size(final_chain)[1],:]))
+new_initial_parameters = DataFrame(parameter_names = parnames, parameter_values = Vector(chain_burned[size(chain_burned)[1],:]))
 save(joinpath(path_new_initial_conditions, filename_new_initial_parameters), new_initial_parameters)
 filename_new_initial_covariance = "initial_proposal_covariance_matrix_"*model_config*"_"*chain_len_str*"_$(Dates.format(now(),"dd-mm-yyyy")).csv"
 save(joinpath(path_new_initial_conditions, filename_new_initial_covariance), DataFrame(cov_matrix, :auto))
