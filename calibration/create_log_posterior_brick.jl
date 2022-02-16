@@ -103,7 +103,7 @@ function construct_brick_log_prior(joint_antarctic_prior::Bool)
     prior_ρ_glaciers         = Uniform(-0.99, 0.99)
     prior_ρ_greenland        = Uniform(-0.99, 0.99)
     prior_ρ_antarctic        = Uniform(-0.99, 0.99)
-    prior_ρ_gmsl             = Uniform(-0.99, 0.99)
+    prior_ρ_gmsl             = Truncated(Normal(0.8, .25), -1.0, 1.0)
 
     # -----------------------------------------
     # Initial Condition Priors.
