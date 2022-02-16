@@ -29,7 +29,7 @@ outdir = joinpath(@__DIR__, "..", "results")
 
 # Model configuration
 # --> Possible options: (1) "brick", (2) "doeclimbrick", (3) "sneasybrick"
-model_config = "brick"
+model_config = "doeclimbrick"
 
 # Set years for model calibration.
 start_year = calibration_start_year = 1850
@@ -66,7 +66,7 @@ parnames = names(parameters)
 if model_config=="brick"
     m = MimiBRICK.get_model(start_year=start_year, end_year=end_year)
 elseif model_config=="doeclimbrick"
-    #m = MimiSNEASY.get_model(start_year=start_year, end_year=end_year)
+    m = MimiBRICK_DOECLIM.create_brick_doeclim(start_year=start_year, end_year=end_year)
 elseif model_config=="sneasybrick"
     #m = MimiSNEASY.get_model(start_year=start_year, end_year=end_year)
     m = create_sneasy_brick(start_year=start_year, end_year=end_year)
@@ -164,7 +164,7 @@ for i = 1:num_ens
 
     # Calculate land water storage contribution to sea level rise (sampled from Normal distribution) and set same scenario for base and pulse runs.
     landwater_storage_sl[i,:] = rand(Normal(0.0003, 0.00018), num_years)
-    update_param!(m,  :landwater_storage, :lws_random_sample, landwater_storage_sl[i,:])
+    update_param!(m, :landwater_storage, :lws_random_sample, landwater_storage_sl[i,:])
     update_param!(m, :landwater_storage, :lws_random_sample, landwater_storage_sl[i,:])
 
     if (model_config == "doeclimbrick") | (model_config == "sneasybrick")
