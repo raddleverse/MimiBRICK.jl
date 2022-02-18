@@ -65,7 +65,7 @@ end
 filename_parameters = joinpath(dir_output, "parameters_subsample.csv")
 filename_logpost    = joinpath(dir_output, "log_post_subsample.csv")
 parameters = DataFrame(load(filename_parameters))
-logpost = DataFrame(load(filename_logpost))
+logpost = DataFrame(load(filename_logpost))[!,:log_post]
 num_ens = size(parameters)[1]
 num_par = size(parameters)[2]
 parnames = names(parameters)
@@ -278,30 +278,31 @@ end
 # write maximum a posteriori ensemble member
 idx_max = findmax(logpost)[2]
 if model_config=="brick"
-    colnames_out = ["GMSL","LWS","GLAC","GIS","AIS"]
+    colnames_out = ["YEAR","GMSL","LWS","GLAC","GIS","AIS"]
 elseif model_config=="doeclimbrick"
-    colnames_out = ["GMSL","LWS","GLAC","GIS","AIS","TEMP","OCHEAT"]
+    colnames_out = ["YEAR","GMSL","LWS","GLAC","GIS","AIS","TEMP","OCHEAT"]
 elseif model_config=="sneasybrick"
-    colnames_out = ["GMSL","LWS","GLAC","GIS","AIS","TEMP","OCHEAT","CO2","OCEANCO2"]
+    colnames_out = ["YEAR","GMSL","LWS","GLAC","GIS","AIS","TEMP","OCHEAT","CO2","OCEANCO2"]
 end
 num_outputs = size(colnames_out)[1]
 map_outputs = zeros(Union{Missing, Float64}, num_outputs, num_years)
-map_outputs[1,:] = gmsl[idx_max,:]
-map_outputs[2,:] = landwater_storage_sl[idx_max,:]
-map_outputs[3,:] = glaciers[idx_max,:]
-map_outputs[4,:] = greenland[idx_max,:]
-map_outputs[5,:] = antarctic[idx_max,:]
+map_outputs[1,:] = model_years
+map_outputs[2,:] = gmsl[idx_max,:]
+map_outputs[3,:] = landwater_storage_sl[idx_max,:]
+map_outputs[4,:] = glaciers[idx_max,:]
+map_outputs[5,:] = greenland[idx_max,:]
+map_outputs[6,:] = antarctic[idx_max,:]
 if (model_config=="doeclimbrick") | (model_config=="sneasybrick")
-    map_outputs[6,:] = temperature[idx_max,:]
-    map_outputs[7,:] = ocean_heat[idx_max,:]
+    map_outputs[7,:] = temperature[idx_max,:]
+    map_outputs[8,:] = ocean_heat[idx_max,:]
     if (model_config=="sneasybrick")
-        map_outputs[8,:] = co2[idx_max,:]
-        map_outputs[9,:] = oceanco2[idx_max,:]
+        map_outputs[9,:] = co2[idx_max,:]
+        map_outputs[10,:] = oceanco2[idx_max,:]
     end
 end
 df_map_outputs = DataFrame(map_outputs', colnames_out)
-filename_map_outputs = joinpath(output_path,"hindcast_MAP_$(model_config).csv")
-CSV.write(filename_output, df_map_outputs)
+filename_map_outputs = joinpath(filepath_output,"hindcast_MAP_$(model_config).csv")
+CSV.write(filename_map_outputs, df_map_outputs)
 
 
 ##==============================================================================

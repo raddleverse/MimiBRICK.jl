@@ -30,7 +30,7 @@ using Dates
 
 # Model configuration
 # --> Possible options: (1) "brick", (2) "doeclimbrick", (3) "sneasybrick"
-model_config = "sneasybrick"
+model_config = "brick"
 
 # Initial conditions from a previous file or from the prior distributions?
 # --> If you want to use the midpoints of the prior ranges as the starting parameter estimates, and 5% of the prior range width as the step size for MCMC, set `start_from_priors = true`
@@ -66,7 +66,7 @@ elseif model_config=="sneasybrick"
 end
 
 # Threshold for Gelman and Rubin potential scale reduction factor (burn-in/convergence)
-# --> 1.1 or 1.05 are standard practice. Further from 1 is
+# --> 1.1 or 1.05 are standard practice
 threshold_gr = 1.1
 
 # Number of sub-chains that the single larger chain is divided into for convergence check

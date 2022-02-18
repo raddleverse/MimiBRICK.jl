@@ -30,10 +30,10 @@ outdir = joinpath(@__DIR__, "..", "results")
 
 # Model configuration
 # --> Possible options: (1) "brick", (2) "doeclimbrick", (3) "sneasybrick"
-model_config = "doeclimbrick"
+model_config = "brick"
 # RCP scenario
-# --> Possible options: (1) RCP26 (not yet), (2) RCP45 (not yet), (3) RCP60 (not yet), (4) RCP85
-rcp_scenario = "RCP85"
+# --> Possible options: (1) RCP26, (2) RCP45, (3) RCP60, (4) RCP85
+rcp_scenario = "RCP45"
 
 ##==============================================================================
 ## Should not need to mess around with anything below here
@@ -74,7 +74,7 @@ end
 filename_parameters = joinpath(dir_output, "parameters_subsample.csv")
 filename_logpost    = joinpath(dir_output, "log_post_subsample.csv")
 parameters = DataFrame(load(filename_parameters))
-logpost = DataFrame(load(filename_logpost))
+logpost = DataFrame(load(filename_logpost))[!,:log_post]
 num_ens = size(parameters)[1]
 num_par = size(parameters)[2]
 parnames = names(parameters)
@@ -269,39 +269,7 @@ function write_output_table(field_name, model_config, rcp, field_array, output_p
     CSV.write(filename_output, DataFrame(field_array', :auto))
 end
 
-# Writing output tables.##==============================================================================
-## Set paths for results files - subsample of model parameters, and associated log-posterior scores
-
-# for BRICK
-dir_brick = joinpath(@__DIR__, "..", "results", "my_brick_results_20M_09-02-2022")
-# for DOECLIM-BRICK
-dir_doeclimbrick = joinpath(@__DIR__, "..", "results", "my_doeclimbrick_results_20M_08-02-2022")
-# for SNEASY-BRICK
-dir_sneasybrick = joinpath(@__DIR__, "..", "results", "my_sneasybrick_results_20K_18-02-2022")
-
-##==============================================================================
-## Modify below here at your own risk
-##==============================================================================
-
-
-##==============================================================================
-## Read subsample of parameters
-
-if model_config == "brick"
-    dir_output = dir_brick
-elseif model_config == "doeclimbrick"
-    dir_output = dir_doeclimbrick
-elseif model_config == "sneasybrick"
-    dir_output = dir_sneasybrick
-end
-filename_parameters = joinpath(dir_output, "parameters_subsample.csv")
-filename_logpost    = joinpath(dir_output, "log_post_subsample.csv")
-parameters = DataFrame(load(filename_parameters))
-logpost = DataFrame(load(filename_logpost))
-num_ens = size(parameters)[1]
-num_par = size(parameters)[2]
-parnames = names(parameters)
-
+# Writing output tables.
 write_output_table("gmsl", model_config, rcp_scenario, gmsl, filepath_output)
 write_output_table("landwater_storage_sl", model_config, rcp_scenario, landwater_storage_sl, filepath_output)
 write_output_table("glaciers", model_config, rcp_scenario, glaciers, filepath_output)
@@ -315,6 +283,35 @@ if (model_config == "doeclimbrick") | (model_config == "sneasybrick")
         write_output_table("oceanco2", model_config, rcp_scenario, oceanco2, filepath_output)
     end
 end
+
+# write maximum a posteriori ensemble member
+idx_max = findmax(logpost)[2]
+if model_config=="brick"
+    colnames_out = ["YEAR","GMSL","LWS","GLAC","GIS","AIS"]
+elseif model_config=="doeclimbrick"
+    colnames_out = ["YEAR","GMSL","LWS","GLAC","GIS","AIS","TEMP","OCHEAT"]
+elseif model_config=="sneasybrick"
+    colnames_out = ["YEAR","GMSL","LWS","GLAC","GIS","AIS","TEMP","OCHEAT","CO2","OCEANCO2"]
+end
+num_outputs = size(colnames_out)[1]
+map_outputs = zeros(Union{Missing, Float64}, num_outputs, num_years)
+map_outputs[1,:] = model_years
+map_outputs[2,:] = gmsl[idx_max,:]
+map_outputs[3,:] = landwater_storage_sl[idx_max,:]
+map_outputs[4,:] = glaciers[idx_max,:]
+map_outputs[5,:] = greenland[idx_max,:]
+map_outputs[6,:] = antarctic[idx_max,:]
+if (model_config=="doeclimbrick") | (model_config=="sneasybrick")
+    map_outputs[7,:] = temperature[idx_max,:]
+    map_outputs[8,:] = ocean_heat[idx_max,:]
+    if (model_config=="sneasybrick")
+        map_outputs[9,:] = co2[idx_max,:]
+        map_outputs[10,:] = oceanco2[idx_max,:]
+    end
+end
+df_map_outputs = DataFrame(map_outputs', colnames_out)
+filename_map_outputs = joinpath(filepath_output,"projections_MAP_$(model_config).csv")
+CSV.write(filename_map_outputs, df_map_outputs)
 
 
 ##==============================================================================
