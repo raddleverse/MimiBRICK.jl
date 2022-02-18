@@ -1,6 +1,6 @@
 ##==============================================================================
-## Script for running BRICK (standalone) over the historic period and save the
-## hindcast results to CSV files.
+## Script for running BRICK (standalone, or with DOECLIM or SNEASY) over the
+## historic period and save the hindcast results to CSV files.
 ##==============================================================================
 
 
@@ -72,6 +72,9 @@ elseif model_config=="sneasybrick"
     m = create_sneasy_brick(start_year=start_year, end_year=end_year)
 end
 
+# Load calibration data from 1765-2017 (measurement errors used in simulated noise).
+calibration_data, obs_antarctic_trends, obs_thermal_trends = load_calibration_data(start_year, 2017)
+
 # Initialize arrays to save the model components
 
 # Pre-allocate arrays to store (SNEASY/DOECLIM+)BRICK results.
@@ -116,9 +119,6 @@ temperature_norm_indices = findall((in)(1861:1880), calibration_start_year:calib
 # Get indices needed to normalize all sea level rise sources.
 sealevel_norm_indices_1961_1990 = findall((in)(1961:1990), calibration_start_year:calibration_end_year)
 sealevel_norm_indices_1992_2001 = findall((in)(1992:2001), calibration_start_year:calibration_end_year)
-
-# Load calibration data from 1765-2017 (measurement errors used in simulated noise).
-calibration_data, obs_antarctic_trends, obs_thermal_trends = load_calibration_data(start_year, 2017)
 
 # Loop over parameters and run the model
 for i = 1:num_ens
