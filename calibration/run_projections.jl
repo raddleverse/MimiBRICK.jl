@@ -30,9 +30,9 @@ outdir = joinpath(@__DIR__, "..", "results")
 
 # Model configuration
 # --> Possible options: (1) "brick", (2) "doeclimbrick", (3) "sneasybrick"
-model_config = "brick"
+model_config = "sneasybrick"
 # RCP scenario
-# --> Possible options: (1) RCP26, (2) RCP45 (not yet), (3) RCP60 (not yet), (4) RCP85
+# --> Possible options: (1) RCP26 (not yet), (2) RCP45 (not yet), (3) RCP60 (not yet), (4) RCP85
 rcp_scenario = "RCP26"
 
 ##==============================================================================
@@ -78,12 +78,12 @@ parnames = names(parameters)
 
 # Get model instance
 if model_config=="brick"
-    m = MimiBRICK.get_model(start_year=start_year, end_year=end_year)
+    m = MimiBRICK.get_model(rcp_scenario=rcp_scenario, start_year=start_year, end_year=end_year)
 elseif model_config=="doeclimbrick"
-    m = MimiBRICK_DOECLIM.create_brick_doeclim(start_year=start_year, end_year=end_year)
+    m = MimiBRICK_DOECLIM.create_brick_doeclim(rcp_scenario=rcp_scenario, start_year=start_year, end_year=end_year)
 elseif model_config=="sneasybrick"
     #m = MimiSNEASY.get_model(start_year=start_year, end_year=end_year)
-    m = create_sneasy_brick(start_year=start_year, end_year=end_year)
+    m = create_sneasy_brick(rcp_scenario=rcp_scenario, start_year=start_year, end_year=end_year)
 end
 
 # Load calibration data from 1765-2017 (measurement errors used in simulated noise).
@@ -254,7 +254,7 @@ end
 model_tag = filename_parameters[(findfirst("results/", filename_parameters)[end]+1):(findfirst("/parameters_subsample", filename_parameters)[1]-1)]
 outdir = filename_parameters[1:(findfirst("/parameters_subsample", filename_parameters)[1]-1)]
 # make appropriate directory if needed
-filepath_output = joinpath(outdir, "projections_csv")
+filepath_output = joinpath(outdir, "projections_csv",rcp_scenario)
 mkpath(filepath_output)
 
 # Transposing so each column is a different ensemble member, and each row is a different year
