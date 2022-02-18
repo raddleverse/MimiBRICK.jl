@@ -30,10 +30,10 @@ outdir = joinpath(@__DIR__, "..", "results")
 
 # Model configuration
 # --> Possible options: (1) "brick", (2) "doeclimbrick", (3) "sneasybrick"
-model_config = "sneasybrick"
+model_config = "doeclimbrick"
 # RCP scenario
 # --> Possible options: (1) RCP26 (not yet), (2) RCP45 (not yet), (3) RCP60 (not yet), (4) RCP85
-rcp_scenario = "RCP26"
+rcp_scenario = "RCP85"
 
 ##==============================================================================
 ## Should not need to mess around with anything below here
@@ -47,28 +47,34 @@ num_years = length(model_years)
 
 
 ##==============================================================================
-## Set paths for results files - subsample of model parameters
+## Set paths for results files - subsample of model parameters, and associated log-posterior scores
 
-filename_brick_parameters = joinpath(@__DIR__, "..", "results", "my_brick_results_20M_09-02-2022", "parameters_subsample.csv")
-filename_doeclimbrick_parameters = joinpath(@__DIR__, "..", "results", "my_doeclimbrick_results_20M_08-02-2022", "parameters_subsample.csv")
-filename_sneasybrick_parameters = joinpath(@__DIR__, "..", "results", "my_sneasybrick_results_20M_08-02-2022", "parameters_subsample.csv")
+# for BRICK
+dir_brick = joinpath(@__DIR__, "..", "results", "my_brick_results_20M_09-02-2022")
+# for DOECLIM-BRICK
+dir_doeclimbrick = joinpath(@__DIR__, "..", "results", "my_doeclimbrick_results_20M_08-02-2022")
+# for SNEASY-BRICK
+dir_sneasybrick = joinpath(@__DIR__, "..", "results", "my_sneasybrick_results_20K_18-02-2022")
+
+##==============================================================================
+## Modify below here at your own risk
+##==============================================================================
+
 
 ##==============================================================================
 ## Read subsample of parameters
 
 if model_config == "brick"
-    filename_parameters = filename_brick_parameters
-    # Appropriate temperature and ocean heat uptake forcings are loaded within MimiBRICK.jl `get_model`
+    dir_output = dir_brick
 elseif model_config == "doeclimbrick"
-    filename_parameters = filename_doeclimbrick_parameters
+    dir_output = dir_doeclimbrick
 elseif model_config == "sneasybrick"
-    filename_parameters = filename_sneasybrick_parameters
-    # Load emissions data (index into appropriate years).
-    rcp_emissions = DataFrame(load(joinpath(@__DIR__, "..", "data", "model_data", rcp_scenario*"_emissions.csv"), skiplines_begin=36))
-    # Find indices for RCP data (1765-2500)
-    rcp_indices = findall((in)(model_years), 1765:2500)
+    dir_output = dir_sneasybrick
 end
+filename_parameters = joinpath(dir_output, "parameters_subsample.csv")
+filename_logpost    = joinpath(dir_output, "log_post_subsample.csv")
 parameters = DataFrame(load(filename_parameters))
+logpost = DataFrame(load(filename_logpost))
 num_ens = size(parameters)[1]
 num_par = size(parameters)[2]
 parnames = names(parameters)
@@ -263,7 +269,39 @@ function write_output_table(field_name, model_config, rcp, field_array, output_p
     CSV.write(filename_output, DataFrame(field_array', :auto))
 end
 
-# Writing output tables.
+# Writing output tables.##==============================================================================
+## Set paths for results files - subsample of model parameters, and associated log-posterior scores
+
+# for BRICK
+dir_brick = joinpath(@__DIR__, "..", "results", "my_brick_results_20M_09-02-2022")
+# for DOECLIM-BRICK
+dir_doeclimbrick = joinpath(@__DIR__, "..", "results", "my_doeclimbrick_results_20M_08-02-2022")
+# for SNEASY-BRICK
+dir_sneasybrick = joinpath(@__DIR__, "..", "results", "my_sneasybrick_results_20K_18-02-2022")
+
+##==============================================================================
+## Modify below here at your own risk
+##==============================================================================
+
+
+##==============================================================================
+## Read subsample of parameters
+
+if model_config == "brick"
+    dir_output = dir_brick
+elseif model_config == "doeclimbrick"
+    dir_output = dir_doeclimbrick
+elseif model_config == "sneasybrick"
+    dir_output = dir_sneasybrick
+end
+filename_parameters = joinpath(dir_output, "parameters_subsample.csv")
+filename_logpost    = joinpath(dir_output, "log_post_subsample.csv")
+parameters = DataFrame(load(filename_parameters))
+logpost = DataFrame(load(filename_logpost))
+num_ens = size(parameters)[1]
+num_par = size(parameters)[2]
+parnames = names(parameters)
+
 write_output_table("gmsl", model_config, rcp_scenario, gmsl, filepath_output)
 write_output_table("landwater_storage_sl", model_config, rcp_scenario, landwater_storage_sl, filepath_output)
 write_output_table("glaciers", model_config, rcp_scenario, glaciers, filepath_output)

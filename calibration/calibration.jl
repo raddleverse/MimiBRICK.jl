@@ -30,7 +30,7 @@ using Dates
 
 # Model configuration
 # --> Possible options: (1) "brick", (2) "doeclimbrick", (3) "sneasybrick"
-model_config = "brick"
+model_config = "sneasybrick"
 
 # Initial conditions from a previous file or from the prior distributions?
 # --> If you want to use the midpoints of the prior ranges as the starting parameter estimates, and 5% of the prior range width as the step size for MCMC, set `start_from_priors = true`
@@ -155,6 +155,7 @@ Random.seed!(2021) # for reproducibility
 
 # Remove the burn-in period
 chain_burned = chain_raw[(burnin_length+1):total_chain_length,:]
+log_post_burned = log_post[(burnin_length+1):total_chain_length]
 
 # Check convergence by computing Gelman and Rubin diagnostic for each parameter (potential scale reduction factor)
 psrf = Array{Float64,1}(undef , num_parameters)
@@ -183,7 +184,7 @@ end
 Random.seed!(2022) # for reproducibility
 idx_subsample = sample(1:size(chain_burned)[1], size_subsample, replace=false)
 final_sample = chain_burned[idx_subsample,:]
-
+log_post_final_sample = log_post_burned[idx_subsample]
 
 ##------------------------------------------------------------------------------
 ## Save the results
@@ -192,10 +193,12 @@ final_sample = chain_burned[idx_subsample,:]
 # Save calibrated parameter samples
 println("Saving calibrated parameters for "*model_config*".\n")
 
+save(joinpath(@__DIR__, output, "mcmc_log_post.csv"), DataFrame(log_post=log_post))
 save(joinpath(@__DIR__, output, "mcmc_acceptance_rate.csv"), DataFrame(acceptance_rate=accept_rate))
 save(joinpath(@__DIR__, output, "proposal_covariance_matrix.csv"), DataFrame(cov_matrix, :auto))
 save(joinpath(@__DIR__, output, "parameters_full_chain.csv"), DataFrame(chain_raw,parnames))
 save(joinpath(@__DIR__, output, "parameters_subsample.csv"), DataFrame(final_sample,parnames))
+save(joinpath(@__DIR__, output, "log_post_subsample.csv"), DataFrame(log_post=log_post_final_sample))
 
 # Save initial conditions for future runs
 path_new_initial_conditions = joinpath(@__DIR__, "..", "data", "calibration_data", "from_calibration_chains")
