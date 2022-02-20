@@ -16,10 +16,9 @@ include(joinpath(srcdir,"create_models","SNEASY_BRICK.jl"))
 ##==============================================================================
 ## Read output from SNEASY RCP projections
 
-dir_sneasybrick = joinpath(@__DIR__, "..", "results", "my_sneasybrick_results_20K_18-02-2022")
+dir_sneasybrick = joinpath(@__DIR__, "..", "results", "my_sneasybrick_results_20M_19-02-2022")
 
-#for rcp_scenario = ["RCP26","RCP45","RCP60","RCP85"]
-rcp_scenario = "RCP45"
+for rcp_scenario = ["RCP26","RCP45","RCP60","RCP85"]
 
     filename_sneasy_map = joinpath(dir_sneasybrick,"projections_csv",rcp_scenario,"projections_MAP_sneasybrick.csv")
     map_projections = DataFrame(load(filename_sneasy_map))
@@ -42,6 +41,6 @@ rcp_scenario = "RCP45"
     filename_ocheat = joinpath(@__DIR__, "..", "data", "model_data", "sneasy_oceanheat_$(rcp_scenario)_$(Int(years[1]))_$(Int(years[end])).csv")
     CSV.write(filename_ocheat, DataFrame([years,ocean_heat], ["Year","MAP Ocean Heat"]))
 
-#end
+end
 
 ##==============================================================================

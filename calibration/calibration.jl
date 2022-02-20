@@ -43,8 +43,6 @@ path_parameter_info = joinpath(@__DIR__, "..", "data", "calibration_data", "cali
 #     `path_parameter_info` is just to get the names of the parameters, whereas `path_initial_parameters` will provide the starting values for the model parameters as well.
 if ~start_from_priors
     path_initial_parameters = joinpath(@__DIR__, "..", "data", "calibration_data", "calibration_initial_values_"*model_config*".csv")
-    #     Also, the `path_initial_parameter_values` does not need to be distinct from the `path_initial_parameters`.
-    #     `path_initial_parameters` is just
     path_initial_covariance = joinpath(@__DIR__, "..", "data", "calibration_data", "initial_proposal_covariance_matrix_"*model_config*".csv")
 end
 

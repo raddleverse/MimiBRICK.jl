@@ -29,7 +29,7 @@ outdir = joinpath(@__DIR__, "..", "results")
 
 # Model configuration
 # --> Possible options: (1) "brick", (2) "doeclimbrick", (3) "sneasybrick"
-model_config = "sneasybrick"
+model_config = "brick"
 
 # Set years for model calibration.
 start_year = calibration_start_year = 1850
@@ -41,11 +41,11 @@ num_years = length(model_years)
 ## Set paths for results files - subsample of model parameters, and associated log-posterior scores
 
 # for BRICK
-dir_brick = joinpath(@__DIR__, "..", "results", "my_brick_results_20M_09-02-2022")
+dir_brick = joinpath(@__DIR__, "..", "results", "my_brick_results_20M_20-02-2022")
 # for DOECLIM-BRICK
-dir_doeclimbrick = joinpath(@__DIR__, "..", "results", "my_doeclimbrick_results_20M_08-02-2022")
+dir_doeclimbrick = joinpath(@__DIR__, "..", "results", "my_doeclimbrick_results_20M_19-02-2022")
 # for SNEASY-BRICK
-dir_sneasybrick = joinpath(@__DIR__, "..", "results", "my_sneasybrick_results_20K_18-02-2022")
+dir_sneasybrick = joinpath(@__DIR__, "..", "results", "my_sneasybrick_results_20M_19-02-2022")
 
 ##==============================================================================
 ## Modify below here at your own risk
