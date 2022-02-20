@@ -28,8 +28,8 @@ function get_model(;rcp_scenario::String="RCP85", start_year::Int=1850, end_year
 
     # Load exogenous time-series for global surface temperature and ocean heat content (output from SNEASY under RCP8.5).
     # NOTE: for now, only `rcp_scenario = "RCP85"` is supported
-    temperature_scenario = DataFrame(load(joinpath(@__DIR__, "..", "data", "model_data", "sneasy_temperature_"*rcp_scenario*"_1850_2300.csv"), skiplines_begin=5))
-    oceanheat_scenario   = DataFrame(load(joinpath(@__DIR__, "..", "data", "model_data", "sneasy_oceanheat_"*rcp_scenario*"_1850_2300.csv"), skiplines_begin=5))
+    temperature_scenario = DataFrame(load(joinpath(@__DIR__, "..", "data", "model_data", "sneasy_temperature_"*rcp_scenario*"_1850_2300.csv")))
+    oceanheat_scenario   = DataFrame(load(joinpath(@__DIR__, "..", "data", "model_data", "sneasy_oceanheat_"*rcp_scenario*"_1850_2300.csv")))
 
     #-------------------------#
     # ----- Build BRICK ----- #
@@ -111,7 +111,7 @@ function get_model(;rcp_scenario::String="RCP85", start_year::Int=1850, end_year
     update_param!(brick, :thermal_expansion, :te_s₀, 0.0)
     update_param!(brick, :thermal_expansion, :ocean_heat_mixed, zeros(length(start_year:end_year)))
     oceanheat_idx = findall((in)(start_year:end_year), oceanheat_scenario[!,:Year])
-    update_param!(brick, :thermal_expansion, :ocean_heat_interior, oceanheat_scenario[oceanheat_idx, :Mean_Ocean_Heat])
+    update_param!(brick, :thermal_expansion, :ocean_heat_interior, oceanheat_scenario[oceanheat_idx, :"MAP Ocean Heat"])
 
     # ----- Landwater Storage ----- #
 
@@ -127,7 +127,7 @@ function get_model(;rcp_scenario::String="RCP85", start_year::Int=1850, end_year
 
     temperature_idx = findall((in)(start_year:end_year), temperature_scenario[!,:Year])
 
-    add_shared_param!(brick, :model_global_surface_temperature,  temperature_scenario[temperature_idx,:Mean_Temperature], dims = [:time])
+    add_shared_param!(brick, :model_global_surface_temperature,  temperature_scenario[temperature_idx,:"MAP Temperature"], dims = [:time])
     connect_param!(brick, :antarctic_icesheet, :global_surface_temperature, :model_global_surface_temperature)
     connect_param!(brick, :antarctic_ocean, :global_surface_temperature, :model_global_surface_temperature)
     connect_param!(brick, :glaciers_small_icecaps, :global_surface_temperature, :model_global_surface_temperature)

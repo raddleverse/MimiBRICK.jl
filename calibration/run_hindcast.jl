@@ -1,6 +1,6 @@
 ##==============================================================================
-## Script for running BRICK (standalone) over the historic period and save the
-## hindcast results to CSV files.
+## Script for running BRICK (standalone, or with DOECLIM or SNEASY) over the
+## historic period and save the hindcast results to CSV files.
 ##==============================================================================
 
 
@@ -29,7 +29,7 @@ outdir = joinpath(@__DIR__, "..", "results")
 
 # Model configuration
 # --> Possible options: (1) "brick", (2) "doeclimbrick", (3) "sneasybrick"
-model_config = "doeclimbrick"
+model_config = "brick"
 
 # Set years for model calibration.
 start_year = calibration_start_year = 1850
@@ -38,23 +38,34 @@ model_years  = collect(calibration_start_year:calibration_end_year)
 num_years = length(model_years)
 
 ##==============================================================================
-## Set paths for results files - subsample of model parameters
+## Set paths for results files - subsample of model parameters, and associated log-posterior scores
 
-filename_brick_parameters = joinpath(@__DIR__, "..", "results", "my_brick_results_20M_09-02-2022", "parameters_subsample.csv")
-filename_doeclimbrick_parameters = joinpath(@__DIR__, "..", "results", "my_doeclimbrick_results_20M_08-02-2022", "parameters_subsample.csv")
-filename_sneasybrick_parameters = joinpath(@__DIR__, "..", "results", "my_sneasybrick_results_20M_08-02-2022", "parameters_subsample.csv")
+# for BRICK
+dir_brick = joinpath(@__DIR__, "..", "results", "my_brick_results_20M_20-02-2022")
+# for DOECLIM-BRICK
+dir_doeclimbrick = joinpath(@__DIR__, "..", "results", "my_doeclimbrick_results_20M_19-02-2022")
+# for SNEASY-BRICK
+dir_sneasybrick = joinpath(@__DIR__, "..", "results", "my_sneasybrick_results_20M_19-02-2022")
+
+##==============================================================================
+## Modify below here at your own risk
+##==============================================================================
+
 
 ##==============================================================================
 ## Read subsample of parameters
 
 if model_config == "brick"
-    filename_parameters = filename_brick_parameters
+    dir_output = dir_brick
 elseif model_config == "doeclimbrick"
-    filename_parameters = filename_doeclimbrick_parameters
+    dir_output = dir_doeclimbrick
 elseif model_config == "sneasybrick"
-    filename_parameters = filename_sneasybrick_parameters
+    dir_output = dir_sneasybrick
 end
+filename_parameters = joinpath(dir_output, "parameters_subsample.csv")
+filename_logpost    = joinpath(dir_output, "log_post_subsample.csv")
 parameters = DataFrame(load(filename_parameters))
+logpost = DataFrame(load(filename_logpost))[!,:log_post]
 num_ens = size(parameters)[1]
 num_par = size(parameters)[2]
 parnames = names(parameters)
@@ -71,6 +82,9 @@ elseif model_config=="sneasybrick"
     #m = MimiSNEASY.get_model(start_year=start_year, end_year=end_year)
     m = create_sneasy_brick(start_year=start_year, end_year=end_year)
 end
+
+# Load calibration data from 1765-2017 (measurement errors used in simulated noise).
+calibration_data, obs_antarctic_trends, obs_thermal_trends = load_calibration_data(start_year, 2017)
 
 # Initialize arrays to save the model components
 
@@ -116,9 +130,6 @@ temperature_norm_indices = findall((in)(1861:1880), calibration_start_year:calib
 # Get indices needed to normalize all sea level rise sources.
 sealevel_norm_indices_1961_1990 = findall((in)(1961:1990), calibration_start_year:calibration_end_year)
 sealevel_norm_indices_1992_2001 = findall((in)(1992:2001), calibration_start_year:calibration_end_year)
-
-# Load calibration data from 1765-2017 (measurement errors used in simulated noise).
-calibration_data, obs_antarctic_trends, obs_thermal_trends = load_calibration_data(start_year, 2017)
 
 # Loop over parameters and run the model
 for i = 1:num_ens
@@ -263,6 +274,35 @@ if (model_config == "doeclimbrick") | (model_config == "sneasybrick")
         write_output_table("oceanco2", model_config, oceanco2, filepath_output)
     end
 end
+
+# write maximum a posteriori ensemble member
+idx_max = findmax(logpost)[2]
+if model_config=="brick"
+    colnames_out = ["YEAR","GMSL","LWS","GLAC","GIS","AIS"]
+elseif model_config=="doeclimbrick"
+    colnames_out = ["YEAR","GMSL","LWS","GLAC","GIS","AIS","TEMP","OCHEAT"]
+elseif model_config=="sneasybrick"
+    colnames_out = ["YEAR","GMSL","LWS","GLAC","GIS","AIS","TEMP","OCHEAT","CO2","OCEANCO2"]
+end
+num_outputs = size(colnames_out)[1]
+map_outputs = zeros(Union{Missing, Float64}, num_outputs, num_years)
+map_outputs[1,:] = model_years
+map_outputs[2,:] = gmsl[idx_max,:]
+map_outputs[3,:] = landwater_storage_sl[idx_max,:]
+map_outputs[4,:] = glaciers[idx_max,:]
+map_outputs[5,:] = greenland[idx_max,:]
+map_outputs[6,:] = antarctic[idx_max,:]
+if (model_config=="doeclimbrick") | (model_config=="sneasybrick")
+    map_outputs[7,:] = temperature[idx_max,:]
+    map_outputs[8,:] = ocean_heat[idx_max,:]
+    if (model_config=="sneasybrick")
+        map_outputs[9,:] = co2[idx_max,:]
+        map_outputs[10,:] = oceanco2[idx_max,:]
+    end
+end
+df_map_outputs = DataFrame(map_outputs', colnames_out)
+filename_map_outputs = joinpath(filepath_output,"hindcast_MAP_$(model_config).csv")
+CSV.write(filename_map_outputs, df_map_outputs)
 
 
 ##==============================================================================

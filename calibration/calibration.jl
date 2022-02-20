@@ -43,8 +43,6 @@ path_parameter_info = joinpath(@__DIR__, "..", "data", "calibration_data", "cali
 #     `path_parameter_info` is just to get the names of the parameters, whereas `path_initial_parameters` will provide the starting values for the model parameters as well.
 if ~start_from_priors
     path_initial_parameters = joinpath(@__DIR__, "..", "data", "calibration_data", "calibration_initial_values_"*model_config*".csv")
-    #     Also, the `path_initial_parameter_values` does not need to be distinct from the `path_initial_parameters`.
-    #     `path_initial_parameters` is just
     path_initial_covariance = joinpath(@__DIR__, "..", "data", "calibration_data", "initial_proposal_covariance_matrix_"*model_config*".csv")
 end
 
@@ -66,7 +64,7 @@ elseif model_config=="sneasybrick"
 end
 
 # Threshold for Gelman and Rubin potential scale reduction factor (burn-in/convergence)
-# --> 1.1 or 1.05 are standard practice. Further from 1 is
+# --> 1.1 or 1.05 are standard practice
 threshold_gr = 1.1
 
 # Number of sub-chains that the single larger chain is divided into for convergence check
@@ -155,6 +153,7 @@ Random.seed!(2021) # for reproducibility
 
 # Remove the burn-in period
 chain_burned = chain_raw[(burnin_length+1):total_chain_length,:]
+log_post_burned = log_post[(burnin_length+1):total_chain_length]
 
 # Check convergence by computing Gelman and Rubin diagnostic for each parameter (potential scale reduction factor)
 psrf = Array{Float64,1}(undef , num_parameters)
@@ -183,7 +182,7 @@ end
 Random.seed!(2022) # for reproducibility
 idx_subsample = sample(1:size(chain_burned)[1], size_subsample, replace=false)
 final_sample = chain_burned[idx_subsample,:]
-
+log_post_final_sample = log_post_burned[idx_subsample]
 
 ##------------------------------------------------------------------------------
 ## Save the results
@@ -192,10 +191,12 @@ final_sample = chain_burned[idx_subsample,:]
 # Save calibrated parameter samples
 println("Saving calibrated parameters for "*model_config*".\n")
 
+save(joinpath(@__DIR__, output, "mcmc_log_post.csv"), DataFrame(log_post=log_post))
 save(joinpath(@__DIR__, output, "mcmc_acceptance_rate.csv"), DataFrame(acceptance_rate=accept_rate))
 save(joinpath(@__DIR__, output, "proposal_covariance_matrix.csv"), DataFrame(cov_matrix, :auto))
 save(joinpath(@__DIR__, output, "parameters_full_chain.csv"), DataFrame(chain_raw,parnames))
 save(joinpath(@__DIR__, output, "parameters_subsample.csv"), DataFrame(final_sample,parnames))
+save(joinpath(@__DIR__, output, "log_post_subsample.csv"), DataFrame(log_post=log_post_final_sample))
 
 # Save initial conditions for future runs
 path_new_initial_conditions = joinpath(@__DIR__, "..", "data", "calibration_data", "from_calibration_chains")
