@@ -1,19 +1,19 @@
 # MimiBRICK.jl
 
-This repository will have the latest "standard" BRICK version and codes demonstrating its calibration in three configurations: (i) alone (forced by temperature), (ii) coupled to DOECLIM, and (iii) coupled to SNEASY. Standard calibration output will be provided as well as examples and scripts for downscaling the projections to a 1-degree grid for local sea-level rise.
+This repository will have the latest "standard" BRICK version and codes demonstrating its calibration in three configurations: (i) alone (forced by temperature and ocean heat), (ii) coupled to DOECLIM, and (iii) coupled to SNEASY. Standard calibration output will be provided as well as examples and scripts for downscaling the projections to a 1-degree grid for local sea-level rise.
 
 ## Recommended Use
 
-* If you would like to use previously published BRICK results as part of a new analysis, but do not necessarily want to re-run the model, then we recommend to go to the **Introduction-and-Library** repository. There, you will find links for each published BRICK study, including links for the calibrated model parameter data sets and the calibrated model projections for sea level, temperature, and any other relevant outputs.
+* If you would like to use previously published BRICK results as part of a new analysis, but do not necessarily want to re-run the model, then we recommend to go to the [**Introduction-and-Library** repository](https://github.com/raddleverse/Introduction-and-Library). There, you will find links for each published BRICK study, including links for the calibrated model parameter data sets and the calibrated model projections for sea level, temperature, and any other relevant outputs.
 * If you would like to run the model yourself, then you are in the right place!
   * Either fork the master branch from this repository or download the zipped file of codes.
   * Do your analysis
-  * Please let us know of any new results that should be incorporated into the **Introduction-and-Library** repository! See the README.md file in that repository for more information.
+  * Please let us know of any new results that should be incorporated into the [Introduction-and-Library repository](https://github.com/raddleverse/Introduction-and-Library)! See the README.md file in that repository for more information.
   * Also please let us know of any model modifications and/or bug fixes that might usefully be incorporated into the main BRICK codes. Creating an "Issue" here is a great way to do that (top horizontal menu bar in the GitHub browser).
 
 ### License
 
-Copyright 2022 Tony Wong, (todo)
+Copyright 2022 Tony Wong, (many others - TODO)
 
 This file is part of MimiBRICK.jl (Building blocks for Relevant Ice and Climate Knowledge). MimiBRICK.jl is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
@@ -29,15 +29,24 @@ This code was created using [Julia v1.6](https://julialang.org/downloads/) and r
 (1) To install these packages, first enter the package manager by hitting the `]` key in the Julia console. Once in the package manager, run the following code:
 
 ```julia
+add CSV
 add CSVFiles
 add DataFrames
 add Distributions
+add Interpolations
 add KernelDensity
+add LinearAlgebra
+add MCMCDiagnostics
 add Mimi
 add MimiSNEASY
 add NetCDF
+add Plots
 add RobustAdaptiveMetropolisSampler
+add SpecialFunctions
+add Statistics
+add StatsBase
 ```
+
 (2) While still in the package manager, run the following line to install the Mimi implementation of SNEASY:
 
 ```julia
@@ -53,9 +62,6 @@ add https://github.com/raddleverse/MimiBRICK.jl.git
 (4) To exit back to Julia, hit the `backspace` key.
 
 ## Running baseline cases with default parameters
-
-As a preliminary step, you should activate the Julia environment by doing the following in a Julia console:
-1. Navigate to the
 
 ### BRICK standalone (with temperature and ocean heat uptake exogenous forcing)
 
