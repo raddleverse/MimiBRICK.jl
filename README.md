@@ -13,7 +13,7 @@ This repository will have the latest "standard" BRICK version and codes demonstr
 
 ### License
 
-Copyright 2021 Tony Wong, (todo)
+Copyright 2022 Tony Wong, (todo)
 
 This file is part of MimiBRICK.jl (Building blocks for Relevant Ice and Climate Knowledge). MimiBRICK.jl is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
