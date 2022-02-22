@@ -63,34 +63,44 @@ add https://github.com/raddleverse/MimiBRICK.jl.git
 
 ## Running baseline cases with default parameters
 
+You'll first want to navigate in your Julia terminal to the `test` directory within this repository. The first three commands in the `runtests.jl` script in that directory will activate the Julia project environment for the `MimiBRICK.jl` codes.
+
+```julia
+using Pkg
+Pkg.activate(joinpath(@__DIR__, ".."))
+Pkg.instantiate()
+```
+
+Note that the `".."` in the second command assumes that you are in one of the sub-directories from the main `MimiBRICK.jl` directory. Depending on whether you are working in your own directory system on your own projects, you may decide to modify this.
+
 ### BRICK standalone (with temperature and ocean heat uptake exogenous forcing)
 
 This is the first test that is done in `test/runtests.jl`. Since it does not require DOECLIM or SNEASY, you can run BRICK using temperature and ocean heat uptake forcing data by running in the Julia console:
-```
+```julia
 using MimiBRICK
 m = MimiBRICK.get_model()
 run(m)
 ```
 
 You can plot the output fields in the model object `m` using (for example) the `Plots` Julia plotting package. First, let's grab the years over which the model was run. This is a dimension in the model. We can retrieve it by using the `dim_keys()` function, from the `Mimi` package.
-```
+```julia
 using Mimi
 years = dim_keys(m, :time)
 ```
 
 Then we can load the `Plots` package and make a figure of the global mean sea-level change. Note that the first argument into the `m` object specifies the component of our model, and the second argument specifies the field. Here, we are grabbing the `sea_level_rise` field from the `global_sea_level` component.
-```
+```julia
 using Plots
 plot(years, m[:global_sea_level, :sea_level_rise])
 ```
 
 Mimi also offers an explorer window to check these model output fields out. To use this, we need to load the `Mimi` package (if you haven't already).
-```
+```julia
 using Mimi
 ```
 
 Then, we can open the explorer.
-```
+```julia
 explore(m)
 ```
 
@@ -98,47 +108,92 @@ This should open a window labeled "Mimi Explorer Window". On the left, there sho
 
 More information about exploring Mimi model results can be found in the [Mimi Framework How-To guides online](https://www.mimiframework.org/Mimi.jl/stable/howto/howto_2/).
 
-### BRICK+DOECLIM (with radiative forcing)
+### DOECLIM-BRICK (with radiative forcing)
 
-TODO
-
-### BRICK+SNEASY (with emissions forcing)
-
-TODO
-
-## Running baseline cases with parameters provided via CSV file
-
-TODO
-
-## Running simulations with parameters from a previous ensemble
-
-TODO
-
-## Run the Baseline SNEASY+BRICK Calibration
-
-**(TODO - modify descriptions, what Frank had previously)**
-
-(1) First, [Clone or download](https://git-scm.com/book/en/v2/Git-Basics-Getting-a-Git-Repository) the `brick_scc_paper` Git repository. Once this is on your computer, set this folder as your working directory in the Julia console.
-
-(2) In lines 24-41 of the `scr/calibrate_sneasybrick_for_tony.jl` file, set the folder name to save results and the number of samples to take during the MCMC calibration. Save this file.
-
-(3) Run the following line of code to carry out the SNEASY+BRICK calibration and automatically save results.
-
+A simulation using DOECLIM to model temperature and ocean heat uptake, coupled to BRICK for sea-level rise can be constructed and run. First, we need to load the needed `MimiSNEASY` package, which includes the DOECLIM model. Then we load the `MimiBRICK_DOECLIM.jl` script, which includes a coupled model constructor for DOECLIM-BRICK. Finally, we construct the model object `m` using the `create_brick_doeclim()` constructor, and run the model using the standard Mimi `run(m)`.
 ```julia
-include("scr/calibrate_sneasybrick_for_tony.jl")
+using MimiSNEASY
+srcdir = joinpath(@__DIR__, "..", "src")
+include(joinpath(srcdir,"MimiBRICK_DOECLIM.jl"))
+m = MimiBRICK_DOECLIM.create_brick_doeclim()
+run(m)
 ```
 
-## Description of SNEASY+BRICK Baseline Calibration Files
+These are using the default arguments in the model constructor for the DOECLIM-BRICK model:
+* `rcp_scenario = "RCP85"` - using Representative Concentration Pathway 8.5 as a default; other options include `RCP26`, `RCP45`, and `RCP60`
+* `start_year = 1850` - starting year of the model simulation
+* `end_year = 2300` - ending year of the model simulation
 
-**(TODO - modify descriptions, what Frank had previously)**
+So, if you wanted to instead run DOECLIM-BRICK using RCP 6.0 from 1800 to 2100, you could run:
+```julia
+m = MimiBRICK_DOECLIM.create_brick_doeclim(rcp_scenario="RCP60", start_year=1800, end_year=2100)
+run(m)
+```
 
-(1) `calibration/calibration_helper_functions.jl`: Contains various functions that are useful for the model calibration.
+And of course, you can use `explore(m)` to check out the model outputs attached to the model object `m` to verify that we have in fact changed RCP scenario and time periods. (Reminder: you'll need to have loaded the `Mimi` package using `using Mimi` to access the `explore()` function.)
 
-(2) `calibration/run_historic_models/run_sneasy_brick_historic_climate.jl`: Creates an instance of SNEASY+BRICK that will automatically update model projections over the hindcast period when passing in a new set of parameter values (mostly there to make calibration code run faster).
+### SNEASY-BRICK (with emissions forcing)
 
-(3) `calibration/create_log_posterior_sneasy_brick.jl`: Creates functions to calculate the prior, likelihood, and posterior for SNEASY+BRICK that can then be passed into the MCMC calibration.
+Running a coupled model using SNEASY and BRICK proceeds in the same way as DOECLIM-BRICK. Assuming we have already loaded the `MimiSNEASY` package, we can load the constructor for the coupled SNEASY-BRICK model, create, then run the coupled model.
+```julia
+include(joinpath(srcdir,"create_models","SNEASY_BRICK.jl"))
+m = create_sneasy_brick()
+run(m)
+```
 
-(4) `src/calibrate_sneasybrick_for_tony.jl`: Contains a few model settings at the top (length of MCMC chain, name of folder to save results, etc.), and then otherwise will load all of the necessary files and carries out the SNEASY+BRICK calibration.
+The `create_sneasy_brick()` constructor has the same arguments as the DOECLIM-BRICK constructor, so you can change the RCP scenario and the time period.
+
+## Running the model calibration
+
+**Warning: expert users only!** All others - this is the calibration that is performed using Markov chain Monte Carlo. It leads to the parameter sub-samples that are used for analysis, described below. You do not necessarily need to mess around with this part of the code.
+
+The calibration that is done here follows the same procedure as outlined in [Wong et al. (2017)](https://gmd.copernicus.org/articles/10/2741/2017/) and other works using BRICK. For each of the three main model configurations supported here (BRICK, DOECLIM-BRICK and SNEASY-BRICK), we:
+* run a Markov chain Monte Carlo calibration using 20 million iterations
+* remove at least 1 million iterations from the beginning of the Markov chain for burn-in
+  * the specific length depends on the model configuration; [Gelman and Rubin (1992)](https://projecteuclid.org/journals/statistical-science/volume-7/issue-4/Inference-from-Iterative-Simulation-Using-Multiple-Sequences/10.1214/ss/1177011136.full) potential scale reduction factor is checked < 1.1 for convergence
+* subsample 10,000 concomitant parameter sets from the remaining burned-in chain. These samples are used for the hindcast and projections for analysis
+
+This is all done by running the `calibration/calibration.jl` script using `model_config=brick`, `doeclimbrick` and `sneasybrick` (three times).
+
+The script will create a date-stamped directory in `results` specific to this calibration, including the `model_config` and number of Markov chain iterations used. Within that results directory, you will find:
+* `parameters_full_chain.csv` - the full Markov chain of parameter samples, including the burn-in period
+* `mcmc_log_post.csv` - the log-posterior scores (numerator from Bayes' theorem) for the full chain of parameter samples
+* `parameters_subsample.csv` - the parameter values in the sub-sample for analysis
+* `log_post_subsample.csv` - the log-posterior scores for the sub-sample of parameters for analysis. This is used to determine the maximum _a posteriori_ simulation
+* `proposal_covariance_matrix.csv` - the final proposal covariance matrix for the adaptive proposals. If you use this and the final sample of parameters from `parameters_full_chain.csv`, you can restart the Markov chain calibration. This and the last iteration of the Markov chain are both saved under the `data/calibration_data/from_calibration_chains` directory.
+* `mcmc_acceptance_rate.csv` - the acceptance rate from the MCMC algorithm. Should be about 0.23 for the numbers of parameters (dimension) that we're dealing with here.
+
+Note that calibrations of 20 million iterations will take multiple hours to complete.
+* For BRICK on its own, this took about 8 hours on a standard desktop workstation (ca. 2020)
+* For DOECLIM-BRICK and SNEASY-BRICK, this will take closer to 15 hours or so (using that same machine)
+
+## Running the model hindcasts
+
+This is done for the hindcast period 1850-2017 by using the `calibration/run_hindcast.jl` script, using `model_config=brick`, `doeclimbrick` and `sneasybrick` (three times). For the hindcast, no RCP scenario needs to be specified, because all of them follow historical radiative forcing/emissions trends up to 2005.
+
+The standard set of parameters that are being used for the hindcast and projection simulations are the sub-sample of 10,000 from the MCMC calibration described above (`parameters_subsample.csv`). If you have a different parameter file that you want to run the hindcasts under, you will want to modify the section of `run_hindcast.jl` titled `Set paths for results files` (line 41).
+
+This script will add to the date-sampled model configuration-specific directory that was constructed above (or came with the model codes). It will create a sub-directory called `hindcast_csv` which will be populated with CSV files that include the simulated hindcasts of the model output fields. Each of these names is appended with `model_config` (`brick`, `doeclimbrick`, or `sneasybrick`) and contains one hindcast simulation for each of the sets of parameters in the sub-sample for analysis. Rows correspond to different years (1850-2017 be default) and columns each correspond to different ensemble members.
+* `hindcast_antarctic.csv` - contribution to global mean sea-level change from the Antarctic ice sheet (meters)
+* `hindcast_greenland.csv` - contribution to global mean sea-level change from the Greenland ice sheet (meters)
+* `hindcast_glaciers.csv` - contribution to global mean sea-level change from glaciers and ice caps (meters)
+* `hindcast_landwater_storage_sl.csv` - contribution to sea-level change from land water storage (meters)
+* `hindcast_gmsl.csv` - total global mean sea-level change (meters)
+* `hindcast_ocean_heat.csv` - (DOECLIM- or SNEASY-BRICK only)
+* `hindcast_temperature.csv` - (DOECLIM- or SNEASY-BRICK only)
+* `hindcast_oceanco2.csv` - (SNEASY-BRICK only)
+* `hindcast_co2.csv` - (SNEASY-BRICK only)
+* `hindcast_MAP.csv` - all of the hindcast time series for the maximum _a posteriori_ set of parameters
+
+## Running the model projections under different RCP scenarios
+
+TODO
+
+## Creating forcing files for standalone BRICK
+
+TODO
+
+from SNEASY-BRICK simulations
 
 ## License
 
