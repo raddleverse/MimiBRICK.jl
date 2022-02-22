@@ -187,7 +187,9 @@ This script will add to the date-sampled model configuration-specific directory 
 
 ## Running the model projections under different RCP scenarios
 
-TODO
+This is done for the period 1850-2300 (but can be modified to any period between 1765 and 2300) by using the `calibration/run_projections.jl` script, using `model_config=brick`, `doeclimbrick` or `sneasybrick` and `rcp_scenario="RCP26"`, `"RCP45"`, `"RCP60"`, or `"RCP85"`. Note that the RCP scenario forcing files are all the same until 2005.
+
+This script will add to the date-sampled model configuration-specific directory that was constructed above (or came with the model codes). It will create a sub-directory called `projections_csv` which will be populated with CSV files that include the simulated projections of the model output fields. Within the `projections_csv` directory, a sub-directory specific to each RCP scenario used will be created. The projections files are analogous to the hindcast files that are generated.
 
 ## Creating forcing files for standalone BRICK
 
