@@ -189,13 +189,19 @@ This script will add to the date-sampled model configuration-specific directory 
 
 This is done for the period 1850-2300 (but can be modified to any period between 1765 and 2300) by using the `calibration/run_projections.jl` script, using `model_config=brick`, `doeclimbrick` or `sneasybrick` and `rcp_scenario="RCP26"`, `"RCP45"`, `"RCP60"`, or `"RCP85"`. Note that the RCP scenario forcing files are all the same until 2005.
 
-This script will add to the date-sampled model configuration-specific directory that was constructed above (or came with the model codes). It will create a sub-directory called `projections_csv` which will be populated with CSV files that include the simulated projections of the model output fields. Within the `projections_csv` directory, a sub-directory specific to each RCP scenario used will be created. The projections files are analogous to the hindcast files that are generated.
+This script will add to the date-sampled model configuration-specific directory that was constructed above (or came with the model codes). It will create a sub-directory called `projections_csv`, and a sub-directory within there that is specific to each RCP scenario used will be created. The projections files are analogous to the hindcast files that are generated, and will populate the `projections_csv/[RCP scenario]` directory.
 
-## Creating forcing files for standalone BRICK
+## Creating forcing files for stand-alone BRICK
+
+The forcing files for DOECLIM-BRICK (radiative forcing) and SNEASY-BRICK (emissions) are taken from the RCP database here (https://tntcat.iiasa.ac.at/RcpDb/dsd?Action=htmlpage&page=download) and the data repository of Malte Meinshausen here (http://www.pik-potsdam.de/~mmalte/rcps/data/).
+
+For stand-alone BRICK, which requires temperature and ocean heat time series as forcing data, we use the time series for temperature and ocean heat uptake from the maximum _a posteriori_ simulations from the SNEASY-BRICK simulation ensembles described above. This is done in the `calibration/sneasy_make_brick_forcing.jl` script. This script creates the following files, where `xx` denotes the RCP scenario (`26`, `45`, `60`, or `85`), `yyyy` denotes the starting year of the forcing, and `YYYY` denotes the ending year of the forcing.
+* `data/model_data/sneasy_oceanheat_RCPxx_yyyy_YYYY.csv`
+* `data/model_data/sneasy_temperature_RCPxx_yyyy_YYYY.csv`
+
+## Generating projections of local mean sea-level change
 
 TODO
-
-from SNEASY-BRICK simulations
 
 ## License
 
