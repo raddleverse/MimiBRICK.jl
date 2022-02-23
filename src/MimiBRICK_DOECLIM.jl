@@ -21,7 +21,7 @@ export create_brick_doeclim
 # -------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------
 
-function create_brick_doeclim(;rcp_scenario::String = "RCP85", start_year::Int=1850, end_year::Int=2300)
+function create_brick_doeclim(;rcp_scenario::String = "RCP85", start_year::Int=1850, end_year::Int=2020)
 
     #-----------------------#
     # ----- Load Data ----- #
@@ -157,7 +157,7 @@ function create_brick_doeclim(;rcp_scenario::String = "RCP85", start_year::Int=1
 
     # Set parameter connections (:component needing a value => :value name, :component producing the value => value name).
 
-    # in default BRICK we use a model parameter :model_global_surface_temperature 
+    # in default BRICK we use a model parameter :model_global_surface_temperature
     # here and connect all components to that, but here we will individually
     # connect the components to :doeclim since they are now pulling from another
     # component's variable and not from a model shared parameter
@@ -183,7 +183,7 @@ function create_brick_doeclim(;rcp_scenario::String = "RCP85", start_year::Int=1
     # Return BRICK + DOEclim model.
     return brick_doeclim
 
-    
+
 end
 
 end # Module

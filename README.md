@@ -68,7 +68,7 @@ add https://github.com/raddleverse/MimiBRICK.jl.git
 
 (4) To exit back to Julia, hit the `backspace` key.
 
-## Running baseline cases with default parameters
+## Running baseline cases with default parameters and unit tests
 
 You'll first want to navigate in your Julia terminal to the `test` directory within this repository. It is recommended that you run this script in its entirety to check the out-of-box behavior for all three model configurations. However, we will step through these and highlight how one could customize the model run commands to suit their needs.
 
@@ -146,7 +146,7 @@ run(m)
 These are using the default arguments in the model constructor for the DOECLIM-BRICK model:
 * `rcp_scenario = "RCP85"` - using Representative Concentration Pathway 8.5 as a default; other options include `RCP26`, `RCP45`, and `RCP60`
 * `start_year = 1850` - starting year of the model simulation
-* `end_year = 2300` - ending year of the model simulation
+* `end_year = 2020` - ending year of the model simulation
 
 So, if you wanted to instead run DOECLIM-BRICK using RCP 6.0 from 1800 to 2100, you could run:
 ```julia
@@ -215,7 +215,7 @@ This script will add to the date-sampled model configuration-specific directory 
 
 ## Running the model projections under different RCP scenarios
 
-This is done for the period 1850-2300 (but can be modified to any period between 1765 and 2300) by using the `calibration/run_projections.jl` script, using `model_config=brick`, `doeclimbrick` or `sneasybrick` and `rcp_scenario="RCP26"`, `"RCP45"`, `"RCP60"`, or `"RCP85"`. Note that the RCP scenario forcing files are all the same until 2005.
+This is done for the period 1850-2300 (but can be modified to any period between 1765 and 2300) by using the `calibration/run_projections.jl` script, using `model_config=brick`, `doeclimbrick` or `sneasybrick` and `rcp_scenario="RCP26"`, `"RCP45"`, `"RCP60"`, or `"RCP85"`. Note that the RCP scenario forcing files are all the same until 2005, and the provided stand-alone BRICK temperature and ocean heat forcing files cover the period 1850-2300.
 
 This script will add to the date-sampled model configuration-specific directory that was constructed above (or came with the model codes). It will create a sub-directory called `projections_csv`, and a sub-directory within there that is specific to each RCP scenario used will be created. The projections files are analogous to the hindcast files that are generated, and will populate the `projections_csv/[RCP scenario]` directory.
 
