@@ -8,6 +8,7 @@ using CSV
 using DataFrames
 using MimiBRICK
 using MimiSNEASY
+using Dates
 
 srcdir = joinpath(@__DIR__, "..", "src")
 include(joinpath(srcdir,"MimiBRICK_DOECLIM.jl"))
@@ -35,10 +36,10 @@ for rcp_scenario = ["RCP26","RCP45","RCP60","RCP85"]
 
     ## Write CSV files
     # temperature
-    filename_temp = joinpath(@__DIR__, "..", "data", "model_data", "sneasy_temperature_$(rcp_scenario)_$(Int(years[1]))_$(Int(years[end])).csv")
+    filename_temp = joinpath(@__DIR__, "..", "data", "model_data", "sneasy_temperature_$(rcp_scenario)_$(Int(years[1]))_$(Int(years[end]))_$(Dates.format(now(),"dd-mm-yyyy")).csv")
     CSV.write(filename_temp, DataFrame([years,temperature_norm], ["Year","MAP Temperature"]))
     # ocean heat
-    filename_ocheat = joinpath(@__DIR__, "..", "data", "model_data", "sneasy_oceanheat_$(rcp_scenario)_$(Int(years[1]))_$(Int(years[end])).csv")
+    filename_ocheat = joinpath(@__DIR__, "..", "data", "model_data", "sneasy_oceanheat_$(rcp_scenario)_$(Int(years[1]))_$(Int(years[end]))_$(Dates.format(now(),"dd-mm-yyyy")).csv")
     CSV.write(filename_ocheat, DataFrame([years,ocean_heat], ["Year","MAP Ocean Heat"]))
 
 end

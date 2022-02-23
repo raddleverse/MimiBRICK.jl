@@ -21,12 +21,19 @@ MimiBRICK.jl is distributed in the hope that it will be useful, but WITHOUT ANY 
 
 You should have received a copy of the GNU General Public License along with MimiBRICK.jl (`LICENSE.md)`). If not, see http://www.gnu.org/licenses/.
 
+## Getting Started
+
+You must first add the central Mimi registry of Mimi models. To add this registry, first enter the package manager by hitting the `]` key in the Julia console. Once in the package manager, run the following code:
+
+```julia
+registry add https://github.com/mimiframework/MimiRegistry.git
+```
 
 ## How To Install Required Packages
 
-This code was created using [Julia v1.6](https://julialang.org/downloads/) and requires several Julia packages.
+This code was created using [Julia v1.6](https://julialang.org/downloads/) and requires several Julia packages. It is recommended that you use Julia v1.6 (or later). Julia may be downloaded from http://julialang.org/downloads/.
 
-(1) To install these packages, first enter the package manager by hitting the `]` key in the Julia console. Once in the package manager, run the following code:
+(1) The model codes here, and the default analysis and plotting examples provided here, require a handful of Julia packages. To install these packages, first enter the package manager by hitting the `]` key in the Julia console. Once in the package manager, run the following code:
 
 ```julia
 add CSV
@@ -63,7 +70,9 @@ add https://github.com/raddleverse/MimiBRICK.jl.git
 
 ## Running baseline cases with default parameters
 
-You'll first want to navigate in your Julia terminal to the `test` directory within this repository. The first three commands in the `runtests.jl` script in that directory will activate the Julia project environment for the `MimiBRICK.jl` codes.
+You'll first want to navigate in your Julia terminal to the `test` directory within this repository. It is recommended that you run this script in its entirety to check the out-of-box behavior for all three model configurations. However, we will step through these and highlight how one could customize the model run commands to suit their needs.
+
+The first three commands in the `runtests.jl` script in that directory will activate the Julia project environment for the `MimiBRICK.jl` codes.
 
 ```julia
 using Pkg
@@ -73,6 +82,19 @@ Pkg.instantiate()
 
 Note that the `".."` in the second command assumes that you are in one of the sub-directories from the main `MimiBRICK.jl` directory. Depending on whether you are working in your own directory system on your own projects, you may decide to modify this.
 
+Then, run the next few lines to load the required packages.
+
+```julia
+using Test
+using CSV
+using DataFrames
+using MimiBRICK
+using MimiSNEASY
+srcdir = joinpath(@__DIR__, "..", "src")
+include(joinpath(srcdir,"MimiBRICK_DOECLIM.jl"))
+include(joinpath(srcdir,"create_models","SNEASY_BRICK.jl"))
+```
+
 ### BRICK standalone (with temperature and ocean heat uptake exogenous forcing)
 
 This is the first test that is done in `test/runtests.jl`. Since it does not require DOECLIM or SNEASY, you can run BRICK using temperature and ocean heat uptake forcing data by running in the Julia console:
@@ -81,6 +103,8 @@ using MimiBRICK
 m = MimiBRICK.get_model()
 run(m)
 ```
+
+The next block of code runs a set of
 
 You can plot the output fields in the model object `m` using (for example) the `Plots` Julia plotting package. First, let's grab the years over which the model was run. This is a dimension in the model. We can retrieve it by using the `dim_keys()` function, from the `Mimi` package.
 ```julia
