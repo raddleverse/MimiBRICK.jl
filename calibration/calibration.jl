@@ -58,10 +58,6 @@ function run_calibration(log_posterior_mymodel; model_config="brick", calibratio
     output = joinpath(@__DIR__, "..", "results", results_folder_name)
     mkpath(output)
 
-    # Load calibration helper functions file.
-    include(joinpath("..", "calibration", "calibration_helper_functions.jl"))
-
-
     ##------------------------------------------------------------------------------
     ## Set up initial parameters and proposal covariance matrix
     ##------------------------------------------------------------------------------
