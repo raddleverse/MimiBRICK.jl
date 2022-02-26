@@ -29,3 +29,18 @@ using StatsBase
 using Dates
 
 include(joinpath(@__DIR__, "calibration.jl"))
+
+# BRICK calibration
+x = run_calibration(model_config="brick", calibration_start_year=1850, calibration_end_year=2017,
+                    total_chain_length=20_000_000, burnin_length=1_000_000, threshold_gr=1.1, num_walkers=2,
+                    size_subsample=10_000, start_from_priors=false)
+
+# DOECLIM-BRICK calibration
+x = run_calibration(model_config="doeclimbrick", calibration_start_year=1850, calibration_end_year=2017,
+                    total_chain_length=20_000_000, burnin_length=7_000_000, threshold_gr=1.1, num_walkers=2,
+                    size_subsample=10_000, start_from_priors=false)
+
+# SNEASY-BRICK calibration
+x = run_calibration(model_config="sneasybrick", calibration_start_year=1850, calibration_end_year=2017,
+                    total_chain_length=20_000_000, burnin_length=1_000_000, threshold_gr=1.1, num_walkers=2,
+                    size_subsample=10_000, start_from_priors=false)

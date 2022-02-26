@@ -33,54 +33,16 @@ function run_calibration(; model_config="brick", calibration_start_year=1850, ca
                          total_chain_length=1000, burnin_length=0, threshold_gr=1.1, num_walkers=2,
                          size_subsample=1000, start_from_priors=false)
 
-    # Model configuration
-    # --> Possible options: (1) "brick", (2) "doeclimbrick", (3) "sneasybrick"
-    #model_config = "brick"
-
-    # Initial conditions from a previous file or from the prior distributions?
-    # --> If you want to use the midpoints of the prior ranges as the starting parameter estimates, and 5% of the prior range width as the step size for MCMC, set `start_from_priors = true`
-    #start_from_priors = false
-    # --> File name and path to obtain the parameter names (*in order*)
+    # File name and path to obtain the parameter names (*in order*)
     path_parameter_info = joinpath(@__DIR__, "..", "data", "calibration_data", "calibration_initial_values_"*model_config*".csv")
-    # --> If you want to read from a previous run, set these two file names/paths.
-    #     NOTE that if `start_from_priors = true`, these will NOT be used, even if they are set appropriately.
-    #     Also, the `path_initial_parameters` does not need to be distinct from the `path_parameter_info`.
-    #     `path_parameter_info` is just to get the names of the parameters, whereas `path_initial_parameters` will provide the starting values for the model parameters as well.
+    # If you want to read from a previous run, set these two file names/paths.
+    # NOTE that if `start_from_priors = true`, these will NOT be used, even if they are set appropriately.
+    # Also, the `path_initial_parameters` does not need to be distinct from the `path_parameter_info`.
+    # `path_parameter_info` is just to get the names of the parameters, whereas `path_initial_parameters` will provide the starting values for the model parameters as well.
     if ~start_from_priors
         path_initial_parameters = joinpath(@__DIR__, "..", "data", "calibration_data", "calibration_initial_values_"*model_config*".csv")
         path_initial_covariance = joinpath(@__DIR__, "..", "data", "calibration_data", "initial_proposal_covariance_matrix_"*model_config*".csv")
     end
-
-    # Set years for model calibration.
-    #calibration_start_year = 1850
-    #calibration_end_year = 2017
-
-    # The length of the chain before burn-in and thinning
-    #total_chain_length = 20_000_000
-
-    # Burn-in length - How many samples from the beginning to immediately discard
-    # --> Not including as much burn-in as we would normally because the initial values are from the end of a 4-million iteration preliminary chain
-    #if model_config=="brick"
-    #    burnin_length = 1_000_000
-    #elseif model_config=="doeclimbrick"
-    #    burnin_length = 7_000_000
-    #elseif model_config=="sneasybrick"
-    #    burnin_length = 1_000_000
-    #end
-
-    # Threshold for Gelman and Rubin potential scale reduction factor (burn-in/convergence)
-    # --> 1.1 or 1.05 are standard practice
-    #threshold_gr = 1.1
-
-    # Number of sub-chains that the single larger chain is divided into for convergence check
-    # --> Convergence check will chop off the burn-in period from the beginning, then divide the remaining chain into `num_walkers` equal-length chains. Then
-    # --> the GR diagnostic (PSRF) will check how the within-chain variance compares to the between-chain variance. Converged if they're similar.
-    # --> Note that fewer walkers will also be more permissive, since (all other things being equal) variance is higher with fewer samples (# walkers)
-    #num_walkers = 2
-
-    # Create a subsample of posterior parameters?
-    #size_subsample = 10_000
-
 
     ##------------------------------------------------------------------------------
     ## Initial set up
@@ -217,7 +179,7 @@ function run_calibration(; model_config="brick", calibration_start_year=1850, ca
     filename_new_initial_covariance = "initial_proposal_covariance_matrix_"*model_config*"_"*chain_len_str*"_$(Dates.format(now(),"dd-mm-yyyy")).csv"
     save(joinpath(path_new_initial_conditions, filename_new_initial_covariance), DataFrame(cov_matrix, :auto))
 
-    return (chain_raw, accept_rate, cov_matrix, log_post)
+    return (DataFrame(chain_raw,parnames), accept_rate, cov_matrix, log_post, DataFrame(final_sample,parnames), log_post_final_sample)
 end
 
 ##------------------------------------------------------------------------------

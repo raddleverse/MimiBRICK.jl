@@ -169,7 +169,7 @@ The `create_sneasy_brick()` constructor has the same arguments as the DOECLIM-BR
 
 ## Running the model calibration
 
-**Warning: expert users only!** All others - this is the calibration that is performed using Markov chain Monte Carlo. It leads to the parameter sub-samples that are used for analysis, described below. You do not necessarily need to mess around with this part of the code. If you blindly start running `calibration.jl` out of the box, it will take a **long** time (8-20 hours, probably).
+**Warning: expert users only!** All others - this is the calibration that is performed using Markov chain Monte Carlo. It leads to the parameter sub-samples that are used for analysis, described below. You do not necessarily need to mess around with this part of the code. If you blindly start running `calibration_driver.jl` out of the box, it will take a **long** time (8-20 hours, probably).
 
 The calibration that is done here follows the same procedure as outlined in [Wong et al. (2017)](https://gmd.copernicus.org/articles/10/2741/2017/) and other works using BRICK. For each of the three main model configurations supported here (BRICK, DOECLIM-BRICK and SNEASY-BRICK), we:
 * run a Markov chain Monte Carlo calibration using 20 million iterations
@@ -177,13 +177,13 @@ The calibration that is done here follows the same procedure as outlined in [Won
   * the specific length depends on the model configuration; [Gelman and Rubin (1992)](https://projecteuclid.org/journals/statistical-science/volume-7/issue-4/Inference-from-Iterative-Simulation-Using-Multiple-Sequences/10.1214/ss/1177011136.full) potential scale reduction factor is checked < 1.1 for convergence
 * subsample 10,000 concomitant parameter sets from the remaining burned-in chain. These samples are used for the hindcast and projections for analysis
 
-This is all done by running the `calibration/calibration.jl` script using `model_config=brick`, `doeclimbrick` and `sneasybrick` (three times). If you want to verify that things are working properly but not wait hours for results, then it is recommended that you try a shorter calibration. You can do this by modifying:
+This is all done by running the `calibration/calibration_driver.jl` script. This script runs the `run_calibration` function three times: using `model_config=brick`, `doeclimbrick` and `sneasybrick`. If you want to verify that things are working properly but not wait hours for results, then it is recommended that you try a shorter calibration. This is done in `runtests.jl`, but you can do this by modifying the arguments for:
 * `total_chain_length` - for the three configurations, 1 million iterations typically takes less than an hour. If you are just checking that things are working properly, doing 10,000 would of course be faster, and likely sufficient
 * `burnin_length` - this must be less than `total_chain_length`
 * `threshold_gr` - if you do a short test calibration, it will yell at you that some of the parameters' potential scale reduction factors are not less than this threshold. You don't need to do anything about it, just letting you know so you don't worry about it.
 * `size_subsample` - this must be less than `total_chain_length - burnin_length`
 
-The script will create a date-stamped directory in `results` specific to this calibration, including the `model_config` and number of Markov chain iterations used. Within that results directory, you will find:
+The `run_calibration` function will create a date-stamped directory in `results` specific to this calibration, including the `model_config` and number of Markov chain iterations used. Within that results directory, you will find:
 * `parameters_full_chain.csv` - the full Markov chain of parameter samples, including the burn-in period
 * `mcmc_log_post.csv` - the log-posterior scores (numerator from Bayes' theorem) for the full chain of parameter samples
 * `parameters_subsample.csv` - the parameter values in the sub-sample for analysis
