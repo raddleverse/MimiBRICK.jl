@@ -8,12 +8,6 @@
 ##------------------------------------------------------------------------------
 ##------------------------------------------------------------------------------
 
-# Activate the project for the paper and make sure all packages we need are installed.
-using Pkg
-Pkg.activate(joinpath(@__DIR__, ".."))
-Pkg.instantiate()
-
-
 # Load required Julia packages.
 using CSVFiles
 using DataFrames
@@ -29,7 +23,7 @@ using StatsBase
 using Dates
 
 
-function run_calibration(; model_config="brick", calibration_start_year=1850, calibration_end_year=2005,
+function run_calibration(log_posterior_mymodel; model_config="brick", calibration_start_year=1850, calibration_end_year=2005,
                          total_chain_length=1000, burnin_length=0, threshold_gr=1.1, num_walkers=2,
                          size_subsample=1000, start_from_priors=false)
 
@@ -102,6 +96,7 @@ function run_calibration(; model_config="brick", calibration_start_year=1850, ca
     # for the `construct_run_[model_config]` and `construct_[model_config]_log_posterior`
     # functions in the helper scripts included above. Using this instead of the
     # @eval and Symbols so this can be run as a function instead of a script.
+    if false
     if model_config=="brick"
         run_mymodel! = construct_run_brick(calibration_start_year, calibration_end_year)
         log_posterior_mymodel = construct_brick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=false)
@@ -112,6 +107,7 @@ function run_calibration(; model_config="brick", calibration_start_year=1850, ca
         run_mymodel! = construct_run_sneasybrick(calibration_start_year, calibration_end_year)
         log_posterior_mymodel = construct_sneasybrick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=false)
     end
+end
 
     println("Begin baseline calibration of "*model_config*" model.\n")
 
