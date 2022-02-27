@@ -229,7 +229,28 @@ For stand-alone BRICK, which requires temperature and ocean heat time series as 
 
 ## Generating projections of local mean sea-level change
 
-TODO
+The `localslr/downscale.jl` file contains routines to downscale the BRICK global sea level projections to local. This uses the sea-level "fingerprints" of [Slangen et al. (2014)](https://link.springer.com/article/10.1007/s10584-014-1080-9). To downscale to local level using the three model configurations supported here and the sea-level hindcast and projections included in this repository, no changes are needed. If you decide to generate new ensembles, you will need to update the `brick_results_dir`, `doeclimbrick_results_dir`, and/or `sneasybrick_results_dir` paths that are set in `downscale.jl`. The downscaling routine will automatically create a subdirectory in the model output `results` directory called `localslr`. In this subdirectory, the routine will save an output file with the downscaled local mean sea level change model output.
+
+This routine will downscale either a full ensemble of BRICK model simulations or just the maximum a posteriori model simulation to a specific latitude and longitude point. These are provided by the user as `lat` (degrees north) and `lon` (degrees east). Other needed function arguments include:
+* `model_config` - (string) one of `"brick"`, `"doeclimbrick"`, or `"sneasybrick"`. Only the BRICK projections are being downscaled (no CO2 or temperature, for example), but the `downscale_brick` function will find the relevant input data and tag the output files appropriately based on the `model_config` setting.
+* `proj_or_hind` - (string)one of `"proj"` (projections) or `"hind"` (hindcast). They're treated similarly when running the model, but this helps for finding the output files in the `results` directories.
+* `rcp_scenario` - (string) one of `"RCP26"`, `"RCP45"`, `"RCP60"`, or `"RCP85"`. If running a hindcast, this does not matter.
+* `ensemble_or_map` - (string) one of `"ensemble"` or `"map"`. If `"ensemble"`, then will downscale the full BRICK ensemble that matches the provided `model_config`, `proj_or_hind`, and `rcp_scenario` settings. If `"map"`, will only downscale the maximum a posteriori simulation.
+
+In the example in `localslr/run_downscale.jl`, the BRICK (standalone model) maximum a posteriori sea-level rise projection under RCP8.5 is downscaled for New York City using the following settings:
+```julia
+lat = 40.7128 # deg N
+lon = 360-74.0060 # 74.0060 deg W
+model_config = "brick"
+proj_or_hind = "proj"
+rcp_scenario = "RCP85"
+ensemble_or_map = "map"
+```
+
+The following line of code performs the actual downscaling and saves the output files to the appropriate `results` directory.
+```julia
+years, lsl = downscale_brick(lon=lon, lat=lat, proj_or_hind=proj_or_hind, ensemble_or_map=ensemble_or_map, model_config=model_config, rcp_scenario=rcp_scenario)
+```
 
 ## License
 
