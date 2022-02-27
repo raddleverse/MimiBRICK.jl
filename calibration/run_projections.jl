@@ -276,6 +276,7 @@ write_output_table("landwater_storage_sl", model_config, rcp_scenario, landwater
 write_output_table("glaciers", model_config, rcp_scenario, glaciers, filepath_output)
 write_output_table("greenland", model_config, rcp_scenario, greenland, filepath_output)
 write_output_table("antarctic", model_config, rcp_scenario, antarctic, filepath_output)
+write_output_table("thermal", model_config, rcp_scenario, thermal_sl, filepath_output)
 if (model_config == "doeclimbrick") | (model_config == "sneasybrick")
     write_output_table("temperature", model_config, rcp_scenario, temperature, filepath_output)
     write_output_table("ocean_heat", model_config, rcp_scenario, ocean_heat, filepath_output)
@@ -288,11 +289,11 @@ end
 # write maximum a posteriori ensemble member
 idx_max = findmax(logpost)[2]
 if model_config=="brick"
-    colnames_out = ["YEAR","GMSL","LWS","GLAC","GIS","AIS"]
+    colnames_out = ["YEAR","GMSL","LWS","GLAC","GIS","AIS","TE"]
 elseif model_config=="doeclimbrick"
-    colnames_out = ["YEAR","GMSL","LWS","GLAC","GIS","AIS","TEMP","OCHEAT"]
+    colnames_out = ["YEAR","GMSL","LWS","GLAC","GIS","AIS","TE","TEMP","OCHEAT"]
 elseif model_config=="sneasybrick"
-    colnames_out = ["YEAR","GMSL","LWS","GLAC","GIS","AIS","TEMP","OCHEAT","CO2","OCEANCO2"]
+    colnames_out = ["YEAR","GMSL","LWS","GLAC","GIS","AIS","TE","TEMP","OCHEAT","CO2","OCEANCO2"]
 end
 num_outputs = size(colnames_out)[1]
 map_outputs = zeros(Union{Missing, Float64}, num_outputs, num_years)
@@ -302,12 +303,13 @@ map_outputs[3,:] = landwater_storage_sl[idx_max,:]
 map_outputs[4,:] = glaciers[idx_max,:]
 map_outputs[5,:] = greenland[idx_max,:]
 map_outputs[6,:] = antarctic[idx_max,:]
+map_outputs[7,:] = thermal_sl[idx_max,:]
 if (model_config=="doeclimbrick") | (model_config=="sneasybrick")
-    map_outputs[7,:] = temperature[idx_max,:]
-    map_outputs[8,:] = ocean_heat[idx_max,:]
+    map_outputs[8,:] = temperature[idx_max,:]
+    map_outputs[9,:] = ocean_heat[idx_max,:]
     if (model_config=="sneasybrick")
-        map_outputs[9,:] = co2[idx_max,:]
-        map_outputs[10,:] = oceanco2[idx_max,:]
+        map_outputs[10,:] = co2[idx_max,:]
+        map_outputs[11,:] = oceanco2[idx_max,:]
     end
 end
 df_map_outputs = DataFrame(map_outputs', colnames_out)
