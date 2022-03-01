@@ -20,7 +20,7 @@ include(joinpath("components", "thermal_expansion_component.jl"))
 # -------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------
 
-function get_model(;rcp_scenario::String="RCP85", start_year::Int=1850, end_year::Int=2300)
+function get_model(;rcp_scenario::String="RCP85", start_year::Int=1850, end_year::Int=2020)
 
     #-----------------------#
     # ----- Load Data ----- #
