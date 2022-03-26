@@ -20,7 +20,7 @@ include(joinpath("components", "thermal_expansion_component.jl"))
 # -------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------
 
-function get_model(;rcp_scenario::String="RCP85", start_year::Int=1850, end_year::Int=2300)
+function get_model(;rcp_scenario::String="RCP85", start_year::Int=1850, end_year::Int=2020)
 
     #-----------------------#
     # ----- Load Data ----- #
@@ -28,8 +28,8 @@ function get_model(;rcp_scenario::String="RCP85", start_year::Int=1850, end_year
 
     # Load exogenous time-series for global surface temperature and ocean heat content (output from SNEASY under RCP8.5).
     # NOTE: for now, only `rcp_scenario = "RCP85"` is supported
-    temperature_scenario = DataFrame(load(joinpath(@__DIR__, "..", "data", "model_data", "sneasy_temperature_"*rcp_scenario*"_1850_2300.csv"), skiplines_begin=5))
-    oceanheat_scenario   = DataFrame(load(joinpath(@__DIR__, "..", "data", "model_data", "sneasy_oceanheat_"*rcp_scenario*"_1850_2300.csv"), skiplines_begin=5))
+    temperature_scenario = DataFrame(load(joinpath(@__DIR__, "..", "data", "model_data", "sneasy_temperature_"*rcp_scenario*"_1850_2300.csv")))
+    oceanheat_scenario   = DataFrame(load(joinpath(@__DIR__, "..", "data", "model_data", "sneasy_oceanheat_"*rcp_scenario*"_1850_2300.csv")))
 
     #-------------------------#
     # ----- Build BRICK ----- #
@@ -56,74 +56,82 @@ function get_model(;rcp_scenario::String="RCP85", start_year::Int=1850, end_year
 
     # ----- Antarctic Ocean ----- #
 
-    set_param!(brick, :antarctic_ocean, :anto_α, 0.28)
-    set_param!(brick, :antarctic_ocean, :anto_β, 0.95)
+    update_param!(brick, :antarctic_ocean, :anto_α, 0.28)
+    update_param!(brick, :antarctic_ocean, :anto_β, 0.95)
 
     # ----- Antarctic Ice Sheet ----- #
 
-    set_param!(brick, :antarctic_icesheet, :ais_ρ_ice, 917.0)
-    set_param!(brick, :antarctic_icesheet, :ais_ρ_seawater, 1030.0)
-    set_param!(brick, :antarctic_icesheet, :ais_ρ_rock, 4000.0)
-    set_param!(brick, :antarctic_icesheet, :ais_sea_level₀, 0.0)
-    set_param!(brick, :antarctic_icesheet, :ais_ocean_temperature₀, 0.72)
-    set_param!(brick, :antarctic_icesheet, :ais_radius₀, 1.864e6)
-    set_param!(brick, :antarctic_icesheet, :ais_bedheight₀, 781.0)
-    set_param!(brick, :antarctic_icesheet, :ais_slope, 0.0006)
-    set_param!(brick, :antarctic_icesheet, :ais_μ, 11.0)
-    set_param!(brick, :antarctic_icesheet, :ais_runoffline_snowheight₀, 1400.0)
-    set_param!(brick, :antarctic_icesheet, :ais_c, 100.0)
-    set_param!(brick, :antarctic_icesheet, :ais_precipitation₀, 0.37)
-    set_param!(brick, :antarctic_icesheet, :ais_κ, 0.062)
-    set_param!(brick, :antarctic_icesheet, :ais_ν, 0.0086)
-    set_param!(brick, :antarctic_icesheet, :ais_iceflow₀, 1.2)
-    set_param!(brick, :antarctic_icesheet, :ais_γ, 2.9)
-    set_param!(brick, :antarctic_icesheet, :ais_α, 0.23)
-    set_param!(brick, :antarctic_icesheet, :ais_temperature_coefficient, 0.8365)
-    set_param!(brick, :antarctic_icesheet, :ais_temperature_intercept, 15.42)
-    set_param!(brick, :antarctic_icesheet, :ais_local_fingerprint, -1.18)
-    set_param!(brick, :antarctic_icesheet, :ocean_surface_area, 3.619e14)
-    set_param!(brick, :antarctic_icesheet, :temperature_threshold, -15.0)
-    set_param!(brick, :antarctic_icesheet, :λ, 0.0093)
-    set_param!(brick, :antarctic_icesheet, :include_ais_DSL, true)
+    update_param!(brick, :antarctic_icesheet, :ais_ρ_ice, 917.0)
+    update_param!(brick, :antarctic_icesheet, :ais_ρ_seawater, 1030.0)
+    update_param!(brick, :antarctic_icesheet, :ais_ρ_rock, 4000.0)
+    update_param!(brick, :antarctic_icesheet, :ais_sea_level₀, 0.0)
+    update_param!(brick, :antarctic_icesheet, :ais_ocean_temperature₀, 0.72)
+    update_param!(brick, :antarctic_icesheet, :ais_radius₀, 1.864e6)
+    update_param!(brick, :antarctic_icesheet, :ais_bedheight₀, 781.0)
+    update_param!(brick, :antarctic_icesheet, :ais_slope, 0.0006)
+    update_param!(brick, :antarctic_icesheet, :ais_μ, 11.0)
+    update_param!(brick, :antarctic_icesheet, :ais_runoffline_snowheight₀, 1400.0)
+    update_param!(brick, :antarctic_icesheet, :ais_c, 100.0)
+    update_param!(brick, :antarctic_icesheet, :ais_precipitation₀, 0.37)
+    update_param!(brick, :antarctic_icesheet, :ais_κ, 0.062)
+    update_param!(brick, :antarctic_icesheet, :ais_ν, 0.0086)
+    update_param!(brick, :antarctic_icesheet, :ais_iceflow₀, 1.2)
+    update_param!(brick, :antarctic_icesheet, :ais_γ, 2.9)
+    update_param!(brick, :antarctic_icesheet, :ais_α, 0.23)
+    update_param!(brick, :antarctic_icesheet, :ais_temperature_coefficient, 0.8365)
+    update_param!(brick, :antarctic_icesheet, :ais_temperature_intercept, 15.42)
+    update_param!(brick, :antarctic_icesheet, :ais_local_fingerprint, -1.18)
+    update_param!(brick, :antarctic_icesheet, :ocean_surface_area, 3.619e14)
+    update_param!(brick, :antarctic_icesheet, :temperature_threshold, -15.0)
+    update_param!(brick, :antarctic_icesheet, :λ, 0.0093)
+    update_param!(brick, :antarctic_icesheet, :include_ais_DSL, true)
 
     # ----- Glaciers & Small Ice Caps ----- #
 
-    set_param!(brick, :glaciers_small_icecaps, :gsic_β₀, 0.0013)
-    set_param!(brick, :glaciers_small_icecaps, :gsic_v₀, 0.376)
-    set_param!(brick, :glaciers_small_icecaps, :gsic_s₀, -0.0138)
-    set_param!(brick, :glaciers_small_icecaps, :gsic_n, 0.847)
-    set_param!(brick, :glaciers_small_icecaps, :gsic_teq, -0.15)
+    update_param!(brick, :glaciers_small_icecaps, :gsic_β₀, 0.0013)
+    update_param!(brick, :glaciers_small_icecaps, :gsic_v₀, 0.376)
+    update_param!(brick, :glaciers_small_icecaps, :gsic_s₀, -0.0138)
+    update_param!(brick, :glaciers_small_icecaps, :gsic_n, 0.847)
+    update_param!(brick, :glaciers_small_icecaps, :gsic_teq, -0.15)
 
     # ----- Greenland Ice Sheet ----- #
 
-    set_param!(brick, :greenland_icesheet, :greenland_a, -1.37)
-    set_param!(brick, :greenland_icesheet, :greenland_b, 8.06)
-    set_param!(brick, :greenland_icesheet, :greenland_α, 0.0008)
-    set_param!(brick, :greenland_icesheet, :greenland_β, 0.00009)
-    set_param!(brick, :greenland_icesheet, :greenland_v₀, 7.52)
+    update_param!(brick, :greenland_icesheet, :greenland_a, -1.37)
+    update_param!(brick, :greenland_icesheet, :greenland_b, 8.06)
+    update_param!(brick, :greenland_icesheet, :greenland_α, 0.0008)
+    update_param!(brick, :greenland_icesheet, :greenland_β, 0.00009)
+    update_param!(brick, :greenland_icesheet, :greenland_v₀, 7.52)
 
     # ----- Thermal Expansion ----- #
 
-    set_param!(brick, :thermal_expansion, :te_A, 3.619e14)
-    set_param!(brick, :thermal_expansion, :te_C, 3991.86795711963)
-    set_param!(brick, :thermal_expansion, :te_ρ, 1027.0)
-    set_param!(brick, :thermal_expansion, :te_α, 0.16)
-    set_param!(brick, :thermal_expansion, :te_s₀, 0.0)
-    set_param!(brick, :thermal_expansion, :ocean_heat_mixed, zeros(length(start_year:end_year)))
+    update_param!(brick, :thermal_expansion, :te_A, 3.619e14)
+    update_param!(brick, :thermal_expansion, :te_C, 3991.86795711963)
+    update_param!(brick, :thermal_expansion, :te_ρ, 1027.0)
+    update_param!(brick, :thermal_expansion, :te_α, 0.16)
+    update_param!(brick, :thermal_expansion, :te_s₀, 0.0)
+    update_param!(brick, :thermal_expansion, :ocean_heat_mixed, zeros(length(start_year:end_year)))
     oceanheat_idx = findall((in)(start_year:end_year), oceanheat_scenario[!,:Year])
-    set_param!(brick, :thermal_expansion, :ocean_heat_interior, oceanheat_scenario[oceanheat_idx, :Mean_Ocean_Heat])
+    update_param!(brick, :thermal_expansion, :ocean_heat_interior, oceanheat_scenario[oceanheat_idx, :"MAP Ocean Heat"])
 
     # ----- Landwater Storage ----- #
 
-    set_param!(brick, :landwater_storage, :lws₀, 0.0)
-    set_param!(brick, :landwater_storage, :first_projection_year, 2018)
-    set_param!(brick, :landwater_storage, :lws_random_sample, rand(Normal(0.0003, 0.00018), length(start_year:end_year)))
+    update_param!(brick, :landwater_storage, :lws₀, 0.0)
+    update_param!(brick, :landwater_storage, :first_projection_year, 2018)
+    update_param!(brick, :landwater_storage, :lws_random_sample, rand(Normal(0.0003, 0.00018), length(start_year:end_year)))
 
     # ----- Set Parameters With Common Values Across Components ----- #
 
-    set_param!(brick, :seawater_freeze, -1.8)
+    add_shared_param!(brick, :model_seawater_freeze, -1.8)
+    connect_param!(brick, :antarctic_icesheet, :seawater_freeze, :model_seawater_freeze)
+    connect_param!(brick, :antarctic_ocean, :seawater_freeze, :model_seawater_freeze)
+
     temperature_idx = findall((in)(start_year:end_year), temperature_scenario[!,:Year])
-    set_param!(brick, :global_surface_temperature, temperature_scenario[temperature_idx,:Mean_Temperature])
+
+    add_shared_param!(brick, :model_global_surface_temperature,  temperature_scenario[temperature_idx,:"MAP Temperature"], dims = [:time])
+    connect_param!(brick, :antarctic_icesheet, :global_surface_temperature, :model_global_surface_temperature)
+    connect_param!(brick, :antarctic_ocean, :global_surface_temperature, :model_global_surface_temperature)
+    connect_param!(brick, :glaciers_small_icecaps, :global_surface_temperature, :model_global_surface_temperature)
+    connect_param!(brick, :greenland_icesheet, :global_surface_temperature, :model_global_surface_temperature)
 
     #-----------------------------------------#
     #----- Create Component Connections ----- #

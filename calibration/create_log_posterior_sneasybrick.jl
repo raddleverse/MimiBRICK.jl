@@ -7,7 +7,7 @@ antarctic_paleo_params = convert(Array{Float64,2}, ncread(antarctic_paleo_file, 
 
 # #-------------------------------------------------------------------------------------------------------
 # #-------------------------------------------------------------------------------------------------------
-# # This file contains functions used to calculate the log-posterior for the DOECLIM-BRICK model.
+# # This file contains functions used to calculate the log-posterior for the SNEASY-BRICK model.
 # #-------------------------------------------------------------------------------------------------------
 # #-------------------------------------------------------------------------------------------------------
 
@@ -16,7 +16,7 @@ antarctic_paleo_params = convert(Array{Float64,2}, ncread(antarctic_paleo_file, 
 # CALCULATE TOTAL (LOG) PRIOR PROBABILITY.
 #######################################################################################################################
 # Description: This creates a function that will calculate the total (log) prior probability of the uncertain model,
-#              initial condition, and statistical process parameters specific to the DOECLIM-BRICK model. It uses
+#              initial condition, and statistical process parameters specific to the SNEASY-BRICK model. It uses
 #              non-uniform priors for the Antarctic ice sheet parameters, informed by a previous model calibration to
 #              paleo data. There are two options for the Antarctic priors (1) fitting marginal distributions using a
 #              kernel density estimation or (2) fitting a multivariate normal distribution that accounts for correlations
@@ -30,7 +30,7 @@ antarctic_paleo_params = convert(Array{Float64,2}, ncread(antarctic_paleo_file, 
 #                             climate sensitivity (true = use uniform).
 #----------------------------------------------------------------------------------------------------------------------
 
-function construct_doeclimbrick_log_prior(joint_antarctic_prior::Bool, uniform_ECS::Bool)
+function construct_sneasybrick_log_prior(joint_antarctic_prior::Bool, uniform_ECS::Bool)
 
     #---------------------------------------------
     # Antarctic ice sheet priors
@@ -103,17 +103,21 @@ function construct_doeclimbrick_log_prior(joint_antarctic_prior::Bool, uniform_E
     prior_σ_greenland        = Uniform(1e-10, 0.002) # Based on BRICK code.
     prior_σ_antarctic        = Uniform(1e-10, 0.063) # Based on BRICK code.
     prior_σ_gmsl             = Uniform(1e-10, 0.05) # Just setting the same as prior_σ_gmsl_1900 value from old BRICK code.
+    prior_σ²_white_noise_CO₂ = Uniform(1e-10, 200) # Sc-CH4 paper.
 
     prior_ρ_temperature      = Uniform(-0.99, 0.99)
     prior_ρ_ocean_heat       = Uniform(-0.99, 0.99)
     prior_ρ_glaciers         = Uniform(-0.99, 0.99)
     prior_ρ_greenland        = Uniform(-0.99, 0.99)
     prior_ρ_antarctic        = Uniform(-0.99, 0.99)
-    prior_ρ_gmsl             = Uniform(-0.99, 0.99)
+    prior_ρ_gmsl             = Truncated(Normal(0.8, .25), -1.0, 1.0)
+    prior_α₀_CO₂             = Uniform(0.01, 11.5) # SC-CH4 paper.
 
     # -----------------------------------------
     # Initial Condition Priors.
     # -----------------------------------------
+    prior_CO₂_0              = Uniform(275, 281)
+    prior_N₂O_0              = Uniform(264, 282)
     prior_temperature_0      = Truncated(Normal(),-0.3, 0.3)
     prior_ocean_heat_0       = Uniform(-100, 0)
     prior_thermal_s₀         = Uniform(-0.0484, 0.0484) # BRICK defaults. # Initial sea level rise due to thermal expansion designated in 1850 (m SLE).
@@ -123,9 +127,17 @@ function construct_doeclimbrick_log_prior(joint_antarctic_prior::Bool, uniform_E
     prior_antarctic_s₀       = Uniform(-0.04755, 0.05585) # Informed by prior BRICK runs.
 
     # -----------------------------------------
+    # Carbon Cycle Priors.
+    # -----------------------------------------
+    prior_Q10                = Uniform(1.0, 5)
+    prior_CO₂_fertilization  = Uniform(0., 1)
+    prior_CO₂_diffusivity    = Uniform(0., 200)
+
+    # -----------------------------------------
     # Climate & Radiative Forcing Priors.
     # -----------------------------------------
     prior_heat_diffusivity   = LogNormal(1.1, 0.3)
+    #prior_heat_diffusivity   = Uniform(0.1, 4) # from BRICK paper
     prior_rf_scale_aerosol   = TriangularDist(0., 3., 1.)
 
     # Decide whether to use a uniform or paleo-informed ECS prior.
@@ -167,34 +179,42 @@ function construct_doeclimbrick_log_prior(joint_antarctic_prior::Bool, uniform_E
         σ_greenland              = p[4]
         σ_antarctic              = p[5]
         σ_gmsl                   = p[6]
-        ρ_temperature            = p[7]
-        ρ_ocean_heat             = p[8]
-        ρ_glaciers               = p[9]
-        ρ_greenland              = p[10]
-        ρ_antarctic              = p[11]
-        ρ_gmsl                   = p[12]
-        temperature_0            = p[13]
-        ocean_heat_0             = p[14]
-        thermal_s₀               = p[15]
-        greenland_v₀             = p[16]
-        glaciers_v₀              = p[17]
-        glaciers_s₀              = p[18]
-        antarctic_s₀             = p[19]
-        heat_diffusivity         = p[20]
-        rf_scale_aerosol         = p[21]
-        ECS                      = p[22]
-        thermal_α                = p[23]
-        greenland_a              = p[24]
-        greenland_b              = p[25]
-        greenland_α              = p[26]
-        greenland_β              = p[27]
-        glaciers_β₀              = p[28]
-        glaciers_n               = p[29]
-        antarctic_params[:]      = p[30:44]
+        σ²_white_noise_CO₂       = p[7]
+        ρ_temperature            = p[8]
+        ρ_ocean_heat             = p[9]
+        ρ_glaciers               = p[10]
+        ρ_greenland              = p[11]
+        ρ_antarctic              = p[12]
+        ρ_gmsl                   = p[13]
+        α₀_CO₂                   = p[14]
+        CO₂_0                    = p[15]
+        N₂O_0                    = p[16]
+        temperature_0            = p[17]
+        ocean_heat_0             = p[18]
+        thermal_s₀               = p[19]
+        greenland_v₀             = p[20]
+        glaciers_v₀              = p[21]
+        glaciers_s₀              = p[22]
+        antarctic_s₀             = p[23]
+        Q10                      = p[24]
+        CO₂_fertilization        = p[25]
+        CO₂_diffusivity          = p[26]
+        heat_diffusivity         = p[27]
+        rf_scale_aerosol         = p[28]
+        ECS                      = p[29]
+        thermal_α                = p[30]
+        greenland_a              = p[31]
+        greenland_b              = p[32]
+        greenland_α              = p[33]
+        greenland_β              = p[34]
+        glaciers_β₀              = p[35]
+        glaciers_n               = p[36]
+        antarctic_params[:]      = p[37:51]
 
-        log_prior = logpdf(prior_σ_temperature, σ_temperature) + logpdf(prior_σ_ocean_heat, σ_ocean_heat) + logpdf(prior_σ_glaciers, σ_glaciers) + logpdf(prior_σ_greenland, σ_greenland) + logpdf(prior_σ_antarctic, σ_antarctic) + logpdf(prior_σ_gmsl, σ_gmsl) +
-                    logpdf(prior_ρ_temperature, ρ_temperature) + logpdf(prior_ρ_ocean_heat, ρ_ocean_heat) + logpdf(prior_ρ_glaciers, ρ_glaciers) + logpdf(prior_ρ_greenland, ρ_greenland) + logpdf(prior_ρ_antarctic, ρ_antarctic) + logpdf(prior_ρ_gmsl, ρ_gmsl) +
-                    logpdf(prior_temperature_0, temperature_0) + logpdf(prior_ocean_heat_0, ocean_heat_0) + logpdf(prior_thermal_s₀, thermal_s₀) + logpdf(prior_greenland_v₀, greenland_v₀) + logpdf(prior_glaciers_v₀, glaciers_v₀) + logpdf(prior_glaciers_s₀, glaciers_s₀) + logpdf(prior_antarctic_s₀, antarctic_s₀) +
+        log_prior = logpdf(prior_σ_temperature, σ_temperature) + logpdf(prior_σ_ocean_heat, σ_ocean_heat) + logpdf(prior_σ_glaciers, σ_glaciers) + logpdf(prior_σ_greenland, σ_greenland) + logpdf(prior_σ_antarctic, σ_antarctic) + logpdf(prior_σ_gmsl, σ_gmsl) + logpdf(prior_σ²_white_noise_CO₂, σ²_white_noise_CO₂) +
+                    logpdf(prior_ρ_temperature, ρ_temperature) + logpdf(prior_ρ_ocean_heat, ρ_ocean_heat) + logpdf(prior_ρ_glaciers, ρ_glaciers) + logpdf(prior_ρ_greenland, ρ_greenland) + logpdf(prior_ρ_antarctic, ρ_antarctic) + logpdf(prior_ρ_gmsl, ρ_gmsl) + logpdf(prior_α₀_CO₂, α₀_CO₂) +
+                    logpdf(prior_CO₂_0, CO₂_0) + logpdf(prior_N₂O_0, N₂O_0) + logpdf(prior_temperature_0, temperature_0) + logpdf(prior_ocean_heat_0, ocean_heat_0) + logpdf(prior_thermal_s₀, thermal_s₀) + logpdf(prior_greenland_v₀, greenland_v₀) + logpdf(prior_glaciers_v₀, glaciers_v₀) + logpdf(prior_glaciers_s₀, glaciers_s₀) + logpdf(prior_antarctic_s₀, antarctic_s₀) +
+                    logpdf(prior_Q10, Q10) + logpdf(prior_CO₂_fertilization, CO₂_fertilization) + logpdf(prior_CO₂_diffusivity, CO₂_diffusivity) +
                     logpdf(prior_heat_diffusivity, heat_diffusivity) + logpdf(prior_rf_scale_aerosol, rf_scale_aerosol) + logpdf(prior_ECS, ECS) +
                     logpdf(prior_thermal_α, thermal_α) +
                     logpdf(prior_greenland_a, greenland_a) + logpdf(prior_greenland_b, greenland_b) + logpdf(prior_greenland_α, greenland_α) + logpdf(prior_greenland_β, greenland_β) +
@@ -204,7 +224,7 @@ function construct_doeclimbrick_log_prior(joint_antarctic_prior::Bool, uniform_E
         return log_prior
     end
 
-    # Return total log-prior function for DOECLIM+BRICK.
+    # Return total log-prior function for SNEASY+BRICK.
     return total_log_prior
 end
 
@@ -227,19 +247,22 @@ end
 #                             climate sensitivity (true = use uniform).
 #----------------------------------------------------------------------------------------------------------------------
 
-function construct_doeclimbrick_log_posterior(f_run_model!; model_start_year::Int=1850, calibration_end_year::Int=2017, joint_antarctic_prior::Bool=false, uniform_ECS::Bool=false)
+function construct_sneasybrick_log_posterior(f_run_model!; model_start_year::Int=1850, calibration_end_year::Int=2017, joint_antarctic_prior::Bool=false, uniform_ECS::Bool=false)
 
    # Create a vector of calibration years and calculate total number of years to run model.
     calibration_years = collect(model_start_year:calibration_end_year)
     n = length(calibration_years)
 
     # Get log-prior function.
-    doeclimbrick_log_prior = construct_doeclimbrick_log_prior(joint_antarctic_prior, uniform_ECS)
+    sneasybrick_log_prior = construct_sneasybrick_log_prior(joint_antarctic_prior, uniform_ECS)
 
     # Load calibration data/observations.
     calibration_data, obs_antarctic_trends, obs_thermal_trends = load_calibration_data(model_start_year, calibration_end_year, last_sea_level_norm_year=1990)
 
     # Calculate indices for each year that has an observation in calibration data sets.
+    indices_maunaloa_co2_data  = findall(x-> !ismissing(x), calibration_data.maunaloa_co2_obs)
+    indices_lawdome_co2_data   = findall(x-> !ismissing(x), calibration_data.lawdome_co2_obs)
+    indices_oceanco2_flux_data = findall(x-> !ismissing(x), calibration_data.oceanco2_flux_obs)
     indices_temperature_data   = findall(x-> !ismissing(x), calibration_data.hadcrut_temperature_obs)
     indices_oceanheat_data     = findall(x-> !ismissing(x), calibration_data.ocean_heat_obs)
     indices_glaciers_data      = findall(x-> !ismissing(x), calibration_data.glaciers_obs)
@@ -247,7 +270,18 @@ function construct_doeclimbrick_log_posterior(f_run_model!; model_start_year::In
     indices_antarctic_data     = findall(x-> !ismissing(x), calibration_data.antarctic_imbie_obs)
     indices_gmsl_data          = findall(x-> !ismissing(x), calibration_data.gmsl_obs)
 
+    # Combine CO₂ indices from Law Dome and Mauna Loa observations.
+    indices_co2_data = sort(vcat(indices_lawdome_co2_data, indices_maunaloa_co2_data))
+
+    # Combine CO₂ measurement errors from Law Dome and Mauna Loa observations (just for convenience).
+    calibration_data.co2_combined_sigma = calibration_data.lawdome_co2_sigma
+    calibration_data.co2_combined_sigma[indices_maunaloa_co2_data] = calibration_data.maunaloa_co2_sigma[indices_maunaloa_co2_data]
+
+    # Calculate number of ice core observations for CO₂ (used for indexing).
+    n_lawdome_co2 = length(indices_lawdome_co2_data)
+
     # Allocate arrays to store data-model residuals.
+    co2_residual         = zeros(length(indices_co2_data))
     temperature_residual = zeros(length(indices_temperature_data))
     ocean_heat_residual  = zeros(length(indices_oceanheat_data))
     glaciers_residual    = zeros(length(indices_glaciers_data))
@@ -256,6 +290,8 @@ function construct_doeclimbrick_log_posterior(f_run_model!; model_start_year::In
     gmsl_residual        = zeros(length(indices_gmsl_data))
 
     # Allocate vectors to store model output being calibrated to the observations.
+    modeled_CO₂               = zeros(n)
+    modeled_oceanCO₂_flux     = zeros(n)
     modeled_temperature       = zeros(n)
     modeled_ocean_heat        = zeros(n)
     modeled_glaciers          = zeros(n)
@@ -265,14 +301,15 @@ function construct_doeclimbrick_log_posterior(f_run_model!; model_start_year::In
     modeled_thermal_trend     = zeros(size(obs_thermal_trends, 1))
     modeled_gmsl              = zeros(n)
 
-    # Allocate vectors to store log-likelihoods for individual thermal trends for convenience (assumes iid error structure).
+    # Allocate vectors to store log-likelihoods for individual thermal trends and ocean CO₂ flux data points for convenience (assumes iid error structure).
     individual_llik_thermal_trend = zeros(size(obs_thermal_trends, 1))
+    individual_llik_oceanco2_flux = zeros(length(indices_oceanco2_flux_data))
 
     #---------------------------------------------------------------------------------------------------------------------------------------
     # Create a function to calculate the log-likelihood for the observations, assuming residual independence across calibration data sets.
     #---------------------------------------------------------------------------------------------------------------------------------------
 
-    function doeclimbrick_log_likelihood(p::Array{Float64,1})
+    function sneasybrick_log_likelihood(p::Array{Float64,1})
 
         # Assign names to uncertain statistical process parameters used in log-likelihood calculations.
         σ_temperature      = p[1]
@@ -281,15 +318,17 @@ function construct_doeclimbrick_log_posterior(f_run_model!; model_start_year::In
         σ_greenland        = p[4]
         σ_antarctic        = p[5]
         σ_gmsl             = p[6]
-        ρ_temperature      = p[7]
-        ρ_ocean_heat       = p[8]
-        ρ_glaciers         = p[9]
-        ρ_greenland        = p[10]
-        ρ_antarctic        = p[11]
-        ρ_gmsl             = p[12]
+        σ²_white_noise_CO₂ = p[7]
+        ρ_temperature      = p[8]
+        ρ_ocean_heat       = p[9]
+        ρ_glaciers         = p[10]
+        ρ_greenland        = p[11]
+        ρ_antarctic        = p[12]
+        ρ_gmsl             = p[13]
+        α₀_CO₂             = p[14]
 
-        # Run an instance of DOECLIM+BRICK with sampled parameter set and return model output being compared to observations.
-        f_run_model!(p, modeled_temperature, modeled_ocean_heat,
+        # Run an instance of SNEASY+BRICK with sampled parameter set and return model output being compared to observations.
+        f_run_model!(p, modeled_CO₂, modeled_oceanCO₂_flux, modeled_temperature, modeled_ocean_heat,
                      modeled_glaciers, modeled_greenland, modeled_antarctic, modeled_thermal_expansion, modeled_gmsl)
 
         #---------------------------------------------------------------------------
@@ -319,6 +358,39 @@ function construct_doeclimbrick_log_posterior(f_run_model!; model_start_year::In
 
         # Calculate ocean heat log-likelihood.
         llik_ocean_heat = hetero_logl_ar1(ocean_heat_residual, σ_ocean_heat, ρ_ocean_heat, calibration_data[indices_oceanheat_data, :ocean_heat_sigma])
+
+        #-----------------------------------------------------------------------
+        # Atmospheric CO₂ Concentration Log-Likelihood
+        #-----------------------------------------------------------------------
+
+        llik_co2 = 0.
+
+        # Calculate CO₂ concentration (Law Dome) residuals (assuming 8 year model mean centered on year of ice core observation).
+        for (i, index)=enumerate(indices_lawdome_co2_data)
+            co2_residual[i] = calibration_data[index, :lawdome_co2_obs] - mean(modeled_CO₂[index .+ (-4:3)])
+        end
+
+        # Calculate CO₂ concentration (Mauna Loa) residuals.
+        for (i, index)=enumerate(indices_maunaloa_co2_data)
+            co2_residual[i+n_lawdome_co2] = calibration_data[index, :maunaloa_co2_obs] - modeled_CO₂[index]
+        end
+
+        # Calculate atmospheric CO₂ concentration log-likelihood.
+        llik_co2 = hetero_logl_car1(co2_residual, indices_co2_data, σ²_white_noise_CO₂, α₀_CO₂, calibration_data[indices_co2_data, :co2_combined_sigma])
+
+        #-----------------------------------------------------------------------
+        # Ocean Carbon Flux Log-Likelihood
+        #-----------------------------------------------------------------------
+
+        llik_oceanco2_flux = 0.
+
+        # Calculate ocean CO₂ flux log-likelihood for individual data points.
+        for (i,index) = enumerate(indices_oceanco2_flux_data)
+            individual_llik_oceanco2_flux[i] = logpdf(Normal(modeled_oceanCO₂_flux[index], calibration_data[index, :oceanco2_flux_sigma]), calibration_data[index, :oceanco2_flux_obs])
+        end
+
+        # Calculate ocean CO₂ flux total log-likelihood as sum of individual data point likelihoods.
+        llik_oceanco2_flux = sum(individual_llik_oceanco2_flux)
 
         #-----------------------------------------------------------------------
         # Glaciers and Small Ice Caps Log-Likelihood
@@ -405,7 +477,7 @@ function construct_doeclimbrick_log_posterior(f_run_model!; model_start_year::In
         #-----------------------------------------------------------------------
 
         # Calculate the total log-likelihood (assuming residual independence across data sets).
-        llik = llik_temperature + llik_ocean_heat + llik_glaciers + llik_greenland + llik_antarctic + llik_thermal_trend + llik_gmsl
+        llik = llik_temperature + llik_ocean_heat + llik_co2 + llik_oceanco2_flux + llik_glaciers + llik_greenland + llik_antarctic + llik_thermal_trend + llik_gmsl
 
         return llik
     end
@@ -414,19 +486,19 @@ function construct_doeclimbrick_log_posterior(f_run_model!; model_start_year::In
     # Create a function to calculate the log-posterior of uncertain parameters 'p' (posterior ∝ likelihood * prior)
     #---------------------------------------------------------------------------------------------------------------
 
-    function doeclimbrick_log_posterior(p)
+    function sneasybrick_log_posterior(p)
 
         # Calculate log-prior
-        log_prior = doeclimbrick_log_prior(p)
+        log_prior = sneasybrick_log_prior(p)
 
         # In case a parameter sample leads to non-physical model outcomes, return -Inf rather than erroring out.
         try
-            log_post = isfinite(log_prior) ? doeclimbrick_log_likelihood(p) + log_prior : -Inf
+            log_post = isfinite(log_prior) ? sneasybrick_log_likelihood(p) + log_prior : -Inf
         catch
             log_post = - Inf
         end
     end
 
     # Return log posterior function given user specifications.
-    return doeclimbrick_log_posterior
+    return sneasybrick_log_posterior
 end
