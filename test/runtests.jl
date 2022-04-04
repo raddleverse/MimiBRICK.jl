@@ -1,8 +1,3 @@
-# Activate the project for the paper and make sure all packages we need are installed.
-using Pkg
-Pkg.activate(joinpath(@__DIR__, ".."))
-Pkg.instantiate()
-
 # Other packages
 using CSV
 using CSVFiles
