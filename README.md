@@ -21,52 +21,17 @@ MimiBRICK.jl is distributed in the hope that it will be useful, but WITHOUT ANY 
 
 You should have received a copy of the GNU General Public License along with MimiBRICK.jl (`LICENSE.md)`). If not, see http://www.gnu.org/licenses/.
 
-## Getting Started
-
-You must first add the central Mimi registry of Mimi models. To add this registry, first enter the package manager by hitting the `]` key in the Julia console. Once in the package manager, run the following code:
-
-```julia
-registry add https://github.com/mimiframework/MimiRegistry.git
-```
-
-## How To Install Required Packages
+## How To Install MimiBRICK
 
 This code was created using [Julia v1.6](https://julialang.org/downloads/) and requires several Julia packages. It is recommended that you use Julia v1.6 (or later). Julia may be downloaded from http://julialang.org/downloads/.
 
-(1) The model codes here, and the default analysis and plotting examples provided here, require a handful of Julia packages. To install these packages, first enter the package manager by hitting the `]` key in the Julia console. Once in the package manager, run the following code:
+(1) Run the following line to install the Mimi implementation of BRICK:
 
 ```julia
-add CSV
-add CSVFiles
-add DataFrames
-add Distributions
-add Interpolations
-add KernelDensity
-add LinearAlgebra
-add MCMCDiagnostics
-add Mimi
-add MimiSNEASY
-add NetCDF
-add Plots
-add RobustAdaptiveMetropolisSampler
-add SpecialFunctions
-add Statistics
-add StatsBase
+] add MimiBRICK
 ```
 
-(2) While still in the package manager, run the following line to install the Mimi implementation of SNEASY:
-
-```julia
-add https://github.com/anthofflab/MimiSNEASY.jl.git
-```
-
-(3) Run the following line to install the Mimi implementation of BRICK:
-
-```julia
-add https://github.com/raddleverse/MimiBRICK.jl.git
-```
-
-(4) To exit back to Julia, hit the `backspace` key.
+(2) To exit back to Julia, hit the `backspace` key.
 
 ## Running baseline cases with default parameters and unit tests
 
