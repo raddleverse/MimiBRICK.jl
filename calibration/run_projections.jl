@@ -35,7 +35,6 @@ model_config = "sneasybrick"
 # RCP scenario
 # --> Possible options: (1) RCP26, (2) RCP45, (3) RCP60, (4) RCP85
 rcp_scenario = "RCP85"
-for rcp_scenario = ["RCP26", "RCP45", "RCP60", "RCP85"]
 
 ##==============================================================================
 ## Should not need to mess around with anything below here
