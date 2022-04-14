@@ -154,21 +154,22 @@ end
 
     # Save calibrated parameter samples
     println("Saving calibrated parameters for "*model_config*".\n")
+    today = Dates.format(now(),"dd-mm-yyyy")
 
-    save(joinpath(@__DIR__, output, "mcmc_log_post.csv"), DataFrame(log_post=log_post))
-    save(joinpath(@__DIR__, output, "mcmc_acceptance_rate.csv"), DataFrame(acceptance_rate=accept_rate))
-    save(joinpath(@__DIR__, output, "proposal_covariance_matrix.csv"), DataFrame(cov_matrix, :auto))
-    save(joinpath(@__DIR__, output, "parameters_full_chain.csv"), DataFrame(chain_raw,parnames))
-    save(joinpath(@__DIR__, output, "parameters_subsample.csv"), DataFrame(final_sample,parnames))
-    save(joinpath(@__DIR__, output, "log_post_subsample.csv"), DataFrame(log_post=log_post_final_sample))
+    save(joinpath(@__DIR__, output, "mcmc_log_post_$(model_config)_$(today).csv"), DataFrame(log_post=log_post))
+    save(joinpath(@__DIR__, output, "mcmc_acceptance_rate_$(model_config)_$(today).csv"), DataFrame(acceptance_rate=accept_rate))
+    save(joinpath(@__DIR__, output, "proposal_covariance_matrix_$(model_config)_$(today).csv"), DataFrame(cov_matrix, :auto))
+    save(joinpath(@__DIR__, output, "parameters_full_chain_$(model_config)_$(today).csv"), DataFrame(chain_raw,parnames))
+    save(joinpath(@__DIR__, output, "parameters_subsample_$(model_config)_$(today).csv"), DataFrame(final_sample,parnames))
+    save(joinpath(@__DIR__, output, "log_post_subsample_$(model_config)_$(today).csv"), DataFrame(log_post=log_post_final_sample))
 
     # Save initial conditions for future runs
     path_new_initial_conditions = joinpath(@__DIR__, "..", "data", "calibration_data", "from_calibration_chains")
     mkpath(path_new_initial_conditions)
-    filename_new_initial_parameters = "calibration_initial_values_"*model_config*"_"*chain_len_str*"_$(Dates.format(now(),"dd-mm-yyyy")).csv"
+    filename_new_initial_parameters = "calibration_initial_values_"*model_config*"_"*chain_len_str*"_$(today).csv"
     new_initial_parameters = DataFrame(parameter_names = parnames, parameter_values = Vector(chain_burned[size(chain_burned)[1],:]))
     save(joinpath(path_new_initial_conditions, filename_new_initial_parameters), new_initial_parameters)
-    filename_new_initial_covariance = "initial_proposal_covariance_matrix_"*model_config*"_"*chain_len_str*"_$(Dates.format(now(),"dd-mm-yyyy")).csv"
+    filename_new_initial_covariance = "initial_proposal_covariance_matrix_"*model_config*"_"*chain_len_str*"_$(today).csv"
     save(joinpath(path_new_initial_conditions, filename_new_initial_covariance), DataFrame(cov_matrix, :auto))
 
     return (DataFrame(chain_raw,parnames), accept_rate, cov_matrix, log_post, DataFrame(final_sample,parnames), log_post_final_sample)
