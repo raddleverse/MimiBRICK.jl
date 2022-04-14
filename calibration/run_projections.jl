@@ -30,7 +30,7 @@ outdir = joinpath(@__DIR__, "..", "results")
 
 # Model configuration
 # --> Possible options: (1) "brick", (2) "doeclimbrick", (3) "sneasybrick"
-model_config = "brick"
+model_config = "sneasybrick"
 
 # RCP scenario
 # --> Possible options: (1) RCP26, (2) RCP45, (3) RCP60, (4) RCP85
@@ -72,8 +72,9 @@ elseif model_config == "doeclimbrick"
 elseif model_config == "sneasybrick"
     dir_output = dir_sneasybrick
 end
-filename_parameters = joinpath(dir_output, "parameters_subsample.csv")
-filename_logpost    = joinpath(dir_output, "log_post_subsample.csv")
+appen = "$(model_config)_$(dir_output[(findfirst("results_", dir_output)[end]+1):length(dir_output)])"
+filename_parameters = joinpath(dir_output, "parameters_subsample_$(appen).csv")
+filename_logpost    = joinpath(dir_output, "log_post_subsample_$(appen).csv")
 parameters = DataFrame(load(filename_parameters))
 logpost = DataFrame(load(filename_logpost))[!,:log_post]
 num_ens = size(parameters)[1]
@@ -265,24 +266,24 @@ filepath_output = joinpath(outdir, "projections_csv",rcp_scenario)
 mkpath(filepath_output)
 
 # Transposing so each column is a different ensemble member, and each row is a different year
-function write_output_table(field_name, model_config, rcp, field_array, output_path)
-    filename_output = joinpath(output_path,"projections_$(field_name)_$(rcp)_$(model_config).csv")
+function write_output_table(field_name, appen, rcp, field_array, output_path)
+    filename_output = joinpath(output_path,"projections_$(field_name)_$(rcp)_$(appen).csv")
     CSV.write(filename_output, DataFrame(field_array', :auto))
 end
 
 # Writing output tables.
-write_output_table("gmsl", model_config, rcp_scenario, gmsl, filepath_output)
-write_output_table("landwater_storage_sl", model_config, rcp_scenario, landwater_storage_sl, filepath_output)
-write_output_table("glaciers", model_config, rcp_scenario, glaciers, filepath_output)
-write_output_table("greenland", model_config, rcp_scenario, greenland, filepath_output)
-write_output_table("antarctic", model_config, rcp_scenario, antarctic, filepath_output)
-write_output_table("thermal", model_config, rcp_scenario, thermal_sl, filepath_output)
+write_output_table("gmsl", appen, rcp_scenario, gmsl, filepath_output)
+write_output_table("landwater_storage_sl", appen, rcp_scenario, landwater_storage_sl, filepath_output)
+write_output_table("glaciers", appen, rcp_scenario, glaciers, filepath_output)
+write_output_table("greenland", appen, rcp_scenario, greenland, filepath_output)
+write_output_table("antarctic", appen, rcp_scenario, antarctic, filepath_output)
+write_output_table("thermal", appen, rcp_scenario, thermal_sl, filepath_output)
 if (model_config == "doeclimbrick") | (model_config == "sneasybrick")
-    write_output_table("temperature", model_config, rcp_scenario, temperature, filepath_output)
-    write_output_table("ocean_heat", model_config, rcp_scenario, ocean_heat, filepath_output)
+    write_output_table("temperature", appen, rcp_scenario, temperature, filepath_output)
+    write_output_table("ocean_heat", appen, rcp_scenario, ocean_heat, filepath_output)
     if (model_config == "sneasybrick")
-        write_output_table("co2", model_config, rcp_scenario, co2, filepath_output)
-        write_output_table("oceanco2", model_config, rcp_scenario, oceanco2, filepath_output)
+        write_output_table("co2", appen, rcp_scenario, co2, filepath_output)
+        write_output_table("oceanco2", appen, rcp_scenario, oceanco2, filepath_output)
     end
 end
 
@@ -313,7 +314,7 @@ if (model_config=="doeclimbrick") | (model_config=="sneasybrick")
     end
 end
 df_map_outputs = DataFrame(map_outputs', colnames_out)
-filename_map_outputs = joinpath(filepath_output,"projections_MAP_$(model_config).csv")
+filename_map_outputs = joinpath(filepath_output,"projections_MAP_$(rcp_scenario)_$(appen).csv")
 CSV.write(filename_map_outputs, df_map_outputs)
 
 

@@ -35,42 +35,71 @@ function get_fingerprints()
 end
 
 ##==============================================================================
-## Small Helper Functions
+## Small Helper Functions for dealing with sea level fingerprints near land
 
-function adder(maxval)
-    function y(point,n)
-        if point + n > maxval
-            return point + n - maxval
-        else
-            return point + n
+"""
+    next_lat(lat::Float64, inc::Int64, direction::Symbol)
+Increment latitude by `inc` in either positive direction (`direction=:increase`)
+or in the negative direction (`direction=:decrease`).
+Assumes latitude runs from -90 to 90 (deg N).
+"""
+function next_lat(lat::Float64, inc::Int64, direction::Symbol)
+    if lat < -90 || lat > 90
+        error("Latitude must be between -90 and 90")
+    end
+
+    if direction == :increase
+        new_lat = lat + inc
+        if new_lat > 90
+            new_lat = new_lat - 180 #wrap around
+        end
+
+    elseif direction == :decrease
+        new_lat = lat - inc
+        if new_lat < -90
+            new_lat = new_lat + 180
         end
     end
+    return new_lat
 end
 
-function subtractor(minval,maxval)
-    function y(point,n)
-        if point - n < minval
-            return min(maxval,point - n + maxval)
-        else
-            return point - n
+"""
+    next_lon(lon::Float64, inc::Int64, direction::Symbol)
+Increment longitude by `inc` in either positive direction
+(`direction=:increase`) or in the negative direction (`direction=:decrease`).
+Assumes longitude runs from 0 to 360 (deg E).
+"""
+function next_lon(lon::Float64, inc::Int64, direction::Symbol)
+    if lon < 0 || lon > 360
+        error("Longitude must be between 0 and 360")
+    end
+
+    if direction == :increase
+        new_lon = lon + inc
+        if new_lon > 360
+            new_lon = new_lon - 360
+        end
+    elseif direction == :decrease
+        new_lon = lon - inc
+        if new_lon < 0
+            new_lon = new_lon + 360
         end
     end
+    return new_lon
 end
-
-lon_subtractor = subtractor(1,360)
-lon_adder = adder(360)
-lat_adder = adder(180)
-lat_subtractor = subtractor(1,180)
 
 ##==============================================================================
-## Downscale BRICK projections to a single point, using either the whole ensemble
-## or only the maximum a posteriori ensemble member
-## lon = longitude (degrees East) of location for downscaling
-## lat = latitude (degrees North) of location for downscaling
-## proj_or_hind = "proj" for projections, or "hind" for hindcast
-## ensemble_or_map = "ensemble" for entire posterior ensemble, or "map" for the maximum a posteriori ensemble member (single simulation)
-## model_config = "brick", "doeclimbrick", or "sneasybrick"
-## rcp_scenario = "RCP26", "RCP45", "RCP60", or "RCP85" (default). Doesn't matter for hindcast.
+"""
+    downscale_brick(;lon, lat, proj_or_hind, ensemble_or_map, model_config, rcp_scenario="RCP85")
+Downscale BRICK projections to a single point, using either the whole ensemble
+or only the maximum a posteriori ensemble member
+lon = longitude (degrees East) of location for downscaling
+lat = latitude (degrees North) of location for downscaling
+proj_or_hind = "proj" for projections, or "hind" for hindcast
+ensemble_or_map = "ensemble" for entire posterior ensemble, or "map" for the maximum a posteriori ensemble member (single simulation)
+model_config = "brick", "doeclimbrick", or "sneasybrick"
+rcp_scenario = "RCP26", "RCP45", "RCP60", or "RCP85" (default). Doesn't matter for hindcast.
+"""
 function downscale_brick(;lon, lat, proj_or_hind, ensemble_or_map, model_config, rcp_scenario="RCP85")
 
     brick_results_dir = "my_brick_results_20M_20-02-2022"
@@ -84,18 +113,19 @@ function downscale_brick(;lon, lat, proj_or_hind, ensemble_or_map, model_config,
     elseif model_config=="sneasybrick"
         results_dir = sneasybrick_results_dir
     end
+    appen = "$(model_config)_$(results_dir[(findfirst("results_", results_dir)[end]+1):length(results_dir)])"
 
     if proj_or_hind=="proj"
         results_dir = joinpath(results_dir, "projections_csv", rcp_scenario)
         slr_dir = joinpath(@__DIR__, "..", "results", results_dir)
-        MAP = DataFrame(load(joinpath(slr_dir,"projections_MAP_$(model_config).csv")))
+        MAP = DataFrame(load(joinpath(slr_dir,"projections_MAP_$(rcp_scenario)_$(appen).csv")))
         years = MAP[:,:YEAR]
         if ensemble_or_map=="ensemble"
-            AIS = CSV.read(joinpath(slr_dir,"projections_antarctic_$(rcp_scenario)_$(model_config).csv"), DataFrame)
-            GIS = CSV.read(joinpath(slr_dir,"projections_greenland_$(rcp_scenario)_$(model_config).csv"), DataFrame)
-            GSIC = CSV.read(joinpath(slr_dir,"projections_glaciers_$(rcp_scenario)_$(model_config).csv"), DataFrame)
-            TE = CSV.read(joinpath(slr_dir,"projections_thermal_$(rcp_scenario)_$(model_config).csv"), DataFrame)
-            LWS = CSV.read(joinpath(slr_dir,"projections_landwater_storage_sl_$(rcp_scenario)_$(model_config).csv"), DataFrame)
+            AIS = CSV.read(joinpath(slr_dir,"projections_antarctic_$(rcp_scenario)_$(appen).csv"), DataFrame)
+            GIS = CSV.read(joinpath(slr_dir,"projections_greenland_$(rcp_scenario)_$(appen).csv"), DataFrame)
+            GSIC = CSV.read(joinpath(slr_dir,"projections_glaciers_$(rcp_scenario)_$(appen).csv"), DataFrame)
+            TE = CSV.read(joinpath(slr_dir,"projections_thermal_$(rcp_scenario)_$(appen).csv"), DataFrame)
+            LWS = CSV.read(joinpath(slr_dir,"projections_landwater_storage_sl_$(rcp_scenario)_$(c).csv"), DataFrame)
             num_ens = size(AIS)[2]
         elseif ensemble_or_map=="map"
             AIS = MAP[:,:AIS]
@@ -108,14 +138,14 @@ function downscale_brick(;lon, lat, proj_or_hind, ensemble_or_map, model_config,
     elseif proj_or_hind=="hind"
         results_dir = joinpath(results_dir, "hindcast_csv")
         slr_dir = joinpath(@__DIR__, "..", "results", results_dir)
-        MAP = DataFrame(load(joinpath(slr_dir,"hindcast_MAP_$(model_config).csv")))
+        MAP = DataFrame(load(joinpath(slr_dir,"hindcast_MAP_$(appen).csv")))
         years = MAP[:,:YEAR]
         if ensemble_or_map=="ensemble"
-            AIS = CSV.read(joinpath(slr_dir,"hindcast_antarctic_$(model_config).csv"), DataFrame)
-            GIS = CSV.read(joinpath(slr_dir,"hindcast_greenland_$(model_config).csv"), DataFrame)
-            GSIC = CSV.read(joinpath(slr_dir,"hindcast_glaciers_$(model_config).csv"), DataFrame)
-            TE = CSV.read(joinpath(slr_dir,"hindcast_thermal_$(model_config).csv"), DataFrame)
-            LWS = CSV.read(joinpath(slr_dir,"hindcast_landwater_storage_sl_$(model_config).csv"), DataFrame)
+            AIS = CSV.read(joinpath(slr_dir,"hindcast_antarctic_$(appen).csv"), DataFrame)
+            GIS = CSV.read(joinpath(slr_dir,"hindcast_greenland_$(appen).csv"), DataFrame)
+            GSIC = CSV.read(joinpath(slr_dir,"hindcast_glaciers_$(appen).csv"), DataFrame)
+            TE = CSV.read(joinpath(slr_dir,"hindcast_thermal_$(appen).csv"), DataFrame)
+            LWS = CSV.read(joinpath(slr_dir,"hindcast_landwater_storage_sl_$(appen).csv"), DataFrame)
             num_ens = size(AIS)[2]
         elseif ensemble_or_map=="map"
             AIS = MAP[:,:AIS]
@@ -156,10 +186,10 @@ function downscale_brick(;lon, lat, proj_or_hind, ensemble_or_map, model_config,
 
     while isnan(fpAIS_loc) || isnan(fpGIS_loc) || isnan(fpGSIC_loc) && inc<5
 
-        newlonStart = lon_subtractor.(fplon[ilon],inc)[1]
-        newlatStart = lat_subtractor.(fplat[ilat],inc)[1]
-        newlonEnd = lon_adder.(fplon[ilon],inc)[1]
-        newlatEnd = lat_adder.(fplat[ilat],inc)[1]
+        newlonStart = next_lon.(fplon[ilon], inc, :decrease)
+        newlatStart = next_lat.(fplat[ilat], inc, :decrease)
+        newlonEnd = next_lon.(fplon[ilon], inc, :increase)
+        newlatEnd = next_lat.(fplat[ilat], inc, :increase)
 
         latInd1 = minimum(findall(isequal(minimum(abs.(fplat.-newlatStart))),abs.(fplat.-newlatStart)))
         latInd2 = maximum(findall(isequal(minimum(abs.(fplat.-newlatEnd))),abs.(fplat.-newlatEnd)))
