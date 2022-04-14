@@ -79,7 +79,8 @@ function run_calibration(log_posterior_mymodel; model_config="brick", calibratio
 
     ##------------------------------------------------------------------------------
     ## Load functions for running and calibrating the model configuration
-    ## --> New configurations will need new drivers and posterior distribution calculation scripts, but can follow the format of the examples here
+    ## --> New configurations will need new drivers and posterior distribution calculation 
+    ##     scripts, but can follow the format of the examples here
     ##------------------------------------------------------------------------------
 
     # Load run historic model file.
@@ -92,7 +93,6 @@ function run_calibration(log_posterior_mymodel; model_config="brick", calibratio
     # for the `construct_run_[model_config]` and `construct_[model_config]_log_posterior`
     # functions in the helper scripts included above. Using this instead of the
     # @eval and Symbols so this can be run as a function instead of a script.
-    if false
     if model_config=="brick"
         run_mymodel! = construct_run_brick(calibration_start_year, calibration_end_year)
         log_posterior_mymodel = construct_brick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=false)
@@ -103,7 +103,6 @@ function run_calibration(log_posterior_mymodel; model_config="brick", calibratio
         run_mymodel! = construct_run_sneasybrick(calibration_start_year, calibration_end_year)
         log_posterior_mymodel = construct_sneasybrick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=false)
     end
-end
 
     println("Begin baseline calibration of "*model_config*" model.\n")
 

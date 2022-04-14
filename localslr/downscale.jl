@@ -186,10 +186,10 @@ function downscale_brick(;lon, lat, proj_or_hind, ensemble_or_map, model_config,
 
     while isnan(fpAIS_loc) || isnan(fpGIS_loc) || isnan(fpGSIC_loc) && inc<5
 
-        newlonStart = next_lon.(fplon[ilon], inc, :decrease)
-        newlatStart = next_lat.(fplat[ilat], inc, :decrease)
-        newlonEnd = next_lon.(fplon[ilon], inc, :increase)
-        newlatEnd = next_lat.(fplat[ilat], inc, :increase)
+        newlonStart = next_lon.(fplon[ilon], inc, :decrease)[1]
+        newlatStart = next_lat.(fplat[ilat], inc, :decrease)[1]
+        newlonEnd = next_lon.(fplon[ilon], inc, :increase)[1]
+        newlatEnd = next_lat.(fplat[ilat], inc, :increase)[1]
 
         latInd1 = minimum(findall(isequal(minimum(abs.(fplat.-newlatStart))),abs.(fplat.-newlatStart)))
         latInd2 = maximum(findall(isequal(minimum(abs.(fplat.-newlatEnd))),abs.(fplat.-newlatEnd)))

@@ -3,3 +3,5 @@
 results
 data/calibration_data/from_preliminary_chains/*
 /Manifest.toml
+results.zip
+.vscode/settings.json
