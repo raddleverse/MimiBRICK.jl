@@ -6,7 +6,7 @@ This repository will have the latest "standard" BRICK version and codes demonstr
 
 * If you would like to use previously published BRICK results as part of a new analysis, but do not necessarily want to re-run the model, then we recommend to go to the [**Introduction-and-Library** repository](https://github.com/raddleverse/Introduction-and-Library). There, you will find links for each published BRICK study, including links for the calibrated model parameter data sets and the calibrated model projections for sea level, temperature, and any other relevant outputs.
 * If you would like to run the model yourself, then you are in the right place!
-  * Either fork the master branch from this repository or download the zipped file of codes.
+  * Load the MimiBRICK package (or if you with to edit the package either fork the master branch from this repository or download the zipped file of codes)
   * Do your analysis
   * Please let us know of any new results that should be incorporated into the [Introduction-and-Library repository](https://github.com/raddleverse/Introduction-and-Library)! See the README.md file in that repository for more information.
   * Also please let us know of any model modifications and/or bug fixes that might usefully be incorporated into the main BRICK codes. Creating an "Issue" here is a great way to do that (top horizontal menu bar in the GitHub browser).

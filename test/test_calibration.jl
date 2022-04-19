@@ -28,7 +28,7 @@ include(joinpath("..", "calibration", "create_log_posterior_sneasybrick.jl"))
 log_posterior_sneasybrick = construct_sneasybrick_log_posterior(construct_run_sneasybrick(calibration_start_year, calibration_end_year), model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=false)
 
 # Do the actual calibrations
-include(joinpath(@__DIR__, "..", "calibration", "calibration.jl"))
+include(joinpath("..", "calibration", "calibration.jl"))
 
 # BRICK calibration
 nparameters_brick = 35

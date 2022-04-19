@@ -68,10 +68,10 @@ thin_indices_10k  = trunc.(Int64, collect(range(1, stop=final_chain_length, leng
 #---------------------------------------#
 
 # Load run historic model file.
-include(joinpath(@__DIR__, "..", "calibration", "run_historic_models", "run_page_historic_climate_ecs.jl"))
+include(joinpath("..", "calibration", "run_historic_models", "run_page_historic_climate_ecs.jl"))
 
 # Load log-posterior file for PAGE climate model.
-include(joinpath(@__DIR__, "..", "calibration", "create_log_posterior_page_climate.jl"))
+include(joinpath("..", "calibration", "create_log_posterior_page_climate.jl"))
 
 # Load inital parameter values for the PAGE climate model (with the equilibrium climate sensitivity set as a parameter).
 initial_parameters = DataFrame(load(joinpath(@__DIR__, "..", "data", "calibration_data", "calibration_initial_values_page_climate.csv"), skiplines_begin=6))
@@ -121,10 +121,10 @@ save(joinpath(@__DIR__, output, "calibrated_parameters", "parameters_100k.csv"),
 #-----------------------------------------#
 
 # Load run historic model file.
-include(joinpath(@__DIR__, "..", "calibration", "run_historic_models", "run_dice_historic_climate_annual.jl"))
+include(joinpath("..", "calibration", "run_historic_models", "run_dice_historic_climate_annual.jl"))
 
 # Load log-posterior file for DICE climate model.
-include(joinpath(@__DIR__, "..", "calibration", "create_log_posterior_dice_climate.jl"))
+include(joinpath("..", "calibration", "create_log_posterior_dice_climate.jl"))
 
 # Load inital parameter values for the DICE climate model (annualized version).
 initial_parameters = DataFrame(load(joinpath(@__DIR__, "..", "data", "calibration_data", "calibration_initial_values_dice_climate.csv"), skiplines_begin=6))
@@ -176,10 +176,10 @@ save(joinpath(@__DIR__, output, "calibrated_parameters", "parameters_100k.csv"),
 #--------------------------------------#
 
 # Load run historic model file.
-include(joinpath(@__DIR__, "..", "calibration", "run_historic_models", "run_fund_historic_climate.jl"))
+include(joinpath("..", "calibration", "run_historic_models", "run_fund_historic_climate.jl"))
 
 # Load log-posterior file for DICE climate model.
-include(joinpath(@__DIR__, "..", "calibration", "create_log_posterior_fund_climate.jl"))
+include(joinpath("..", "calibration", "create_log_posterior_fund_climate.jl"))
 
 # Load inital parameter values for the DICE climate model (annualized version).
 initial_parameters = DataFrame(load(joinpath(@__DIR__, "..", "data", "calibration_data", "calibration_initial_values_fund_climate.csv"), skiplines_begin=6))
@@ -231,10 +231,10 @@ save(joinpath(@__DIR__, output, "calibrated_parameters", "parameters_100k.csv"),
 # NOTE** This version uses the kernel density estimated marginal priors for the Antarctic ice sheet based on a calibration to paleo data.
 
 # Load run historic model file.
-include(joinpath(@__DIR__, "..", "calibration", "run_historic_models", "run_sneasy_brick_historic_climate.jl"))
+include(joinpath("..", "calibration", "run_historic_models", "run_sneasy_brick_historic_climate.jl"))
 
 # Load log-posterior file for SNEASY+BRICK model.
-include(joinpath(@__DIR__, "..", "calibration", "create_log_posterior_sneasy_brick.jl"))
+include(joinpath("..", "calibration", "create_log_posterior_sneasy_brick.jl"))
 
 # Load inital parameter values for SNEASY+BRICK model.
 initial_parameters = DataFrame(load(joinpath(@__DIR__, "..", "data", "calibration_data", "calibration_initial_values_sneasy_brick.csv"), skiplines_begin=6))

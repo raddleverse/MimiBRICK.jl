@@ -15,8 +15,8 @@ using MimiBRICK
 using MimiSNEASY
 using LinearAlgebra
 
-include(joinpath(@__DIR__, "calibration_helper_functions.jl"))
-include(joinpath(@__DIR__, "..", "calibration", "helper_functions.jl"))
+include(joinpath("calibration_helper_functions.jl"))
+include(joinpath("..", "calibration", "helper_functions.jl"))
 outdir = joinpath(@__DIR__, "..", "results")
 
 # Model configuration
