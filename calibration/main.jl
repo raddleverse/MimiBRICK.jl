@@ -104,7 +104,7 @@ thin10k_chain_page_climate  = DataFrame(burned_chain_page_climate[thin_indices_1
 names!(thin100k_chain_page_climate, [Symbol(initial_parameters.parameter[i]) for i in 1:length(mean_page_climate)])
 names!(thin10k_chain_page_climate,  [Symbol(initial_parameters.parameter[i]) for i in 1:length(mean_page_climate)])
 
-!!! TO DO, SET UP OUTPUT FOLDER DIRECTORY FOR SAVING RESULTS !!!
+# !!! TO DO, SET UP OUTPUT FOLDER DIRECTORY FOR SAVING RESULTS !!!
 output = joinpath("results", "page_climate_ecs_gmsl_params_outside_priorrange_may24")
 mkdir(joinpath(output, "calibrated_parameters"))
 save(joinpath(@__DIR__, output, "calibrated_parameters", "mcmc_acceptance_rate.csv"), DataFrame(page_acceptance=accept_rate_page_climate))
@@ -212,7 +212,7 @@ thin10k_chain_fund_climate  = DataFrame(burned_chain_fund_climate[thin_indices_1
 names!(thin100k_chain_fund_climate, [Symbol(initial_parameters.parameter[i]) for i in 1:length(mean_fund_climate)])
 names!(thin10k_chain_fund_climate,  [Symbol(initial_parameters.parameter[i]) for i in 1:length(mean_fund_climate)])
 
-!!! TO DO, SET UP OUTPUT FOLDER DIRECTORY FOR SAVING RESULTS !!!
+# !!! TO DO, SET UP OUTPUT FOLDER DIRECTORY FOR SAVING RESULTS !!!
 output = joinpath("results", "dice_climate_params_may")
 mkdir(joinpath(output, "calibrated_parameters"))
 save(joinpath(@__DIR__, output, "calibrated_parameters", "mcmc_acceptance_rate.csv"), DataFrame(page_acceptance=accept_rate_fund_climate))
@@ -267,7 +267,7 @@ thin10k_chain_sneasybrick  = DataFrame(burned_chain_sneasybrick[thin_indices_10k
 names!(thin100k_chain_sneasybrick, [Symbol(initial_parameters.parameter[i]) for i in 1:length(mean_sneasybrick)])
 names!(thin10k_chain_sneasybrick,  [Symbol(initial_parameters.parameter[i]) for i in 1:length(mean_sneasybrick)])
 
-!!! TO DO, SET UP OUTPUT FOLDER DIRECTORY FOR SAVING RESULTS !!!
+# !!! TO DO, SET UP OUTPUT FOLDER DIRECTORY FOR SAVING RESULTS !!!
 output = joinpath("results", "sneasybrick_params_may30")
 mkdir(joinpath(output, "calibrated_parameters"))
 save(joinpath(@__DIR__, output, "calibrated_parameters", "mcmc_acceptance_rate.csv"), DataFrame(page_acceptance=accept_rate_sneasybrick))

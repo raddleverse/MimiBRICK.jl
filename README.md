@@ -35,41 +35,16 @@ This code was created using [Julia v1.6](https://julialang.org/downloads/) and r
 
 ## Running baseline cases with default parameters and unit tests
 
-You'll first want to navigate in your Julia terminal to the `test` directory within this repository. It is recommended that you run this script in its entirety to check the out-of-box behavior for all three model configurations. However, we will step through these and highlight how one could customize the model run commands to suit their needs.
-
-The first three commands in the `runtests.jl` script in that directory will activate the Julia project environment for the `MimiBRICK.jl` codes.
-
-```julia
-using Pkg
-Pkg.activate(joinpath(@__DIR__, ".."))
-Pkg.instantiate()
-```
-
-Note that the `".."` in the second command assumes that you are in one of the sub-directories from the main `MimiBRICK.jl` directory. Depending on whether you are working in your own directory system on your own projects, you may decide to modify this.
-
-Then, run the next few lines to load the required packages.
-
-```julia
-using Test
-using CSV
-using DataFrames
-using MimiBRICK
-using MimiSNEASY
-srcdir = joinpath(@__DIR__, "..", "src")
-include(joinpath(srcdir,"MimiBRICK_DOECLIM.jl"))
-include(joinpath(srcdir,"create_models","SNEASY_BRICK.jl"))
-```
+If you would like to take a look at the unit tests run with Continuous Integration for this package, feel free to take a look at the `runtests.jl` file, and the separate testing scripts it calls [here](https://github.com/raddleverse/MimiBRICK.jl/tree/master/test).
 
 ### BRICK standalone (with temperature and ocean heat uptake exogenous forcing)
 
-This is the first test that is done in `test/runtests.jl`. Since it does not require DOECLIM or SNEASY, you can run BRICK using temperature and ocean heat uptake forcing data by running in the Julia console:
+This is the first test that is done in `test/runtests/test_default.jl`. Since it does not require DOECLIM or SNEASY, you can run BRICK using temperature and ocean heat uptake forcing data by running in the Julia console:
 ```julia
 using MimiBRICK
 m = MimiBRICK.get_model()
 run(m)
 ```
-
-The next block of code runs a set of
 
 You can plot the output fields in the model object `m` using (for example) the `Plots` Julia plotting package. First, let's grab the years over which the model was run. This is a dimension in the model. We can retrieve it by using the `dim_keys()` function, from the `Mimi` package.
 ```julia
@@ -99,12 +74,10 @@ More information about exploring Mimi model results can be found in the [Mimi Fr
 
 ### DOECLIM-BRICK (with radiative forcing)
 
-A simulation using DOECLIM to model temperature and ocean heat uptake, coupled to BRICK for sea-level rise can be constructed and run. First, we need to load the needed `MimiSNEASY` package, which includes the DOECLIM model. Then we load the `MimiBRICK_DOECLIM.jl` script, which includes a coupled model constructor for DOECLIM-BRICK. Finally, we construct the model object `m` using the `create_brick_doeclim()` constructor, and run the model using the standard Mimi `run(m)`.
+A simulation using DOECLIM to model temperature and ocean heat uptake, coupled to BRICK for sea-level rise can be constructed and run using the `create_brick_doeclim()` function. This function uses the `MimiSNEASY` package, which includes the DOECLIM model. Here we construct the model object `m` using the `create_brick_doeclim()` constructor, and run the model using the standard Mimi `run(m)`.
+
 ```julia
-using MimiSNEASY
-srcdir = joinpath(@__DIR__, "..", "src")
-include(joinpath(srcdir,"MimiBRICK_DOECLIM.jl"))
-m = MimiBRICK_DOECLIM.create_brick_doeclim()
+m = MimiBRICK.create_brick_doeclim()
 run(m)
 ```
 
@@ -115,7 +88,7 @@ These are using the default arguments in the model constructor for the DOECLIM-B
 
 So, if you wanted to instead run DOECLIM-BRICK using RCP 6.0 from 1800 to 2100, you could run:
 ```julia
-m = MimiBRICK_DOECLIM.create_brick_doeclim(rcp_scenario="RCP60", start_year=1800, end_year=2100)
+m = MimiBRICK.create_brick_doeclim(rcp_scenario="RCP60", start_year=1800, end_year=2100)
 run(m)
 ```
 
@@ -123,10 +96,9 @@ And of course, you can use `explore(m)` to check out the model outputs attached 
 
 ### SNEASY-BRICK (with emissions forcing)
 
-Running a coupled model using SNEASY and BRICK proceeds in the same way as DOECLIM-BRICK. Assuming we have already loaded the `MimiSNEASY` package, we can load the constructor for the coupled SNEASY-BRICK model, create, then run the coupled model.
+Running a coupled model using SNEASY and BRICK proceeds in the same way as DOECLIM-BRICK. We can use the constructor for the coupled SNEASY-BRICK model, create, then run the coupled model.
 ```julia
-include(joinpath(srcdir,"create_models","SNEASY_BRICK.jl"))
-m = create_sneasy_brick()
+m = MimiBRICK.create_sneasy_brick()
 run(m)
 ```
 
@@ -194,7 +166,7 @@ For stand-alone BRICK, which requires temperature and ocean heat time series as 
 
 ## Generating projections of local mean sea-level change
 
-The `localslr/downscale.jl` file contains routines to downscale the BRICK global sea level projections to local. This uses the sea-level "fingerprints" of [Slangen et al. (2014)](https://link.springer.com/article/10.1007/s10584-014-1080-9). To downscale to local level using the three model configurations supported here and the sea-level hindcast and projections included in this repository, no changes are needed. If you decide to generate new ensembles, you will need to update the `brick_results_dir`, `doeclimbrick_results_dir`, and/or `sneasybrick_results_dir` paths that are set in `downscale.jl`. The downscaling routine will automatically create a subdirectory in the model output `results` directory called `localslr`. In this subdirectory, the routine will save an output file with the downscaled local mean sea level change model output.
+The `downscale.jl` file contains routines to downscale the BRICK global sea level projections to local. This uses the sea-level "fingerprints" of [Slangen et al. (2014)](https://link.springer.com/article/10.1007/s10584-014-1080-9). To downscale to local level using the three model configurations supported here and the sea-level hindcast and projections included in this repository, no changes are needed. If you decide to generate new ensembles, you will need to update the `brick_results_dir`, `doeclimbrick_results_dir`, and/or `sneasybrick_results_dir` paths that are set in `downscale.jl`. The downscaling routine will automatically create a subdirectory in the model output `results` directory called `localslr`. In this subdirectory, the routine will save an output file with the downscaled local mean sea level change model output.
 
 This routine will downscale either a full ensemble of BRICK model simulations or just the maximum a posteriori model simulation to a specific latitude and longitude point. These are provided by the user as `lat` (degrees north) and `lon` (degrees east). Other needed function arguments include:
 * `model_config` - (string) one of `"brick"`, `"doeclimbrick"`, or `"sneasybrick"`. Only the BRICK projections are being downscaled (no CO2 or temperature, for example), but the `downscale_brick` function will find the relevant input data and tag the output files appropriately based on the `model_config` setting.

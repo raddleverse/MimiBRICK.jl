@@ -8,12 +8,6 @@
 ##------------------------------------------------------------------------------
 ##------------------------------------------------------------------------------
 
-# Activate the project for the paper and make sure all packages we need are installed.
-using Pkg
-Pkg.activate(joinpath(@__DIR__, ".."))
-Pkg.instantiate()
-
-
 # Load required Julia packages.
 using CSVFiles
 using DataFrames
@@ -27,7 +21,6 @@ using MCMCDiagnostics
 using Random
 using StatsBase
 using Dates
-
 
 calibration_start_year = 1850
 calibration_end_year   = 2017

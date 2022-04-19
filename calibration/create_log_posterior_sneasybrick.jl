@@ -1,8 +1,7 @@
-
 # Load required data to create Antarctic ice sheet informative priors (posterior parameters from previous calibration to paleo data).
 # Note: this excludes the Antarctic variance term because the model uses an AR(1) model for the recent instrumental observations.
 #       From original BRICK Fortran/R code: "var.dais was fit to paleo data-model mismatch, not representative of the current era."
-antarctic_paleo_file   = joinpath("..","data", "calibration_data", "DAISfastdyn_calibratedParameters_gamma_29Jan2017.nc")
+antarctic_paleo_file   = joinpath(@__DIR__, "..","data", "calibration_data", "DAISfastdyn_calibratedParameters_gamma_29Jan2017.nc")
 antarctic_paleo_params = convert(Array{Float64,2}, ncread(antarctic_paleo_file, "DAIS_parameters"))'[:,1:15]
 
 # #-------------------------------------------------------------------------------------------------------

@@ -14,6 +14,13 @@ include(joinpath("components", "greenland_icesheet_component.jl"))
 include(joinpath("components", "landwater_storage_component.jl"))
 include(joinpath("components", "thermal_expansion_component.jl"))
 
+# include creation functions for two other model variants
+include(joinpath("create_models", "SNEASY_BRICK.jl"))
+include(joinpath("create_models", "BRICK_DOECLIM.jl"))
+
+# include other helper functions
+include(joinpath("downscale.jl"))
+
 # -------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------
 # Function to create 'Building blocks for Relevant Ice and Climate Knowledge' (BRICK) model.
