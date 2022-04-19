@@ -21,7 +21,7 @@ outdir = joinpath(@__DIR__, "..", "results")
 
 # Model configuration
 # --> Possible options: (1) "brick", (2) "doeclimbrick", (3) "sneasybrick"
-model_config = "brick"
+model_config = "sneasybrick"
 
 # Set years for model calibration.
 start_year = calibration_start_year = 1850
@@ -54,8 +54,9 @@ elseif model_config == "doeclimbrick"
 elseif model_config == "sneasybrick"
     dir_output = dir_sneasybrick
 end
-filename_parameters = joinpath(dir_output, "parameters_subsample.csv")
-filename_logpost    = joinpath(dir_output, "log_post_subsample.csv")
+appen = "$(model_config)_$(dir_output[(findfirst("results_", dir_output)[end]+1):length(dir_output)])"
+filename_parameters = joinpath(dir_output, "parameters_subsample_$(appen).csv")
+filename_logpost    = joinpath(dir_output, "log_post_subsample_$(appen).csv")
 parameters = DataFrame(load(filename_parameters))
 logpost = DataFrame(load(filename_logpost))[!,:log_post]
 num_ens = size(parameters)[1]
@@ -246,24 +247,24 @@ filepath_output = joinpath(outdir, "hindcast_csv")
 mkpath(filepath_output)
 
 # Transposing so each column is a different ensemble member, and each row is a different year
-function write_output_table(field_name, model_config, field_array, output_path)
-    filename_output = joinpath(output_path,"hindcast_$(field_name)_$(model_config).csv")
+function write_output_table(field_name, appen, field_array, output_path)
+    filename_output = joinpath(output_path,"hindcast_$(field_name)_$(appen).csv")
     CSV.write(filename_output, DataFrame(field_array', :auto))
 end
 
 # Writing output tables.
-write_output_table("gmsl", model_config, gmsl, filepath_output)
-write_output_table("landwater_storage_sl", model_config, landwater_storage_sl, filepath_output)
-write_output_table("glaciers", model_config, glaciers, filepath_output)
-write_output_table("greenland", model_config, greenland, filepath_output)
-write_output_table("antarctic", model_config, antarctic, filepath_output)
-write_output_table("thermal", model_config, thermal_sl, filepath_output)
+write_output_table("gmsl", appen, gmsl, filepath_output)
+write_output_table("landwater_storage_sl", appen, landwater_storage_sl, filepath_output)
+write_output_table("glaciers", appen, glaciers, filepath_output)
+write_output_table("greenland", appen, greenland, filepath_output)
+write_output_table("antarctic", appen, antarctic, filepath_output)
+write_output_table("thermal", appen, thermal_sl, filepath_output)
 if (model_config == "doeclimbrick") | (model_config == "sneasybrick")
-    write_output_table("temperature", model_config, temperature, filepath_output)
-    write_output_table("ocean_heat", model_config, ocean_heat, filepath_output)
+    write_output_table("temperature", appen, temperature, filepath_output)
+    write_output_table("ocean_heat", appen, ocean_heat, filepath_output)
     if (model_config == "sneasybrick")
-        write_output_table("co2", model_config, co2, filepath_output)
-        write_output_table("oceanco2", model_config, oceanco2, filepath_output)
+        write_output_table("co2", appen, co2, filepath_output)
+        write_output_table("oceanco2", appen, oceanco2, filepath_output)
     end
 end
 
@@ -294,7 +295,7 @@ if (model_config=="doeclimbrick") | (model_config=="sneasybrick")
     end
 end
 df_map_outputs = DataFrame(map_outputs', colnames_out)
-filename_map_outputs = joinpath(filepath_output,"hindcast_MAP_$(model_config).csv")
+filename_map_outputs = joinpath(filepath_output,"hindcast_MAP_$(appen).csv")
 CSV.write(filename_map_outputs, df_map_outputs)
 
 
