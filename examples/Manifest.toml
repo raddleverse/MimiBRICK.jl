@@ -1,6 +1,6 @@
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.7.2"
+julia_version = "1.6.5"
 manifest_format = "2.0"
 
 [[deps.AbstractFFTs]]
@@ -153,9 +153,9 @@ version = "1.9.0"
 
 [[deps.DataFrames]]
 deps = ["Compat", "DataAPI", "Future", "InvertedIndices", "IteratorInterfaceExtensions", "LinearAlgebra", "Markdown", "Missings", "PooledArrays", "PrettyTables", "Printf", "REPL", "Reexport", "SortingAlgorithms", "Statistics", "TableTraits", "Tables", "Unicode"]
-git-tree-sha1 = "ae02104e835f219b8930c7664b8012c93475c340"
+git-tree-sha1 = "6c19003824cbebd804a51211fd3bbd81bf1ecad5"
 uuid = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
-version = "1.3.2"
+version = "1.3.3"
 
 [[deps.DataStructures]]
 deps = ["Compat", "InteractiveUtils", "OrderedCollections"]
@@ -622,7 +622,7 @@ uuid = "093fc24a-ae57-5d10-9952-331d41423f4d"
 version = "1.3.5"
 
 [[deps.LinearAlgebra]]
-deps = ["Libdl", "libblastrampoline_jll"]
+deps = ["Libdl"]
 uuid = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 
 [[deps.LogExpFunctions]]
@@ -684,8 +684,8 @@ uuid = "e4e893b0-ee5e-52ea-8111-44b3bdec128c"
 version = "1.4.0"
 
 [[deps.MimiBRICK]]
-deps = ["CSV", "CSVFiles", "DataFrames", "Distributions", "Interpolations", "KernelDensity", "LinearAlgebra", "MCMCDiagnostics", "Mimi", "MimiSNEASY", "NetCDF", "Plots", "Query", "RobustAdaptiveMetropolisSampler", "SpecialFunctions", "Statistics", "StatsBase"]
-path = ".."
+deps = ["CSV", "CSVFiles", "DataFrames", "Distributions", "Interpolations", "KernelDensity", "LinearAlgebra", "MCMCDiagnostics", "Mimi", "MimiSNEASY", "Missings", "NetCDF", "Plots", "Query", "RobustAdaptiveMetropolisSampler", "SpecialFunctions", "Statistics", "StatsBase"]
+path = "/Users/lisarennels/.julia/dev/MimiBRICK"
 uuid = "91f4afc7-28cd-4627-b11a-a83dc9ff1a58"
 version = "1.0.0-DEV"
 
@@ -769,10 +769,6 @@ deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
 git-tree-sha1 = "887579a3eb005446d514ab7aeac5d1d027658b8f"
 uuid = "e7412a2a-1a6e-54c0-be00-318e2571c051"
 version = "1.3.5+1"
-
-[[deps.OpenBLAS_jll]]
-deps = ["Artifacts", "CompilerSupportLibraries_jll", "Libdl"]
-uuid = "4536629a-c528-5b80-bd46-f80d51c5b363"
 
 [[deps.OpenLibm_jll]]
 deps = ["Artifacts", "Libdl"]
@@ -916,7 +912,7 @@ deps = ["InteractiveUtils", "Markdown", "Sockets", "Unicode"]
 uuid = "3fa0cd96-eef1-5676-8a61-b3b8758bbffb"
 
 [[deps.Random]]
-deps = ["SHA", "Serialization"]
+deps = ["Serialization"]
 uuid = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 
 [[deps.Ratios]]
@@ -1347,8 +1343,10 @@ uuid = "0ac62f75-1d6f-5e53-bd7c-93b484bb37c0"
 version = "0.15.1+0"
 
 [[deps.libblastrampoline_jll]]
-deps = ["Artifacts", "Libdl", "OpenBLAS_jll"]
+deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
+git-tree-sha1 = "576c27f2c23add3ce8f10717d72fbaee6fe120e9"
 uuid = "8e850b90-86db-534c-a0d3-1478176c7d93"
+version = "3.1.0+2"
 
 [[deps.libfdk_aac_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]

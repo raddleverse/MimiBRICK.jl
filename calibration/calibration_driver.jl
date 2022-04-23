@@ -8,12 +8,6 @@
 ##------------------------------------------------------------------------------
 ##------------------------------------------------------------------------------
 
-# Activate the project for the paper and make sure all packages we need are installed.
-using Pkg
-Pkg.activate(joinpath(@__DIR__, ".."))
-Pkg.instantiate()
-
-
 # Load required Julia packages.
 using CSVFiles
 using DataFrames
@@ -27,7 +21,6 @@ using MCMCDiagnostics
 using Random
 using StatsBase
 using Dates
-
 
 calibration_start_year = 1850
 calibration_end_year   = 2017
@@ -50,7 +43,7 @@ include(joinpath("..", "calibration", "create_log_posterior_sneasybrick.jl"))
 log_posterior_sneasybrick = construct_sneasybrick_log_posterior(construct_run_sneasybrick(calibration_start_year, calibration_end_year), model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=false)
 
 ## Do the actual calibrations
-include(joinpath(@__DIR__, "calibration.jl"))
+include("calibration.jl")
 
 # BRICK calibration
 x = run_calibration(log_posterior_brick; model_config="brick", calibration_start_year=calibration_start_year,

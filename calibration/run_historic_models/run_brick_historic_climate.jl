@@ -1,9 +1,8 @@
+using Mimi
+
 #--------------------------------------------------------------------------------------------------------------
 # Create a function to run the BRICK model over the historic period.
 #--------------------------------------------------------------------------------------------------------------
-
-# Load model file.
-using MimiBRICK
 
 function construct_run_brick(calibration_start_year::Int, calibration_end_year::Int)
 

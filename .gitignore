@@ -1,7 +1,7 @@
 .ipynb_checkpoints
 .DS_Store
 results
-data/calibration_data/from_preliminary_chains/*
+data/calibration_data/from_calibration_chains/
 /Manifest.toml
 results.zip
 .vscode/settings.json

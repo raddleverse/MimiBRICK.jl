@@ -1,19 +1,8 @@
-module MimiBRICK_DOECLIM
-
-# Load required packages
-using CSVFiles, DataFrames, Distributions, Mimi, MimiSNEASY
-
-# Load BRICK Mimi components.
-include(joinpath("components", "antarctic_icesheet_component.jl"))
-include(joinpath("components", "antarctic_ocean_component.jl"))
-include(joinpath("components", "glaciers_small_icecaps_component.jl"))
-include(joinpath("components", "global_sea_level_component.jl"))
-include(joinpath("components", "greenland_icesheet_component.jl"))
-include(joinpath("components", "landwater_storage_component.jl"))
-include(joinpath("components", "thermal_expansion_component.jl"))
-
-# Export the following functions for the MimiBRICK module.
-export create_brick_doeclim
+using CSVFiles
+using DataFrames
+using Distributions
+using Mimi
+using MimiSNEASY
 
 # -------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------
@@ -34,7 +23,7 @@ function create_brick_doeclim(;rcp_scenario::String = "RCP85", start_year::Int=1
     index_start, index_end = findall((in)([start_year, end_year]), (1765:2500))
 
     # Load and clean up RCP radiative forcing data for DOEclim (options include "RCP26", "RCP45", "RCP60", and "RCP85").
-    rcp_forcing_data = DataFrame(load(joinpath(@__DIR__, "..", "data", "model_data", rcp_scenario*"_midyear_radforcings.csv"), skiplines_begin=58))[index_start:index_end, :]
+    rcp_forcing_data = DataFrame(load(joinpath(@__DIR__, "..", "..", "data", "model_data", rcp_scenario*"_midyear_radforcings.csv"), skiplines_begin=58))[index_start:index_end, :]
 
     # Isolate radiative forcing from CO₂, aerosols, and all other sources.
     forcing_CO₂           = rcp_forcing_data.CO2_RF
@@ -183,7 +172,4 @@ function create_brick_doeclim(;rcp_scenario::String = "RCP85", start_year::Int=1
     # Return BRICK + DOEclim model.
     return brick_doeclim
 
-
 end
-
-end # Module

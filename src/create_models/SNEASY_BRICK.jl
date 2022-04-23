@@ -2,7 +2,6 @@ using CSVFiles
 using DataFrames
 using Distributions
 using Mimi
-using MimiBRICK
 using MimiSNEASY
 
 # Create a function to run SNEASY-BRICK climate model over historic period.
@@ -37,13 +36,13 @@ function create_sneasy_brick(; rcp_scenario::String="RCP85", start_year::Int=185
 	m = MimiSNEASY.get_model(start_year=start_year, end_year=end_year)
 
 	# Add in BRICK sea level rise components.
-	add_comp!(m, MimiBRICK.antarctic_ocean,        after = :ccm)
-	add_comp!(m, MimiBRICK.antarctic_icesheet,     after = :antarctic_ocean)
-	add_comp!(m, MimiBRICK.glaciers_small_icecaps, after = :antarctic_icesheet)
-	add_comp!(m, MimiBRICK.greenland_icesheet,     after = :glaciers_small_icecaps)
-	add_comp!(m, MimiBRICK.thermal_expansion, 	   after = :greenland_icesheet)
-	add_comp!(m, MimiBRICK.landwater_storage, 	   after = :thermal_expansion)
-	add_comp!(m, MimiBRICK.global_sea_level, 	   after = :landwater_storage)
+	add_comp!(m, antarctic_ocean,           after = :ccm)
+	add_comp!(m, antarctic_icesheet,        after = :antarctic_ocean)
+	add_comp!(m, glaciers_small_icecaps,    after = :antarctic_icesheet)
+	add_comp!(m, greenland_icesheet,        after = :glaciers_small_icecaps)
+	add_comp!(m, thermal_expansion,         after = :greenland_icesheet)
+	add_comp!(m, landwater_storage,         after = :thermal_expansion)
+	add_comp!(m, global_sea_level,          after = :landwater_storage)
 
     # Set new time dimension for all coupled model components.
     set_dimension!(m, :time, model_years)
@@ -155,5 +154,4 @@ function create_sneasy_brick(; rcp_scenario::String="RCP85", start_year::Int=185
     # Return SNEASY-BRICK model.
     return m
 
-    
 end

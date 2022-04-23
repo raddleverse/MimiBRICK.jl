@@ -7,11 +7,6 @@
 ##==============================================================================
 ## Initial set-up
 
-# Activate the project for the paper and make sure all packages we need are installed.
-using Pkg
-Pkg.activate(joinpath(@__DIR__, ".."))
-Pkg.instantiate()
-
 # Other packages
 using Test
 using CSV
@@ -20,11 +15,8 @@ using MimiBRICK
 using MimiSNEASY
 using LinearAlgebra
 
-srcdir = joinpath(@__DIR__, "..", "src")
-include(joinpath(srcdir,"MimiBRICK_DOECLIM.jl"))
-include(joinpath(srcdir,"create_models","SNEASY_BRICK.jl"))
-include("calibration_helper_functions.jl")
-include(joinpath(@__DIR__, "..", "calibration", "helper_functions.jl"))
+include(joinpath("calibration_helper_functions.jl"))
+include(joinpath("..", "calibration", "helper_functions.jl"))
 outdir = joinpath(@__DIR__, "..", "results")
 
 # Model configuration
@@ -78,10 +70,9 @@ parnames = names(parameters)
 if model_config=="brick"
     m = MimiBRICK.get_model(start_year=start_year, end_year=end_year)
 elseif model_config=="doeclimbrick"
-    m = MimiBRICK_DOECLIM.create_brick_doeclim(start_year=start_year, end_year=end_year)
+    m = MimiBRICK.create_brick_doeclim(start_year=start_year, end_year=end_year)
 elseif model_config=="sneasybrick"
-    #m = MimiSNEASY.get_model(start_year=start_year, end_year=end_year)
-    m = create_sneasy_brick(start_year=start_year, end_year=end_year)
+    m = MimiBRICK.create_sneasy_brick(start_year=start_year, end_year=end_year)
 end
 
 # Load calibration data from 1765-2017 (measurement errors used in simulated noise).
