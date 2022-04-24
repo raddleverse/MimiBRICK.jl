@@ -1,3 +1,6 @@
+![](https://github.com/raddleverse/MimiBRICK.jl/workflows/Run%20CI%20on%20master/badge.svg)
+![](https://github.com/raddleverse/MimiBRICK.jl/workflows/Run%20model%20tests/badge.svg)
+
 # MimiBRICK.jl
 
 This repository will have the latest "standard" BRICK version and codes demonstrating its calibration in three configurations: (i) alone (forced by temperature and ocean heat), (ii) coupled to DOECLIM, and (iii) coupled to SNEASY. Standard calibration output will be provided as well as examples and scripts for downscaling the projections to a 1-degree grid for local sea-level rise.
