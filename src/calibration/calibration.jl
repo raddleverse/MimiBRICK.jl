@@ -59,7 +59,7 @@ function run_calibration(log_posterior_mymodel; model_config="brick", calibratio
     results_folder_name = "my_"*model_config*"_results_"*chain_len_str*"_$(Dates.format(now(),"dd-mm-yyyy"))"
 
     # Create output folder path for convenience and make path.
-    output = joinpath(@__DIR__, "..", "results", results_folder_name)
+    output = joinpath(@__DIR__, "..", "..", "results", results_folder_name)
     mkpath(output)
 
     ##------------------------------------------------------------------------------
@@ -152,15 +152,15 @@ function run_calibration(log_posterior_mymodel; model_config="brick", calibratio
     println("Saving calibrated parameters for "*model_config*".\n")
     today = Dates.format(now(),"dd-mm-yyyy")
 
-    save(joinpath(@__DIR__, output, "mcmc_log_post_$(model_config)_$(today).csv"), DataFrame(log_post=log_post))
-    save(joinpath(@__DIR__, output, "mcmc_acceptance_rate_$(model_config)_$(today).csv"), DataFrame(acceptance_rate=accept_rate))
-    save(joinpath(@__DIR__, output, "proposal_covariance_matrix_$(model_config)_$(today).csv"), DataFrame(cov_matrix, :auto))
-    save(joinpath(@__DIR__, output, "parameters_full_chain_$(model_config)_$(today).csv"), DataFrame(chain_raw,parnames))
-    save(joinpath(@__DIR__, output, "parameters_subsample_$(model_config)_$(today).csv"), DataFrame(final_sample,parnames))
-    save(joinpath(@__DIR__, output, "log_post_subsample_$(model_config)_$(today).csv"), DataFrame(log_post=log_post_final_sample))
+    save(joinpath(@__DIR__, output, "mcmc_log_post_$(model_config)_$(chain_len_str)_$(today).csv"), DataFrame(log_post=log_post))
+    save(joinpath(@__DIR__, output, "mcmc_acceptance_rate_$(model_config)_$(chain_len_str)_$(today).csv"), DataFrame(acceptance_rate=accept_rate))
+    save(joinpath(@__DIR__, output, "proposal_covariance_matrix_$(model_config)_$(chain_len_str)_$(today).csv"), DataFrame(cov_matrix, :auto))
+    save(joinpath(@__DIR__, output, "parameters_full_chain_$(model_config)_$(chain_len_str)_$(today).csv"), DataFrame(chain_raw,parnames))
+    save(joinpath(@__DIR__, output, "parameters_subsample_$(model_config)_$(chain_len_str)_$(today).csv"), DataFrame(final_sample,parnames))
+    save(joinpath(@__DIR__, output, "log_post_subsample_$(model_config)_$(chain_len_str)_$(today).csv"), DataFrame(log_post=log_post_final_sample))
 
     # Save initial conditions for future runs
-    path_new_initial_conditions = joinpath(@__DIR__, "..", "results","calibration_data", "from_calibration_chains")
+    path_new_initial_conditions = joinpath(@__DIR__, "..", "..", "results","calibration_data", "from_calibration_chains")
     mkpath(path_new_initial_conditions)
     filename_new_initial_parameters = "calibration_initial_values_"*model_config*"_"*chain_len_str*"_$(today).csv"
     new_initial_parameters = DataFrame(parameter_names = parnames, parameter_values = Vector(chain_burned[size(chain_burned)[1],:]))

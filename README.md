@@ -116,7 +116,7 @@ The calibration that is done here follows the same procedure as outlined in [Won
   * the specific length depends on the model configuration; [Gelman and Rubin (1992)](https://projecteuclid.org/journals/statistical-science/volume-7/issue-4/Inference-from-Iterative-Simulation-Using-Multiple-Sequences/10.1214/ss/1177011136.full) potential scale reduction factor is checked < 1.1 for convergence
 * subsample 10,000 concomitant parameter sets from the remaining burned-in chain. These samples are used for the hindcast and projections for analysis
 
-This is all done by running the `calibration/calibration_driver.jl` script. This script runs the `run_calibration` function three times: using `model_config=brick`, `doeclimbrick` and `sneasybrick`. If you want to verify that things are working properly but not wait hours for results, then it is recommended that you try a shorter calibration. This is done in `runtests.jl`, but you can do this by modifying the arguments for:
+This is all done by running the `calibration/calibration_driver.jl` script. This script runs the `MimiBRICK.run_calibration` function three times: using `model_config=brick`, `doeclimbrick` and `sneasybrick`. If you want to verify that things are working properly but not wait hours for results, then it is recommended that you try a shorter calibration. This is done in `runtests.jl`, but you can do this by modifying the arguments for:
 * `total_chain_length` - for the three configurations, 1 million iterations typically takes less than an hour. If you are just checking that things are working properly, doing 10,000 would of course be faster, and likely sufficient
 * `burnin_length` - this must be less than `total_chain_length`
 * `threshold_gr` - if you do a short test calibration, it will yell at you that some of the parameters' potential scale reduction factors are not less than this threshold. You don't need to do anything about it, just letting you know so you don't worry about it.
@@ -176,7 +176,7 @@ This routine will downscale either a full ensemble of BRICK model simulations or
 * `rcp_scenario` - (string) one of `"RCP26"`, `"RCP45"`, `"RCP60"`, or `"RCP85"`. If running a hindcast, this does not matter.
 * `ensemble_or_map` - (string) one of `"ensemble"` or `"map"`. If `"ensemble"`, then will downscale the full BRICK ensemble that matches the provided `model_config`, `proj_or_hind`, and `rcp_scenario` settings. If `"map"`, will only downscale the maximum a posteriori simulation.
 
-In the example in `localslr/run_downscale.jl`, the BRICK (standalone model) maximum a posteriori sea-level rise projection under RCP8.5 is downscaled for New York City using the following settings:
+An example for use can be found in `examples/Example1_Downscaling.ipynb`. This example includes a few specifications, for example in one the BRICK (standalone model) maximum a posteriori sea-level rise projection under RCP8.5 is downscaled for New York City using the following settings:
 ```julia
 lat = 40.7128 # deg N
 lon = 360-74.0060 # 74.0060 deg W

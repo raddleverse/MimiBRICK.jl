@@ -4,6 +4,8 @@ using CSV
 using DataFrames
 using MimiSNEASY
 using LinearAlgebra
+using CSVFiles
+using Mimi
 
 ##==============================================================================
 ## Script for running BRICK (standalone, or with DOECLIM or SNEASY) over the

@@ -1,4 +1,4 @@
-module TestCalibration
+# module TestCalibration
 
 using MimiBRICK
 using Test
@@ -58,4 +58,4 @@ x3 = run_calibration(log_posterior_sneasybrick; model_config="sneasybrick", cali
 @test all([isa(x3[1][end,i],Number) for i=1:size(x3[1])[2]])
 # @test !all([diff(x3[1][:,1])[i] == 0 for i=1:size(x3[1])[1]-1])
 
-end
+# end
