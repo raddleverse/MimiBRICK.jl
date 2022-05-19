@@ -127,7 +127,7 @@ The `run_calibration` function will create a date-stamped directory in `results`
 * `mcmc_log_post.csv` - the log-posterior scores (numerator from Bayes' theorem) for the full chain of parameter samples
 * `parameters_subsample.csv` - the parameter values in the sub-sample for analysis
 * `log_post_subsample.csv` - the log-posterior scores for the sub-sample of parameters for analysis. This is used to determine the maximum _a posteriori_ simulation
-* `proposal_covariance_matrix.csv` - the final proposal covariance matrix for the adaptive proposals. If you use this and the final sample of parameters from `parameters_full_chain.csv`, you can restart the Markov chain calibration. This and the last iteration of the Markov chain are both saved under the `results/calibration_data/from_calibration_chains` directory.
+* `proposal_covariance_matrix.csv` - the final proposal covariance matrix for the adaptive proposals. If you use this and the final sample of parameters from `parameters_full_chain.csv`, you can restart the Markov chain calibration. This and the last iteration of the Markov chain are both saved under the `calibration_data/from_calibration_chains` subdirectory.
 * `mcmc_acceptance_rate.csv` - the acceptance rate from the MCMC algorithm. Should be about 0.23 for the numbers of parameters (dimension) that we're dealing with here.
 
 Note that calibrations of 20 million iterations will take multiple hours to complete.
@@ -176,7 +176,8 @@ This routine will downscale either a full ensemble of BRICK model simulations or
 * `rcp_scenario` - (string) one of `"RCP26"`, `"RCP45"`, `"RCP60"`, or `"RCP85"`. If running a hindcast, this does not matter.
 * `ensemble_or_map` - (string) one of `"ensemble"` or `"map"`. If `"ensemble"`, then will downscale the full BRICK ensemble that matches the provided `model_config`, `proj_or_hind`, and `rcp_scenario` settings. If `"map"`, will only downscale the maximum a posteriori simulation.
 
-An example for use can be found in `examples/Example1_Downscaling.ipynb`. This example includes a few specifications, for example in one the BRICK (standalone model) maximum a posteriori sea-level rise projection under RCP8.5 is downscaled for New York City using the following settings:
+An example for use can be found in `test/test_downscaling.jl`. This example includes a few specifications, for example in one the BRICK (standalone model) maximum a posteriori sea-level rise projection under RCP8.5 is downscaled for New York City using the following settings:
+
 ```julia
 lat = 40.7128 # deg N
 lon = 360-74.0060 # 74.0060 deg W
@@ -188,7 +189,7 @@ ensemble_or_map = "map"
 
 The following line of code performs the actual downscaling and saves the output files to the appropriate `results` directory.
 ```julia
-years, lsl = downscale_brick(lon=lon, lat=lat, proj_or_hind=proj_or_hind, ensemble_or_map=ensemble_or_map, model_config=model_config, rcp_scenario=rcp_scenario)
+years, lsl = downscale_brick(lon=lon, lat=lat, results_dir=results_dir, proj_or_hind=proj_or_hind, ensemble_or_map=ensemble_or_map, model_config=model_config, rcp_scenario=rcp_scenario)
 ```
 
 ## License

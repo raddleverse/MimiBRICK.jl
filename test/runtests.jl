@@ -12,4 +12,6 @@ using MimiBRICK
       @info("test_calibration.jl")
       @time include("test_calibration.jl")
 
+      @info("test_downscaling.jl")
+      @time include("test_downscaling.jl")
 end

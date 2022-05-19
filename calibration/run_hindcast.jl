@@ -20,7 +20,7 @@ outdir = joinpath(@__DIR__, "..", "results")
 
 # Model configuration
 # --> Possible options: (1) "brick", (2) "doeclimbrick", (3) "sneasybrick"
-model_config = "sneasybrick"
+model_config = "brick"
 
 # Set years for model calibration.
 start_year = calibration_start_year = 1850

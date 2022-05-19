@@ -124,7 +124,7 @@ function downscale_brick(;lon::Float64,
             GIS = CSV.read(joinpath(slr_dir,"projections_greenland_$(rcp_scenario)_$(appen).csv"), DataFrame)
             GSIC = CSV.read(joinpath(slr_dir,"projections_glaciers_$(rcp_scenario)_$(appen).csv"), DataFrame)
             TE = CSV.read(joinpath(slr_dir,"projections_thermal_$(rcp_scenario)_$(appen).csv"), DataFrame)
-            LWS = CSV.read(joinpath(slr_dir,"projections_landwater_storage_sl_$(rcp_scenario)_$(c).csv"), DataFrame)
+            LWS = CSV.read(joinpath(slr_dir,"projections_landwater_storage_sl_$(rcp_scenario)_$(appen).csv"), DataFrame)
             num_ens = size(AIS)[2]
         elseif ensemble_or_map=="map"
             AIS = MAP[:,:AIS]
@@ -245,7 +245,6 @@ function downscale_brick(;lon::Float64,
     end
 
     # Write to CSV
-    # NB: `my_brick_results_20M_20-02-2022` would need to be swapped out with whatever results directory your new runs are in, if you use a different ensemble
     filepath_output = joinpath(slr_dir, "localslr")
     mkpath(filepath_output)
 
