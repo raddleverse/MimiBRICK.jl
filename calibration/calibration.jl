@@ -21,7 +21,7 @@ using MCMCDiagnostics
 using Random
 using StatsBase
 using Dates
-
+using MimiBRICK
 
 function run_calibration(log_posterior_mymodel; model_config="brick", calibration_start_year=1850, calibration_end_year=2005,
                          total_chain_length=1000, burnin_length=0, threshold_gr=1.1, num_walkers=2,
@@ -76,15 +76,11 @@ function run_calibration(log_posterior_mymodel; model_config="brick", calibratio
         initial_covariance_matrix = Array(Hermitian(Matrix(DataFrame(load(path_initial_covariance)))))
     end
 
-
     ##------------------------------------------------------------------------------
     ## Load functions for running and calibrating the model configuration
     ## --> New configurations will need new drivers and posterior distribution calculation 
     ##     scripts, but can follow the format of the examples here
     ##------------------------------------------------------------------------------
-
-    # Load run historic model file.
-    include(joinpath("..", "calibration", "run_historic_models", "run_"*model_config*"_historic_climate.jl"))
 
     # Load log-posterior script for this model configuration.
     include(joinpath("..", "calibration", "create_log_posterior_"*model_config*".jl"))
@@ -94,13 +90,13 @@ function run_calibration(log_posterior_mymodel; model_config="brick", calibratio
     # functions in the helper scripts included above. Using this instead of the
     # @eval and Symbols so this can be run as a function instead of a script.
     if model_config=="brick"
-        run_mymodel! = construct_run_brick(calibration_start_year, calibration_end_year)
+        run_mymodel! = MimiBRICK.construct_run_brick(calibration_start_year, calibration_end_year)
         log_posterior_mymodel = construct_brick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=false)
     elseif model_config=="doeclimbrick"
-        run_mymodel! = construct_run_doeclimbrick(calibration_start_year, calibration_end_year)
+        run_mymodel! = MimiBRICK.construct_run_doeclimbrick(calibration_start_year, calibration_end_year)
         log_posterior_mymodel = construct_doeclimbrick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=false)
     elseif model_config=="sneasybrick"
-        run_mymodel! = construct_run_sneasybrick(calibration_start_year, calibration_end_year)
+        run_mymodel! = MimiBRICK.construct_run_sneasybrick(calibration_start_year, calibration_end_year)
         log_posterior_mymodel = construct_sneasybrick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=false)
     end
 

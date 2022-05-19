@@ -21,6 +21,7 @@ using MCMCDiagnostics
 using Random
 using StatsBase
 using Dates
+using MimiBRICK
 
 calibration_start_year = 1850
 calibration_end_year   = 2017
@@ -29,15 +30,14 @@ size_subsample         = 10_000
 threshold_gr           = 1.1
 
 ## Create the log-posterior functions
-include(joinpath("..", "calibration", "run_historic_models", "run_brick_historic_climate.jl"))
 include(joinpath("..", "calibration", "create_log_posterior_brick.jl"))
-log_posterior_brick = construct_brick_log_posterior(construct_run_brick(calibration_start_year, calibration_end_year), model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=false)
-include(joinpath("..", "calibration", "run_historic_models", "run_doeclimbrick_historic_climate.jl"))
+log_posterior_brick = construct_brick_log_posterior(MimiBRICK.construct_run_brick(calibration_start_year, calibration_end_year), model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=false)
+
 include(joinpath("..", "calibration", "create_log_posterior_doeclimbrick.jl"))
-log_posterior_doeclimbrick = construct_doeclimbrick_log_posterior(construct_run_doeclimbrick(calibration_start_year, calibration_end_year), model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=false)
-include(joinpath("..", "calibration", "run_historic_models", "run_sneasybrick_historic_climate.jl"))
+log_posterior_doeclimbrick = construct_doeclimbrick_log_posterior(MimiBRICK.construct_run_doeclimbrick(calibration_start_year, calibration_end_year), model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=false)
+
 include(joinpath("..", "calibration", "create_log_posterior_sneasybrick.jl"))
-log_posterior_sneasybrick = construct_sneasybrick_log_posterior(construct_run_sneasybrick(calibration_start_year, calibration_end_year), model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=false)
+log_posterior_sneasybrick = construct_sneasybrick_log_posterior(MimiBRICK.construct_run_sneasybrick(calibration_start_year, calibration_end_year), model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=false)
 
 ## Do the actual calibrations
 include("calibration.jl")
