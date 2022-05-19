@@ -1,8 +1,12 @@
-module TestCalibration
+# module TestCalibration
 
-using Mimi
 using MimiBRICK
 using Test
+
+import MimiBRICK: get_model, create_sneasy_brick, create_brick_doeclim
+import MimiBRICK: construct_run_brick, construct_run_doeclimbrick, construct_run_sneasybrick
+import MimiBRICK: construct_brick_log_posterior, construct_doeclimbrick_log_posterior, construct_sneasybrick_log_posterior
+import MimiBRICK: run_calibration
 
 ##==============================================================================
 ## Checking short calibration, that it does things and isn't just perpetually stuck
@@ -13,22 +17,10 @@ total_chain_length     = 1000
 size_subsample         = 100
 threshold_gr           = 1.1
 
-# Load calibration helper functions file.
-include(joinpath("..", "calibration", "calibration_helper_functions.jl"))
-
 # Create the log-posterior functions
-include(joinpath("..", "calibration", "run_historic_models", "run_brick_historic_climate.jl"))
-include(joinpath("..", "calibration", "create_log_posterior_brick.jl"))
 log_posterior_brick = construct_brick_log_posterior(construct_run_brick(calibration_start_year, calibration_end_year), model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=false)
-include(joinpath("..", "calibration", "run_historic_models", "run_doeclimbrick_historic_climate.jl"))
-include(joinpath("..", "calibration", "create_log_posterior_doeclimbrick.jl"))
 log_posterior_doeclimbrick = construct_doeclimbrick_log_posterior(construct_run_doeclimbrick(calibration_start_year, calibration_end_year), model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=false)
-include(joinpath("..", "calibration", "run_historic_models", "run_sneasybrick_historic_climate.jl"))
-include(joinpath("..", "calibration", "create_log_posterior_sneasybrick.jl"))
 log_posterior_sneasybrick = construct_sneasybrick_log_posterior(construct_run_sneasybrick(calibration_start_year, calibration_end_year), model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=false)
-
-# Do the actual calibrations
-include(joinpath("..", "calibration", "calibration.jl"))
 
 # BRICK calibration
 nparameters_brick = 35
@@ -66,4 +58,4 @@ x3 = run_calibration(log_posterior_sneasybrick; model_config="sneasybrick", cali
 @test all([isa(x3[1][end,i],Number) for i=1:size(x3[1])[2]])
 # @test !all([diff(x3[1][:,1])[i] == 0 for i=1:size(x3[1])[1]-1])
 
-end
+# end

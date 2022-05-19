@@ -21,6 +21,9 @@ include(joinpath("create_models", "BRICK_DOECLIM.jl"))
 # include other helper functions
 include(joinpath("downscale.jl"))
 
+# include calibration functions
+include(joinpath("calibration/main_calibration.jl"))
+
 # -------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------
 # Function to create 'Building blocks for Relevant Ice and Climate Knowledge' (BRICK) model.
