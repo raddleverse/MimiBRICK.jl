@@ -15,7 +15,6 @@ using DataFrames
 using MimiSNEASY
 using LinearAlgebra
 
-include(joinpath("calibration_helper_functions.jl"))
 include(joinpath("..", "calibration", "helper_functions.jl"))
 outdir = joinpath(@__DIR__, "..", "results")
 
@@ -85,7 +84,7 @@ elseif model_config=="sneasybrick"
 end
 
 # Load calibration data from 1765-2017 (measurement errors used in simulated noise).
-calibration_data, obs_antarctic_trends, obs_thermal_trends = load_calibration_data(start_year, 2017)
+calibration_data, obs_antarctic_trends, obs_thermal_trends = MimiBRICK.load_calibration_data(start_year, 2017)
 
 # Initialize arrays to save the model components
 

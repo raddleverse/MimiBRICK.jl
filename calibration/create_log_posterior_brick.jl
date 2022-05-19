@@ -1,3 +1,10 @@
+using Missings
+using DataFrames
+using Distributions
+using NetCDF
+
+import MimiBRICK: truncated_kernel
+
 # Load required data to create Antarctic ice sheet informative priors (posterior parameters from previous calibration to paleo data).
 # Note: this excludes the Antarctic variance term because the model uses an AR(1) model for the recent instrumental observations.
 #       From original BRICK Fortran/R code: "var.dais was fit to paleo data-model mismatch, not representative of the current era."
@@ -203,7 +210,7 @@ function construct_brick_log_posterior(f_run_model!; model_start_year::Int=1850,
     brick_log_prior = construct_brick_log_prior(joint_antarctic_prior)
 
     # Load calibration data/observations.
-    calibration_data, obs_antarctic_trends, obs_thermal_trends = load_calibration_data(model_start_year, calibration_end_year, last_sea_level_norm_year=1990)
+    calibration_data, obs_antarctic_trends, obs_thermal_trends = MimiBRICK.load_calibration_data(model_start_year, calibration_end_year, last_sea_level_norm_year=1990)
 
     # Calculate indices for each year that has an observation in calibration data sets.
     indices_glaciers_data      = findall(x-> !ismissing(x), calibration_data.glaciers_obs)

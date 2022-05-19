@@ -25,19 +25,20 @@ using CSVFiles
 #----------------------------------------------------------------------------------------------------------------------
 
 
-function load_calibration_data(model_start_year::Int, last_calibration_year; last_sea_level_norm_year::Int=1990)
+function load_calibration_data(model_start_year::Int64, last_calibration_year::Int64; last_sea_level_norm_year::Int64=1990)
 
     # Create column of calibration years and calculate indicies for calibration time period relative to 1765-2020 (will crop later).
     # Note: first year is first year to run model (not necessarily year of first observation).
     df = DataFrame(year = collect(1765:2020))
     model_calibration_indices = findall((in)(collect(model_start_year:last_calibration_year)), collect(1765:2018))
-
+    calibration_data_dir = joinpath(@__DIR__, "..", "..", "data", "calibration_data")
+    
     #-------------------------------------------------------------------
     # HadCRUT4 temperature data (anomalies relative to 1861-1880 mean).
     #-------------------------------------------------------------------
 
     # Load raw temperature data.
-    raw_temp_data = DataFrame(load(joinpath(@__DIR__, "..", "data", "calibration_data", "global_temp_hadcrut4.csv"), skiplines_begin=24))
+    raw_temp_data = DataFrame(load(joinpath(calibration_data_dir, "global_temp_hadcrut4.csv"), skiplines_begin=24))
 
     # Find indices to normalize temperature data to 1861-1880 mean.
     hadcrut_norm_indices = findall((in)(1861:1880), raw_temp_data[!,:year])
@@ -50,7 +51,7 @@ function load_calibration_data(model_start_year::Int, last_calibration_year; las
     df = outerjoin(df, norm_temp_data, on=:year)
 
     # Read in HadCRUT4 1σ errors and rename column.
-    raw_temp_errors  = DataFrame(load(joinpath(@__DIR__,  "..", "data", "calibration_data", "global_temp_hadcrut4_1sigma_uncertainty.csv"), skiplines_begin=21))
+    raw_temp_errors  = DataFrame(load(joinpath(calibration_data_dir, "global_temp_hadcrut4_1sigma_uncertainty.csv"), skiplines_begin=21))
     rename!(raw_temp_errors, :one_sigma_all => :hadcrut_temperature_sigma)
 
     # Join data on year.
@@ -62,7 +63,7 @@ function load_calibration_data(model_start_year::Int, last_calibration_year; las
     #--------------------------------------------------------
 
     # Load Mauna Loa CO₂ observations and errors, and rename columns.
-    raw_mauna_loa_co2_data  = DataFrame(load(joinpath(@__DIR__,  "..", "data", "calibration_data", "co2_mauna_loa.csv"), skiplines_begin=59))
+    raw_mauna_loa_co2_data  = DataFrame(load(joinpath(calibration_data_dir, "co2_mauna_loa.csv"), skiplines_begin=59))
     rename!(raw_mauna_loa_co2_data, :mean => :maunaloa_co2_obs, :unc => :maunaloa_co2_sigma)
 
     # Join data on year.
@@ -74,7 +75,7 @@ function load_calibration_data(model_start_year::Int, last_calibration_year; las
     #-----------------------------------------------------
 
     # Load Law Dome CO₂ observations and errors, and rename columns.
-    raw_law_dome_co2_data = DataFrame(load(joinpath(@__DIR__,  "..", "data", "calibration_data", "law_dome_co2.csv"), skiplines_begin=4))
+    raw_law_dome_co2_data = DataFrame(load(joinpath(calibration_data_dir, "law_dome_co2.csv"), skiplines_begin=4))
     rename!(raw_law_dome_co2_data, :co2_ice => :lawdome_co2_obs, :one_sigma_error => :lawdome_co2_sigma)
 
     # Join data on year.
@@ -86,7 +87,7 @@ function load_calibration_data(model_start_year::Int, last_calibration_year; las
     #---------------------------------------------------------------------------------
 
     # Load ocean heat content (0-3000m) observations and errors.
-    ocean_heat_raw = DataFrame(load(joinpath(@__DIR__,  "..", "data", "calibration_data", "ocean_heat_gouretski_3000m.csv"), colnames=["year", "ocean_heat_obs", "ocean_heat_sigma"], skiplines_begin=3))
+    ocean_heat_raw = DataFrame(load(joinpath(calibration_data_dir, "ocean_heat_gouretski_3000m.csv"), colnames=["year", "ocean_heat_obs", "ocean_heat_sigma"], skiplines_begin=3))
 
     # Join data on year.
     #df = join(df, ocean_heat_raw, on=:year, kind=:outer)
@@ -108,7 +109,7 @@ function load_calibration_data(model_start_year::Int, last_calibration_year; las
     #--------------------------------------------------------------------------------------
 
     # Get the sea level data; new version, Church and White updated to include through 2013
-    raw_gmsl_data = DataFrame(load(joinpath(@__DIR__, "..", "data", "calibration_data", "CSIRO_Recons_gmsl_yr_2015.csv"), skiplines_begin=9))
+    raw_gmsl_data = DataFrame(load(joinpath(calibration_data_dir, "CSIRO_Recons_gmsl_yr_2015.csv"), skiplines_begin=9))
 
     # Convert observations and error measurements from mm to meters.
     gmsl_obs   = raw_gmsl_data[!, Symbol("GMSL (mm)")] ./ 1000
@@ -131,7 +132,7 @@ function load_calibration_data(model_start_year::Int, last_calibration_year; las
     #---------------------------------------------------------------------------------
 
     # Load raw Greenland ice sheet mass balance data.
-    raw_greenland_data = DataFrame(load(joinpath(@__DIR__, "..", "data", "calibration_data", "greenland_MAR_InSAR_1958_2013.csv")))
+    raw_greenland_data = DataFrame(load(joinpath(calibration_data_dir, "greenland_MAR_InSAR_1958_2013.csv")))
 
     # Calculate number of observations (data set has different length montly and annual data in same sheet).
     n_obs = length(collect(skipmissing(raw_greenland_data[!, Symbol("Time (yearly)")])))
@@ -160,7 +161,7 @@ function load_calibration_data(model_start_year::Int, last_calibration_year; las
     #---------------------------------------------------------------------------------
 
     # Load raw IMBIE Greenland ice sheet mass balance data.
-    raw_imbie_greenland_data = DataFrame(load(joinpath(@__DIR__, "..", "data", "calibration_data", "IMBIE_greenland_ice_sheet_1992_2018.csv"), skiplines_begin=5))
+    raw_imbie_greenland_data = DataFrame(load(joinpath(calibration_data_dir, "IMBIE_greenland_ice_sheet_1992_2018.csv"), skiplines_begin=5))
 
     # Isolate columns with required observations and assign shorter column names.
     raw_imbie_greenland_data = dropmissing(DataFrame(year = raw_imbie_greenland_data.Year,
@@ -222,7 +223,7 @@ function load_calibration_data(model_start_year::Int, last_calibration_year; las
     #---------------------------------------------------------------------------------
 
     # Load GSIC raw data.
-    raw_glaciers_data = DataFrame(load(joinpath(@__DIR__, "..", "data", "calibration_data", "glacier_small_ice_caps_1961_2003.csv"), skiplines_begin=1))
+    raw_glaciers_data = DataFrame(load(joinpath(calibration_data_dir, "glacier_small_ice_caps_1961_2003.csv"), skiplines_begin=1))
 
     # Convert observations (cummulative GSIC melt contribution to sea level rise) from mm to meters.
     glaciers_obs = raw_glaciers_data[!, Symbol("contribution to sea level cumulative (mm)")] ./ 1000
@@ -247,7 +248,7 @@ function load_calibration_data(model_start_year::Int, last_calibration_year; las
     #---------------------------------------------------------------------------------
 
     # Load raw IMBIE Antarctic ice sheet mass balance data.
-    raw_imbie_antarctic_data = DataFrame(load(joinpath(@__DIR__, "..", "data", "calibration_data", "IMBIE_antarctic_ice_sheet_1992_2017.csv"), skiplines_begin=5))
+    raw_imbie_antarctic_data = DataFrame(load(joinpath(calibration_data_dir, "IMBIE_antarctic_ice_sheet_1992_2017.csv"), skiplines_begin=5))
 
     # Year 2017 does not have observations spanning full year, so drop 2017 partial values.
     drop_index = findlast(x -> x == 2016, floor.(raw_imbie_antarctic_data.Year))
@@ -263,7 +264,6 @@ function load_calibration_data(model_start_year::Int, last_calibration_year; las
     # Convert cummulative to annual observation errors for each monthly timestep.
     # Note* Like Greenland data above, values for each month expressed as mm/yr so need to account for 12 months.
     # Note** Last year has decreasing cummulative error (implying measurements that year had negative error? For these final periods, hold error constant at previous positive value).
-    # TODO: CHECK WITH TONY
     for t = 1:length(antarctic_sigma)
         if t == 1
             # Convert initial value.
@@ -474,7 +474,7 @@ end
 #       ϵ              = A vector of time-varying observation error estimates (from calibration data sets).
 #----------------------------------------------------------------------------------------------------------------------
 
-function hetero_logl_car1(residuals::Array{Float64,1}, indices::Array{Int,1}, σ²_white_noise::Float64, α₀::Float64, ϵ::Array{Union{Float64, Missings.Missing},1})
+function hetero_logl_car1(residuals::Array{Float64,1}, indices::Array{Int64,1}, σ²_white_noise::Float64, α₀::Float64, ϵ::Array{Union{Float64, Missings.Missing},1})
 
     # Calculate length of residuals.
     n=length(residuals)

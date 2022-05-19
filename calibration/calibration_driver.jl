@@ -28,9 +28,6 @@ total_chain_length     = 20_000_000
 size_subsample         = 10_000
 threshold_gr           = 1.1
 
-# Load calibration helper functions file.
-include(joinpath("..", "calibration", "calibration_helper_functions.jl"))
-
 ## Create the log-posterior functions
 include(joinpath("..", "calibration", "run_historic_models", "run_brick_historic_climate.jl"))
 include(joinpath("..", "calibration", "create_log_posterior_brick.jl"))
