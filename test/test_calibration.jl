@@ -5,6 +5,8 @@ using Test
 
 import MimiBRICK: get_model, create_sneasy_brick, create_brick_doeclim
 import MimiBRICK: construct_run_brick, construct_run_doeclimbrick, construct_run_sneasybrick
+import MimiBRICK: construct_brick_log_posterior, construct_doeclimbrick_log_posterior, construct_sneasybrick_log_posterior
+import MimiBRICK: run_calibration
 
 ##==============================================================================
 ## Checking short calibration, that it does things and isn't just perpetually stuck
@@ -16,17 +18,9 @@ size_subsample         = 100
 threshold_gr           = 1.1
 
 # Create the log-posterior functions
-include(joinpath("..", "calibration", "create_log_posterior_brick.jl"))
 log_posterior_brick = construct_brick_log_posterior(construct_run_brick(calibration_start_year, calibration_end_year), model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=false)
-
-include(joinpath("..", "calibration", "create_log_posterior_doeclimbrick.jl"))
 log_posterior_doeclimbrick = construct_doeclimbrick_log_posterior(construct_run_doeclimbrick(calibration_start_year, calibration_end_year), model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=false)
-
-include(joinpath("..", "calibration", "create_log_posterior_sneasybrick.jl"))
 log_posterior_sneasybrick = construct_sneasybrick_log_posterior(construct_run_sneasybrick(calibration_start_year, calibration_end_year), model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=false)
-
-# Do the actual calibrations
-include(joinpath("..", "calibration", "calibration.jl"))
 
 # BRICK calibration
 nparameters_brick = 35

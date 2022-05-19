@@ -21,21 +21,25 @@ using MCMCDiagnostics
 using Random
 using StatsBase
 using Dates
-using MimiBRICK
 
 function run_calibration(log_posterior_mymodel; model_config="brick", calibration_start_year=1850, calibration_end_year=2005,
                          total_chain_length=1000, burnin_length=0, threshold_gr=1.1, num_walkers=2,
-                         size_subsample=1000, start_from_priors=false)
+                         size_subsample=1000, start_from_priors=false, calibration_data_dir::Union{String, Nothing} = nothing)
+
+    # set calibration data directory if one was not provided ie. it is set as nothing
+    if isnothing(calibration_data_dir)
+        calibration_data_dir = joinpath(@__DIR__, "..", "..", "data", "calibration_data")
+    end   
 
     # File name and path to obtain the parameter names (*in order*)
-    path_parameter_info = joinpath(@__DIR__, "..", "data", "calibration_data", "calibration_initial_values_"*model_config*".csv")
+    path_parameter_info = joinpath(calibration_data_dir, "calibration_initial_values_"*model_config*".csv")
     # If you want to read from a previous run, set these two file names/paths.
     # NOTE that if `start_from_priors = true`, these will NOT be used, even if they are set appropriately.
     # Also, the `path_initial_parameters` does not need to be distinct from the `path_parameter_info`.
     # `path_parameter_info` is just to get the names of the parameters, whereas `path_initial_parameters` will provide the starting values for the model parameters as well.
     if ~start_from_priors
-        path_initial_parameters = joinpath(@__DIR__, "..", "data", "calibration_data", "calibration_initial_values_"*model_config*".csv")
-        path_initial_covariance = joinpath(@__DIR__, "..", "data", "calibration_data", "initial_proposal_covariance_matrix_"*model_config*".csv")
+        path_initial_parameters = joinpath(calibration_data_dir, "calibration_initial_values_"*model_config*".csv")
+        path_initial_covariance = joinpath(calibration_data_dir, "initial_proposal_covariance_matrix_"*model_config*".csv")
     end
 
     ##------------------------------------------------------------------------------
@@ -82,22 +86,19 @@ function run_calibration(log_posterior_mymodel; model_config="brick", calibratio
     ##     scripts, but can follow the format of the examples here
     ##------------------------------------------------------------------------------
 
-    # Load log-posterior script for this model configuration.
-    include(joinpath("..", "calibration", "create_log_posterior_"*model_config*".jl"))
-
     # NOTE: the following two commands for each model config assume a naming convention
     # for the `construct_run_[model_config]` and `construct_[model_config]_log_posterior`
     # functions in the helper scripts included above. Using this instead of the
     # @eval and Symbols so this can be run as a function instead of a script.
     if model_config=="brick"
         run_mymodel! = MimiBRICK.construct_run_brick(calibration_start_year, calibration_end_year)
-        log_posterior_mymodel = construct_brick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=false)
+        log_posterior_mymodel = MimiBRICK.construct_brick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=false)
     elseif model_config=="doeclimbrick"
         run_mymodel! = MimiBRICK.construct_run_doeclimbrick(calibration_start_year, calibration_end_year)
-        log_posterior_mymodel = construct_doeclimbrick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=false)
+        log_posterior_mymodel = MimiBRICK.construct_doeclimbrick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=false)
     elseif model_config=="sneasybrick"
         run_mymodel! = MimiBRICK.construct_run_sneasybrick(calibration_start_year, calibration_end_year)
-        log_posterior_mymodel = construct_sneasybrick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=false)
+        log_posterior_mymodel = MimiBRICK.construct_sneasybrick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=false)
     end
 
     println("Begin baseline calibration of "*model_config*" model.\n")

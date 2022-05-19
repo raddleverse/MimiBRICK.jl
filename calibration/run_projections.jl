@@ -1,21 +1,20 @@
-##==============================================================================
-## Script for running BRICK (standalone, or with DOECLIM or SNEASY) over the
-## projections period and save the results to CSV files.
-## Projections under RCP scenarios (2.6, 4.5, 6.0, or 8.5)
-##==============================================================================
-
-
-##==============================================================================
-## Initial set-up
-
-# Other packages
+using MimiBRICK
 using Test
 using CSV
 using DataFrames
 using MimiSNEASY
 using LinearAlgebra
 
-include(joinpath("..", "calibration", "helper_functions.jl"))
+##==============================================================================
+## Script for running BRICK (standalone, or with DOECLIM or SNEASY) over the
+## projections period and save the results to CSV files.
+## Projections under RCP scenarios (2.6, 4.5, 6.0, or 8.5)
+##==============================================================================
+
+##==============================================================================
+## Initial set-up
+
+include(joinpath(@__DIR__, "helper_functions.jl"))
 outdir = joinpath(@__DIR__, "..", "results")
 
 # Model configuration
@@ -41,11 +40,11 @@ num_years = length(model_years)
 ## Set paths for results files - subsample of model parameters, and associated log-posterior scores
 
 # for BRICK
-dir_brick = joinpath(@__DIR__, "..", "results", "my_brick_results_20M_20-02-2022")
+dir_brick = joinpath(outdir, "my_brick_results_20M_20-02-2022")
 # for DOECLIM-BRICK
-dir_doeclimbrick = joinpath(@__DIR__, "..", "results", "my_doeclimbrick_results_20M_19-02-2022")
+dir_doeclimbrick = joinpath(outdir, "my_doeclimbrick_results_20M_19-02-2022")
 # for SNEASY-BRICK
-dir_sneasybrick = joinpath(@__DIR__, "..", "results", "my_sneasybrick_results_20M_19-02-2022")
+dir_sneasybrick = joinpath(outdir, "my_sneasybrick_results_20M_19-02-2022")
 
 ##==============================================================================
 ## Modify below here at your own risk

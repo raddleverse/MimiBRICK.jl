@@ -22,16 +22,20 @@ using CSVFiles
 #       last_calibration_year    = The last year to run the model for calibration (i.e. 1980 will not consider any post-1980 observations).
 #       last_sea_level_norm_year = Some sea level data sets may need to be normalized to different years depending on when the calibration ends (this
 #                                  may be necessary for out-of-sample tests). These data sets will be normalized from 1961-last norm year, default = 1961-1990.
+#       calibration_data_dir    = Data directory for calibration data. Defaults to package calibration data directory, changing this is not recommended.
 #----------------------------------------------------------------------------------------------------------------------
 
-
-function load_calibration_data(model_start_year::Int64, last_calibration_year::Int64; last_sea_level_norm_year::Int64=1990)
+function load_calibration_data(model_start_year::Int64, last_calibration_year::Int64; last_sea_level_norm_year::Int64=1990, calibration_data_dir::Union{Nothing, String} = nothing)
 
     # Create column of calibration years and calculate indicies for calibration time period relative to 1765-2020 (will crop later).
     # Note: first year is first year to run model (not necessarily year of first observation).
     df = DataFrame(year = collect(1765:2020))
     model_calibration_indices = findall((in)(collect(model_start_year:last_calibration_year)), collect(1765:2018))
-    calibration_data_dir = joinpath(@__DIR__, "..", "..", "data", "calibration_data")
+    
+    # set calibration data directory if one was not provided ie. it is set as nothing
+    if isnothing(calibration_data_dir)
+        calibration_data_dir = joinpath(@__DIR__, "..", "..", "data", "calibration_data")
+    end    
     
     #-------------------------------------------------------------------
     # HadCRUT4 temperature data (anomalies relative to 1861-1880 mean).
@@ -417,8 +421,6 @@ function load_calibration_data(model_start_year::Int64, last_calibration_year::I
     return df, ais_trend_df, te_trend_df
 end
 
-
-
 #######################################################################################################################
 # CALCULATE AR(1) LOG-LIKELIHOOD.
 ########################################################################################################################
@@ -452,8 +454,6 @@ function hetero_logl_ar1(residuals::Array{Float64,1}, σ::Float64, ρ::Float64, 
     # Return the log-likelihood.
     return logpdf(MvNormal(cov_matrix), residuals)
 end
-
-
 
 #######################################################################################################################
 # CALCULATE CAR(1) LOG-LIKELIHOOD.
@@ -492,8 +492,6 @@ function hetero_logl_car1(residuals::Array{Float64,1}, indices::Array{Int64,1}, 
     return logpdf(MvNormal(cov_matrix), residuals)
 end
 
-
-
 #######################################################################################################
 # CALCULATE MODELED SEA LEVEL TRENDS
 #######################################################################################################
@@ -528,8 +526,6 @@ function calculate_trends(model_output::Array{Float64,1}, obs_trends::DataFrame,
     end
     return modeled_trends
 end
-
-
 
 #######################################################################################################
 # CALCULATE KERNEL DENSITY ESTIMATES WITH TRUNCATED BOUNDS
