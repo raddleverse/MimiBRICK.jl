@@ -1,6 +1,6 @@
 .ipynb_checkpoints
 .DS_Store
-results
+/results
 /Manifest.toml
 results.zip
 .vscode/settings.json
