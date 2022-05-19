@@ -90,34 +90,33 @@ end
 
 ##==============================================================================
 """
-    downscale_brick(;lon, lat, proj_or_hind, ensemble_or_map, model_config, rcp_scenario="RCP85")
+    downscale_brick(;lon, lat, results_dir, proj_or_hind, ensemble_or_map, model_config, rcp_scenario="RCP85")
+
 Downscale BRICK projections to a single point, using either the whole ensemble
-or only the maximum a posteriori ensemble member
+or only the maximum a posteriori ensemble member. Note this function assumes a
+specific folder structure and file naming within the top level results_dir.
+
 lon = longitude (degrees East) of location for downscaling
 lat = latitude (degrees North) of location for downscaling
+results_dir = the top level directory of results ie. "my_brick_results_20M_20-02-2022"
 proj_or_hind = "proj" for projections, or "hind" for hindcast
 ensemble_or_map = "ensemble" for entire posterior ensemble, or "map" for the maximum a posteriori ensemble member (single simulation)
 model_config = "brick", "doeclimbrick", or "sneasybrick"
 rcp_scenario = "RCP26", "RCP45", "RCP60", or "RCP85" (default). Doesn't matter for hindcast.
 """
-function downscale_brick(;lon, lat, proj_or_hind, ensemble_or_map, model_config, rcp_scenario="RCP85")
+function downscale_brick(;lon::Float64, 
+                            lat::Float64, 
+                            results_dir::String, 
+                            proj_or_hind::String, 
+                            ensemble_or_map::String, 
+                            model_config::String, 
+                            rcp_scenario::String="RCP85"
+                        )
 
-    brick_results_dir = "my_brick_results_20M_20-02-2022"
-    doeclimbrick_results_dir = "my_doeclimbrick_results_20M_19-02-2022"
-    sneasybrick_results_dir = "my_sneasybrick_results_20M_19-02-2022"
-
-    if model_config=="brick"
-        results_dir = brick_results_dir
-    elseif model_config=="doeclimbrick"
-        results_dir = doeclimbrick_results_dir
-    elseif model_config=="sneasybrick"
-        results_dir = sneasybrick_results_dir
-    end
     appen = "$(model_config)_$(results_dir[(findfirst("results_", results_dir)[end]+1):length(results_dir)])"
 
     if proj_or_hind=="proj"
-        results_dir = joinpath(results_dir, "projections_csv", rcp_scenario)
-        slr_dir = joinpath(@__DIR__, "..", "results", results_dir)
+        slr_dir = joinpath(@__DIR__, "..", "results", results_dir, "projections_csv", rcp_scenario)
         MAP = DataFrame(load(joinpath(slr_dir,"projections_MAP_$(rcp_scenario)_$(appen).csv")))
         years = MAP[:,:YEAR]
         if ensemble_or_map=="ensemble"
@@ -136,8 +135,7 @@ function downscale_brick(;lon, lat, proj_or_hind, ensemble_or_map, model_config,
             num_ens = 1
         end
     elseif proj_or_hind=="hind"
-        results_dir = joinpath(results_dir, "hindcast_csv")
-        slr_dir = joinpath(@__DIR__, "..", "results", results_dir)
+        slr_dir = joinpath(@__DIR__, "..", "results", results_dir, "hindcast_csv")
         MAP = DataFrame(load(joinpath(slr_dir,"hindcast_MAP_$(appen).csv")))
         years = MAP[:,:YEAR]
         if ensemble_or_map=="ensemble"
@@ -162,7 +160,7 @@ function downscale_brick(;lon, lat, proj_or_hind, ensemble_or_map, model_config,
 
     # Convert Longitude to degrees East
     # CIAM Lat is already in (-90,90) by default
-    if lon <0
+    if lon < 0
         lon = lon + 360
     end
 
