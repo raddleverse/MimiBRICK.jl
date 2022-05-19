@@ -25,7 +25,7 @@ using CSVFiles
 #       calibration_data_dir    = Data directory for calibration data. Defaults to package calibration data directory, changing this is not recommended.
 #----------------------------------------------------------------------------------------------------------------------
 
-function load_calibration_data(model_start_year::Int64, last_calibration_year::Int64; last_sea_level_norm_year::Int64=1990, calibration_data_dir::Union{Nothing, String} = nothing)
+function load_calibration_data(model_start_year::Int, last_calibration_year::Int; last_sea_level_norm_year::Int=1990, calibration_data_dir::Union{Nothing, String} = nothing)
 
     # Create column of calibration years and calculate indicies for calibration time period relative to 1765-2020 (will crop later).
     # Note: first year is first year to run model (not necessarily year of first observation).
