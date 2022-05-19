@@ -160,7 +160,7 @@ function run_calibration(log_posterior_mymodel; model_config="brick", calibratio
     save(joinpath(@__DIR__, output, "log_post_subsample_$(model_config)_$(today).csv"), DataFrame(log_post=log_post_final_sample))
 
     # Save initial conditions for future runs
-    path_new_initial_conditions = joinpath(@__DIR__, "..", "data", "calibration_data", "from_calibration_chains")
+    path_new_initial_conditions = joinpath(@__DIR__, "..", "results","calibration_data", "from_calibration_chains")
     mkpath(path_new_initial_conditions)
     filename_new_initial_parameters = "calibration_initial_values_"*model_config*"_"*chain_len_str*"_$(today).csv"
     new_initial_parameters = DataFrame(parameter_names = parnames, parameter_values = Vector(chain_burned[size(chain_burned)[1],:]))

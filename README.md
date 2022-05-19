@@ -127,7 +127,7 @@ The `run_calibration` function will create a date-stamped directory in `results`
 * `mcmc_log_post.csv` - the log-posterior scores (numerator from Bayes' theorem) for the full chain of parameter samples
 * `parameters_subsample.csv` - the parameter values in the sub-sample for analysis
 * `log_post_subsample.csv` - the log-posterior scores for the sub-sample of parameters for analysis. This is used to determine the maximum _a posteriori_ simulation
-* `proposal_covariance_matrix.csv` - the final proposal covariance matrix for the adaptive proposals. If you use this and the final sample of parameters from `parameters_full_chain.csv`, you can restart the Markov chain calibration. This and the last iteration of the Markov chain are both saved under the `data/calibration_data/from_calibration_chains` directory.
+* `proposal_covariance_matrix.csv` - the final proposal covariance matrix for the adaptive proposals. If you use this and the final sample of parameters from `parameters_full_chain.csv`, you can restart the Markov chain calibration. This and the last iteration of the Markov chain are both saved under the `results/calibration_data/from_calibration_chains` directory.
 * `mcmc_acceptance_rate.csv` - the acceptance rate from the MCMC algorithm. Should be about 0.23 for the numbers of parameters (dimension) that we're dealing with here.
 
 Note that calibrations of 20 million iterations will take multiple hours to complete.
