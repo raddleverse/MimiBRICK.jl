@@ -11,7 +11,7 @@ jobs:
     strategy:
       matrix:
         julia-version: ['1.6', '1.7']
-        julia-arch: [x64, x86]
+        julia-arch: [x64] # removed x86
         os: [ubuntu-latest, windows-latest, macOS-latest]
         exclude:
           - os: macOS-latest
