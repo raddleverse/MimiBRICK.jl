@@ -1,4 +1,4 @@
-# module TestCalibration
+module TestCalibration
 
 using MimiBRICK
 using Test
