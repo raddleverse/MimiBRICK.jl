@@ -31,7 +31,7 @@ x1 = run_calibration(log_posterior_brick; model_config="brick", calibration_star
 @test size(x1[1])[2]==nparameters_brick
 @test size(x1[5])[1]==100
 @test size(x1[5])[2]==nparameters_brick
-@test all(isa.(x1[1][end,i],Number))
+@test all(isa.(Matrix(x1[1]), Number))
 @test !all(diff(x1[1][:,1]) .== 0)
 
 # DOECLIM-BRICK calibration
@@ -43,7 +43,7 @@ x2 = run_calibration(log_posterior_doeclimbrick; model_config="doeclimbrick", ca
 @test size(x2[1])[2]==nparameters_doeclimbrick
 @test size(x2[5])[1]==100
 @test size(x2[5])[2]==nparameters_doeclimbrick
-@test all(isa.(x2[1][end,i],Number))
+@test all(isa.(Matrix(x2[1]), Number))
 @test !all(diff(x2[1][:,1]) .== 0)
 
 # SNEASY-BRICK calibration
@@ -55,7 +55,7 @@ x3 = run_calibration(log_posterior_sneasybrick; model_config="sneasybrick", cali
 @test size(x3[1])[2]==nparameters_sneasybrick
 @test size(x3[5])[1]==100
 @test size(x3[5])[2]==nparameters_sneasybrick
-@test all(isa.(x3[1][end,i],Number))
+@test all(isa.(Matrix(x3[1]), Number))
 @test !all(diff(x3[1][:,1]) .== 0)
 
 end
