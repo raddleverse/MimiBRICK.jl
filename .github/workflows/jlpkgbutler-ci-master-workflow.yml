@@ -18,7 +18,7 @@ jobs:
             julia-arch: x86
           - os: ubuntu-latest
             julia-arch: x86
-          - os: windows-latest
+            - os: windows-latest
             julia-arch: x86
 
     steps:
