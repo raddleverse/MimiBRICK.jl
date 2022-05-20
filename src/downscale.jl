@@ -38,12 +38,12 @@ end
 ## Small Helper Functions for dealing with sea level fingerprints near land
 
 """
-    next_lat(lat::Float64, inc::Int64, direction::Symbol)
+    next_lat(lat::Float64, inc::Int, direction::Symbol)
 Increment latitude by `inc` in either positive direction (`direction=:increase`)
 or in the negative direction (`direction=:decrease`).
 Assumes latitude runs from -90 to 90 (deg N).
 """
-function next_lat(lat::Float64, inc::Int64, direction::Symbol)
+function next_lat(lat::Float64, inc::Int, direction::Symbol)
     if lat < -90 || lat > 90
         error("Latitude must be between -90 and 90")
     end
@@ -64,12 +64,12 @@ function next_lat(lat::Float64, inc::Int64, direction::Symbol)
 end
 
 """
-    next_lon(lon::Float64, inc::Int64, direction::Symbol)
+    next_lon(lon::Float64, inc::Int, direction::Symbol)
 Increment longitude by `inc` in either positive direction
 (`direction=:increase`) or in the negative direction (`direction=:decrease`).
 Assumes longitude runs from 0 to 360 (deg E).
 """
-function next_lon(lon::Float64, inc::Int64, direction::Symbol)
+function next_lon(lon::Float64, inc::Int, direction::Symbol)
     if lon < 0 || lon > 360
         error("Longitude must be between 0 and 360")
     end

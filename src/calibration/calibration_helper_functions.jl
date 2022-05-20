@@ -506,7 +506,7 @@ end
 #       end_year     = Last year of the model run.
 #----------------------------------------------------------------------------------------------------------------------
 
-function calculate_trends(model_output::Array{Float64,1}, obs_trends::DataFrame, start_year::Int64, end_year::Int64)
+function calculate_trends(model_output::Array{Float64,1}, obs_trends::DataFrame, start_year::Int, end_year::Int)
 
     # Get number of trends to calculate.
     modeled_trends = zeros(size(obs_trends,1))

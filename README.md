@@ -1,4 +1,5 @@
 ![](https://github.com/raddleverse/MimiBRICK.jl/workflows/Run%20CI%20on%20master/badge.svg)
+[![codecov](https://codecov.io/gh/raddleverse/MimiBRICK.jl/branch/master/graph/badge.svg?token=H7SJB47W5V)](https://codecov.io/gh/raddleverse/MimiBRICK.jl)
 
 # MimiBRICK.jl
 
