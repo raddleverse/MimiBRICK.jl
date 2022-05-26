@@ -1,4 +1,4 @@
-module TestModifications
+module TestDownscaling
 
 # Test use cases for the downscaling function in MimiBRICK.jl.  The `src/downscale.jl` 
 # file contains routines to downscale the BRICK global sea level projections to local. 
