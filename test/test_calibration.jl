@@ -6,6 +6,10 @@ using Test
 ##==============================================================================
 ## Checking short calibration, that it does things and isn't just perpetually stuck
 
+# set up directory 
+tmp_dir=joinpath(@__DIR__, "tmp_dir")
+mkpath(tmp_dir)
+
 calibration_start_year = 1850
 calibration_end_year   = 2017
 total_chain_length     = 1000
@@ -19,7 +23,7 @@ log_posterior_sneasybrick = MimiBRICK.construct_sneasybrick_log_posterior(MimiBR
 
 # BRICK calibration
 nparameters_brick = 35
-x1 = MimiBRICK.run_calibration(log_posterior_brick; model_config="brick", calibration_start_year=1850, calibration_end_year=2017,
+x1 = MimiBRICK.run_calibration(log_posterior_brick; output_dir=tmp_dir, model_config="brick", calibration_start_year=1850, calibration_end_year=2017,
                      total_chain_length=total_chain_length, burnin_length=0, threshold_gr=threshold_gr, num_walkers=2,
                      size_subsample=size_subsample, start_from_priors=false)
 @test size(x1[1])[1]==1000
@@ -31,7 +35,7 @@ x1 = MimiBRICK.run_calibration(log_posterior_brick; model_config="brick", calibr
 
 # DOECLIM-BRICK calibration
 nparameters_doeclimbrick = 44
-x2 = MimiBRICK.run_calibration(log_posterior_doeclimbrick; model_config="doeclimbrick", calibration_start_year=1850, calibration_end_year=2017,
+x2 = MimiBRICK.run_calibration(log_posterior_doeclimbrick; output_dir=tmp_dir, model_config="doeclimbrick", calibration_start_year=1850, calibration_end_year=2017,
                      total_chain_length=total_chain_length, burnin_length=0, threshold_gr=threshold_gr, num_walkers=2,
                      size_subsample=size_subsample, start_from_priors=false)
 @test size(x2[1])[1]==1000
@@ -43,7 +47,7 @@ x2 = MimiBRICK.run_calibration(log_posterior_doeclimbrick; model_config="doeclim
 
 # SNEASY-BRICK calibration
 nparameters_sneasybrick = 51
-x3 = MimiBRICK.run_calibration(log_posterior_sneasybrick; model_config="sneasybrick", calibration_start_year=1850, calibration_end_year=2017,
+x3 = MimiBRICK.run_calibration(log_posterior_sneasybrick; output_dir=tmp_dir, model_config="sneasybrick", calibration_start_year=1850, calibration_end_year=2017,
                      total_chain_length=total_chain_length, burnin_length=0, threshold_gr=threshold_gr, num_walkers=2,
                      size_subsample=size_subsample, start_from_priors=false)
 @test size(x3[1])[1]==1000
@@ -52,5 +56,7 @@ x3 = MimiBRICK.run_calibration(log_posterior_sneasybrick; model_config="sneasybr
 @test size(x3[5])[2]==nparameters_sneasybrick
 @test all(isa.(Matrix(x3[1]), Number))
 @test !all(diff(x3[1][:,1]) .== 0)
+
+rm(tmp_dir, recursive=true)
 
 end

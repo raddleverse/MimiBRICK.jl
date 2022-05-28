@@ -113,18 +113,16 @@ function downscale_brick(;lon::Float64,
                             rcp_scenario::String="RCP85"
                         )
 
-    appen = "$(model_config)_$(results_dir[(findfirst("results_", results_dir)[end]+1):length(results_dir)])"
-
     if proj_or_hind=="proj"
-        slr_dir = joinpath(@__DIR__, "..", "results", results_dir, "projections_csv", rcp_scenario)
-        MAP = DataFrame(load(joinpath(slr_dir,"projections_MAP_$(rcp_scenario)_$(appen).csv")))
+        slr_dir = joinpath(results_dir, "projections_csv", rcp_scenario)
+        MAP = DataFrame(load(joinpath(slr_dir,"projections_MAP_$(rcp_scenario)_$(model_config).csv")))
         years = MAP[:,:YEAR]
         if ensemble_or_map=="ensemble"
-            AIS = CSV.read(joinpath(slr_dir,"projections_antarctic_$(rcp_scenario)_$(appen).csv"), DataFrame)
-            GIS = CSV.read(joinpath(slr_dir,"projections_greenland_$(rcp_scenario)_$(appen).csv"), DataFrame)
-            GSIC = CSV.read(joinpath(slr_dir,"projections_glaciers_$(rcp_scenario)_$(appen).csv"), DataFrame)
-            TE = CSV.read(joinpath(slr_dir,"projections_thermal_$(rcp_scenario)_$(appen).csv"), DataFrame)
-            LWS = CSV.read(joinpath(slr_dir,"projections_landwater_storage_sl_$(rcp_scenario)_$(appen).csv"), DataFrame)
+            AIS = CSV.read(joinpath(slr_dir,"projections_antarctic_$(rcp_scenario)_$(model_config).csv"), DataFrame)
+            GIS = CSV.read(joinpath(slr_dir,"projections_greenland_$(rcp_scenario)_$(model_config).csv"), DataFrame)
+            GSIC = CSV.read(joinpath(slr_dir,"projections_glaciers_$(rcp_scenario)_$(model_config).csv"), DataFrame)
+            TE = CSV.read(joinpath(slr_dir,"projections_thermal_$(rcp_scenario)_$(model_config).csv"), DataFrame)
+            LWS = CSV.read(joinpath(slr_dir,"projections_landwater_storage_sl_$(rcp_scenario)_$(model_config).csv"), DataFrame)
             num_ens = size(AIS)[2]
         elseif ensemble_or_map=="map"
             AIS = MAP[:,:AIS]
@@ -135,15 +133,15 @@ function downscale_brick(;lon::Float64,
             num_ens = 1
         end
     elseif proj_or_hind=="hind"
-        slr_dir = joinpath(@__DIR__, "..", "results", results_dir, "hindcast_csv")
-        MAP = DataFrame(load(joinpath(slr_dir,"hindcast_MAP_$(appen).csv")))
+        slr_dir = joinpath(results_dir, "hindcast_csv")
+        MAP = DataFrame(load(joinpath(slr_dir,"hindcast_MAP_$(model_config).csv")))
         years = MAP[:,:YEAR]
         if ensemble_or_map=="ensemble"
-            AIS = CSV.read(joinpath(slr_dir,"hindcast_antarctic_$(appen).csv"), DataFrame)
-            GIS = CSV.read(joinpath(slr_dir,"hindcast_greenland_$(appen).csv"), DataFrame)
-            GSIC = CSV.read(joinpath(slr_dir,"hindcast_glaciers_$(appen).csv"), DataFrame)
-            TE = CSV.read(joinpath(slr_dir,"hindcast_thermal_$(appen).csv"), DataFrame)
-            LWS = CSV.read(joinpath(slr_dir,"hindcast_landwater_storage_sl_$(appen).csv"), DataFrame)
+            AIS = CSV.read(joinpath(slr_dir,"hindcast_antarctic_$(model_config).csv"), DataFrame)
+            GIS = CSV.read(joinpath(slr_dir,"hindcast_greenland_$(model_config).csv"), DataFrame)
+            GSIC = CSV.read(joinpath(slr_dir,"hindcast_glaciers_$(model_config).csv"), DataFrame)
+            TE = CSV.read(joinpath(slr_dir,"hindcast_thermal_$(model_config).csv"), DataFrame)
+            LWS = CSV.read(joinpath(slr_dir,"hindcast_landwater_storage_sl_$(model_config).csv"), DataFrame)
             num_ens = size(AIS)[2]
         elseif ensemble_or_map=="map"
             AIS = MAP[:,:AIS]
