@@ -17,7 +17,7 @@ jobs:
             julia-arch: x86
           - os: ubuntu-latest
             julia-arch: x86
-          - os: windows-latest
+            - os: windows-latest
             julia-arch: x86
 
     steps:
@@ -40,4 +40,3 @@ jobs:
           name: codecov-umbrella
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
-
