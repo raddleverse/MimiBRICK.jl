@@ -109,7 +109,7 @@ The `create_sneasy_brick()` constructor has the same arguments as the DOECLIM-BR
 
 ## Running the model calibration
 
-**Warning: expert users only!** All others - this is the calibration that is performed using Markov chain Monte Carlo. It leads to the parameter sub-samples that are used for analysis, described below. You do not necessarily need to mess around with this part of the code. If you blindly start running `calibration_driver.jl` out of the box, it will take a **long** time (8-20 hours, probably).
+**Warning: expert users only!** All others - this is the calibration that is performed using Markov chain Monte Carlo. It leads to the parameter sub-samples that are used for analysis, described below. You do not necessarily need to mess around with this part of the code. If you blindly start running `examples/calibration_driver.jl` out of the box, it will take a **long** time (8-20 hours, probably).
 
 The calibration that is done here follows the same procedure as outlined in [Wong et al. (2017)](https://gmd.copernicus.org/articles/10/2741/2017/) and other works using BRICK. For each of the three main model configurations supported here (BRICK, DOECLIM-BRICK and SNEASY-BRICK), we:
 * run a Markov chain Monte Carlo calibration using 20 million iterations
@@ -123,13 +123,13 @@ This is all done by running the `calibration/calibration_driver.jl` script. This
 * `threshold_gr` - if you do a short test calibration, it will yell at you that some of the parameters' potential scale reduction factors are not less than this threshold. You don't need to do anything about it, just letting you know so you don't worry about it.
 * `size_subsample` - this must be less than `total_chain_length - burnin_length`
 
-The `run_calibration` function will create a date-stamped directory in `results` specific to this calibration, including the `model_config` and number of Markov chain iterations used. Within that results directory, you will find:
-* `parameters_full_chain.csv` - the full Markov chain of parameter samples, including the burn-in period
-* `mcmc_log_post.csv` - the log-posterior scores (numerator from Bayes' theorem) for the full chain of parameter samples
-* `parameters_subsample.csv` - the parameter values in the sub-sample for analysis
-* `log_post_subsample.csv` - the log-posterior scores for the sub-sample of parameters for analysis. This is used to determine the maximum _a posteriori_ simulation
-* `proposal_covariance_matrix.csv` - the final proposal covariance matrix for the adaptive proposals. If you use this and the final sample of parameters from `parameters_full_chain.csv`, you can restart the Markov chain calibration. This and the last iteration of the Markov chain are both saved under the `calibration_data/from_calibration_chains` subdirectory.
-* `mcmc_acceptance_rate.csv` - the acceptance rate from the MCMC algorithm. Should be about 0.23 for the numbers of parameters (dimension) that we're dealing with here.
+The `run_calibration` function will create a subfolder for the `model_config` in the user-defined `output_dir`. Within that results directory, you will find:
+* `parameters_full_chain_(model_config).csv` - the full Markov chain of parameter samples, including the burn-in period
+* `mcmc_log_post_(model_config).csv` - the log-posterior scores (numerator from Bayes' theorem) for the full chain of parameter samples
+* `parameters_subsample_(model_config).csv` - the parameter values in the sub-sample for analysis
+* `log_post_subsample_(model_config).csv` - the log-posterior scores for the sub-sample of parameters for analysis. This is used to determine the maximum _a posteriori_ simulation
+* `proposal_covariance_matrix_(model_config).csv` - the final proposal covariance matrix for the adaptive proposals. If you use this and the final sample of parameters from `parameters_full_chain_(model_config).csv`, you can restart the Markov chain calibration. This and the last iteration of the Markov chain are both saved under the `calibration_data/from_calibration_chains` subdirectory.
+* `mcmc_acceptance_rate_(model_config).csv` - the acceptance rate from the MCMC algorithm. Should be about 0.23 for the numbers of parameters (dimension) that we're dealing with here.
 
 Note that calibrations of 20 million iterations will take multiple hours to complete.
 * For BRICK on its own, this took about 8 hours on a standard desktop workstation (ca. 2020)
@@ -139,25 +139,25 @@ Note that calibrations of 20 million iterations will take multiple hours to comp
 
 This is done for the hindcast period 1850-2017 by using the `calibration/run_hindcast.jl` script, using `model_config=brick`, `doeclimbrick` and `sneasybrick` (three times). For the hindcast, no RCP scenario needs to be specified, because all of them follow historical radiative forcing/emissions trends up to 2005.
 
-The standard set of parameters that are being used for the hindcast and projection simulations are the sub-sample of 10,000 from the MCMC calibration described above (`parameters_subsample.csv`). If you have a different parameter file that you want to run the hindcasts under, you will want to modify the section of `run_hindcast.jl` titled `Set paths for results files` (line 41).
+The standard set of parameters that are being used for the hindcast and projection simulations are the sub-sample of 10,000 from the MCMC calibration described above (`parameters_subsample_(model_config).csv`). If you have a different parameter file that you want to run the hindcasts under, you will want to modify the section of `run_hindcast.jl` titled `Set paths for results files` (line 41).
 
-This script will add to the date-sampled model configuration-specific directory that was constructed above (or came with the model codes). It will create a sub-directory called `hindcast_csv` which will be populated with CSV files that include the simulated hindcasts of the model output fields. Each of these names is appended with `model_config` (`brick`, `doeclimbrick`, or `sneasybrick`) and contains one hindcast simulation for each of the sets of parameters in the sub-sample for analysis. Rows correspond to different years (1850-2017 be default) and columns each correspond to different ensemble members.
-* `hindcast_antarctic.csv` - contribution to global mean sea-level change from the Antarctic ice sheet (meters)
-* `hindcast_greenland.csv` - contribution to global mean sea-level change from the Greenland ice sheet (meters)
-* `hindcast_glaciers.csv` - contribution to global mean sea-level change from glaciers and ice caps (meters)
-* `hindcast_landwater_storage_sl.csv` - contribution to sea-level change from land water storage (meters)
-* `hindcast_gmsl.csv` - total global mean sea-level change (meters)
-* `hindcast_ocean_heat.csv` - (DOECLIM- or SNEASY-BRICK only)
-* `hindcast_temperature.csv` - (DOECLIM- or SNEASY-BRICK only)
-* `hindcast_oceanco2.csv` - (SNEASY-BRICK only)
-* `hindcast_co2.csv` - (SNEASY-BRICK only)
-* `hindcast_MAP.csv` - all of the hindcast time series for the maximum _a posteriori_ set of parameters
+This script will add model configuration-specific directory that was constructed above (or came with the model codes). It will create a sub-directory called `hindcast_csv` which will be populated with CSV files that include the simulated hindcasts of the model output fields. Each of these names is appended with `model_config` (`brick`, `doeclimbrick`, or `sneasybrick`) and contains one hindcast simulation for each of the sets of parameters in the sub-sample for analysis. Rows correspond to different years (1850-2017 be default) and columns each correspond to different ensemble members.
+* `hindcast_antarctic_(model_config).csv` - contribution to global mean sea-level change from the Antarctic ice sheet (meters)
+* `hindcast_greenland_(model_config).csv` - contribution to global mean sea-level change from the Greenland ice sheet (meters)
+* `hindcast_glaciers_(model_config).csv` - contribution to global mean sea-level change from glaciers and ice caps (meters)
+* `hindcast_landwater_storage_sl_(model_config).csv` - contribution to sea-level change from land water storage (meters)
+* `hindcast_gmsl_(model_config).csv` - total global mean sea-level change (meters)
+* `hindcast_ocean_heat_(model_config).csv` - (DOECLIM- or SNEASY-BRICK only)
+* `hindcast_temperature_(model_config).csv` - (DOECLIM- or SNEASY-BRICK only)
+* `hindcast_oceanco2_(model_config).csv` - (SNEASY-BRICK only)
+* `hindcast_co2_(model_config).csv` - (SNEASY-BRICK only)
+* `hindcast_MAP_(model_config).csv` - all of the hindcast time series for the maximum _a posteriori_ set of parameters
 
 ## Running the model projections under different RCP scenarios
 
 This is done for the period 1850-2300 (but can be modified to any period between 1765 and 2300) by using the `calibration/run_projections.jl` script, using `model_config=brick`, `doeclimbrick` or `sneasybrick` and `rcp_scenario="RCP26"`, `"RCP45"`, `"RCP60"`, or `"RCP85"`. Note that the RCP scenario forcing files are all the same until 2005, and the provided stand-alone BRICK temperature and ocean heat forcing files cover the period 1850-2300.
 
-This script will add to the date-sampled model configuration-specific directory that was constructed above (or came with the model codes). It will create a sub-directory called `projections_csv`, and a sub-directory within there that is specific to each RCP scenario used will be created. The projections files are analogous to the hindcast files that are generated, and will populate the `projections_csv/[RCP scenario]` directory.
+This script will add to the model configuration-specific directory that was constructed above (or came with the model codes). It will create a sub-directory called `projections_csv`, and a sub-directory within there that is specific to each RCP scenario used will be created. The projections files are analogous to the hindcast files that are generated, and will populate the `projections_csv/[RCP scenario]` directory.
 
 ## Creating forcing files for stand-alone BRICK
 

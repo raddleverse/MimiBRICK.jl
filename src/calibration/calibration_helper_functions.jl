@@ -10,6 +10,7 @@ using Distributions
 using NetCDF
 using KernelDensity
 using CSVFiles
+using Statistics
 
 #######################################################################################################################
 # LOAD AND CLEAN UP DATA USED FOR MODEL CALIBRATION.
@@ -566,4 +567,101 @@ function truncated_kernel(data, lower_bound, upper_bound)
 
     # Return truncated and interpolated KDE.
     return truncated_kde_interp
+end
+
+#######################################################################################################################
+# SIMULATE STATIONARY AR(1) PROCESS WITH TIME VARYING OBSERVATION ERRORS.
+#######################################################################################################################
+# Description: This function simulates a stationary AR(1) process (given time-varying observation errors supplied with
+#              each calibration data set) to superimpose noise onto the climate model projections.
+#
+# Function Arguments:
+#
+#       n = Number of time periods (years) the model is being run for.
+#       σ = Calibrated standard deviation.
+#       ρ = Calibrated autocorrelation coefficient.
+#       ϵ = Time-varying observation errors.
+#----------------------------------------------------------------------------------------------------------------------
+
+function simulate_ar1_noise(n::Int, σ::Float64, ρ::Float64, ϵ::Array{Float64,1})
+
+    # Define AR(1) stationary process variance.
+    σ_process = σ^2/(1-ρ^2)
+
+    # Initialize AR(1) covariance matrix (just for convenience).
+    H = abs.(collect(1:n)' .- collect(1:n))
+
+    # Calculate residual covariance matrix (sum of AR(1) process variance and observation error variances).
+    # Note: This follows Supplementary Information Equation (10) in Ruckert et al. (2017).
+    cov_matrix = σ_process * ρ .^ H + Diagonal(ϵ.^2)
+
+    # Return a mean-zero AR(1) noise sample accounting for time-varying observation error.
+    return rand(MvNormal(cov_matrix))
+end
+
+#######################################################################################################################
+# SIMULATE STATIONARY CAR(1) PROCESS WITH TIME VARYING OBSERVATION ERRORS.
+#######################################################################################################################
+# Description: This function simulates a stationary CAR(1) process (given time-varying observation errors supplied with
+#              each calibration data set) to superimpose noise onto the climate model projections.
+#
+# Function Arguments:
+#
+#       n              = Number of time periods (years) the model is being run for.
+#       α₀             = Calibrated term describing correlation memory of CAR(1) process.
+#       σ²_white_noise = Calibrated continuous white noise process variance term.
+#       ϵ              = Time-varying observation errors.
+#----------------------------------------------------------------------------------------------------------------------
+
+function simulate_car1_noise(n, α₀, σ²_white_noise, ϵ)
+
+    # Indices for full time horizon.
+    indices = collect(1:n)
+
+    # Initialize covariance matrix for irregularly spaced data with relationships decaying exponentially.
+    H = exp.(-α₀ .* abs.(indices' .- indices))
+
+    # Define the variance of x(t), a continous stochastic time-series.
+    σ² = σ²_white_noise / (2*α₀)
+
+    # Calculate residual covariance matrix (sum of CAR(1) process variance and observation error variances).
+    cov_matrix = σ² .* H + Diagonal(ϵ.^2)
+
+    # Return a mean-zero CAR(1) noise sample accounting for time-varying observation error.
+    return rand(MvNormal(cov_matrix))
+end
+
+#######################################################################################################################
+# REPLICATE TIME-VARYING OBSERVATION ERRORS FOR PERIODS WITHOUT COVERAGE.
+#######################################################################################################################
+# Description: This function creates a time-series of observation errors for the entire model time horizon. For years
+#              without observation error estimates, the error remains constant at the average of the ten nearest error
+#              values in time.
+#
+# Function Arguments:
+#
+#       start_year = The first year to run the climate model.
+#       end_year   = The final year to run the climate model.
+#       error_data = A vector of time-varying observation errors supplied with each calibration data set.
+#----------------------------------------------------------------------------------------------------------------------
+
+function replicate_errors(start_year::Int, end_year::Int, error_data)
+
+    # Initialize model years and measurement error vector.
+    model_years = collect(start_year:end_year)
+    errors = zeros(length(model_years))
+
+    # Find indices for periods that have observation errors.
+    err_indices = findall(x-> !ismissing(x), error_data)
+
+    # Replicate errors for all periods prior to start of observations based on average of 10 nearest errors in time.
+    errors[1:(err_indices[1]-1)] .= mean(error_data[err_indices[1:10]])
+
+    # Add errors for periods with observations.
+    errors[err_indices[1:end]] = error_data[err_indices[1:end]]
+
+    # Replicate errors for all periods after observation data based on average of 10 nearest errors in time.
+    errors[(err_indices[end]+1):end] .= mean(error_data[err_indices[(end-9):end]])
+
+    return errors
 end
