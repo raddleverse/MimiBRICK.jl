@@ -1,9 +1,14 @@
 using Mimi
 
-#--------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 # Create a function to run the SNEASY+BRICK model over the historic period.
-#--------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
+"""
+    construct_run_sneasybrick(calibration_start_year::Int, calibration_end_year::Int)
+
+TODO DOCSTRING
+"""
 function construct_run_sneasybrick(calibration_start_year::Int, calibration_end_year::Int)
 
     # Load an instance of SNEASY+BRICK model.

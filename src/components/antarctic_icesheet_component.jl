@@ -1,3 +1,5 @@
+using Mimi
+
 @defcomp antarctic_icesheet begin
 
     # --------------------

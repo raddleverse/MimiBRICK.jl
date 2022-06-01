@@ -1,3 +1,5 @@
+using Mimi
+
 @defcomp glaciers_small_icecaps begin
 
     # --------------------

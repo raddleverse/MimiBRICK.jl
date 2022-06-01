@@ -1,3 +1,5 @@
+using Mimi
+
 @defcomp thermal_expansion begin
 
     # --------------------

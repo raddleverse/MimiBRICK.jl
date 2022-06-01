@@ -6,89 +6,10 @@ using DataFrames
 using NetCDF
 using StatsBase
 
-##==============================================================================
-## Supporting Functions to Downscale BRICK from GMSL to LSL
+#-------------------------------------------------------------------------------
+# Functions to Downscale BRICK from GMSL to LSL
+#-------------------------------------------------------------------------------
 
-"""
-    get_fingerprints()
-Retrieve BRICK fingerprints from NetCDF file - will download the file to a
-folder `data` directory
-"""
-function get_fingerprints()
-
-    fp_dir = joinpath(@__DIR__, "..", "data", "model_data")
-    isdir(fp_dir) || mkpath(fp_dir)
-    fp_file = joinpath(fp_dir, "FINGERPRINTS_SLANGEN_Bakker.nc")
-    if !isfile(fp_file)
-        url = "https://github.com/scrim-network/BRICK/raw/master/fingerprints/FINGERPRINTS_SLANGEN_Bakker.nc"
-        download(url, fp_file)
-    end
-
-    fplat = ncread(fp_file,"lat")
-    fplon = ncread(fp_file,"lon")
-    fpAIS = ncread(fp_file,"AIS")
-    fpGSIC = ncread(fp_file,"GLAC")
-    fpGIS = ncread(fp_file,"GIS")
-    ncclose()
-
-    return fplat,fplon,fpAIS,fpGSIC,fpGIS
-end
-
-##==============================================================================
-## Small Helper Functions for dealing with sea level fingerprints near land
-
-"""
-    next_lat(lat::Float64, inc::Int, direction::Symbol)
-Increment latitude by `inc` in either positive direction (`direction=:increase`)
-or in the negative direction (`direction=:decrease`).
-Assumes latitude runs from -90 to 90 (deg N).
-"""
-function next_lat(lat::Float64, inc::Int, direction::Symbol)
-    if lat < -90 || lat > 90
-        error("Latitude must be between -90 and 90")
-    end
-
-    if direction == :increase
-        new_lat = lat + inc
-        if new_lat > 90
-            new_lat = new_lat - 180 #wrap around
-        end
-
-    elseif direction == :decrease
-        new_lat = lat - inc
-        if new_lat < -90
-            new_lat = new_lat + 180
-        end
-    end
-    return new_lat
-end
-
-"""
-    next_lon(lon::Float64, inc::Int, direction::Symbol)
-Increment longitude by `inc` in either positive direction
-(`direction=:increase`) or in the negative direction (`direction=:decrease`).
-Assumes longitude runs from 0 to 360 (deg E).
-"""
-function next_lon(lon::Float64, inc::Int, direction::Symbol)
-    if lon < 0 || lon > 360
-        error("Longitude must be between 0 and 360")
-    end
-
-    if direction == :increase
-        new_lon = lon + inc
-        if new_lon > 360
-            new_lon = new_lon - 360
-        end
-    elseif direction == :decrease
-        new_lon = lon - inc
-        if new_lon < 0
-            new_lon = new_lon + 360
-        end
-    end
-    return new_lon
-end
-
-##==============================================================================
 """
     downscale_brick(;lon, lat, results_dir, proj_or_hind, ensemble_or_map, model_config, rcp_scenario="RCP85")
 
@@ -252,4 +173,85 @@ function downscale_brick(;lon::Float64,
     CSV.write(filename_output, DataFrame(outputs, :auto))
 
     return years, lsl_out
+end
+
+"""
+    get_fingerprints()
+
+Retrieve BRICK fingerprints from NetCDF file - will download the file to a
+folder `data` directory
+"""
+function get_fingerprints()
+
+    fp_dir = joinpath(@__DIR__, "..", "data", "model_data")
+    isdir(fp_dir) || mkpath(fp_dir)
+    fp_file = joinpath(fp_dir, "FINGERPRINTS_SLANGEN_Bakker.nc")
+    if !isfile(fp_file)
+        url = "https://github.com/scrim-network/BRICK/raw/master/fingerprints/FINGERPRINTS_SLANGEN_Bakker.nc"
+        download(url, fp_file)
+    end
+
+    fplat = ncread(fp_file,"lat")
+    fplon = ncread(fp_file,"lon")
+    fpAIS = ncread(fp_file,"AIS")
+    fpGSIC = ncread(fp_file,"GLAC")
+    fpGIS = ncread(fp_file,"GIS")
+    ncclose()
+
+    return fplat,fplon,fpAIS,fpGSIC,fpGIS
+end
+
+# Small Helper Functions for dealing with sea level fingerprints near land
+
+"""
+    next_lat(lat::Float64, inc::Int, direction::Symbol)
+
+Increment latitude by `inc` in either positive direction (`direction=:increase`)
+or in the negative direction (`direction=:decrease`).
+Assumes latitude runs from -90 to 90 (deg N).
+"""
+function next_lat(lat::Float64, inc::Int, direction::Symbol)
+    if lat < -90 || lat > 90
+        error("Latitude must be between -90 and 90")
+    end
+
+    if direction == :increase
+        new_lat = lat + inc
+        if new_lat > 90
+            new_lat = new_lat - 180 #wrap around
+        end
+
+    elseif direction == :decrease
+        new_lat = lat - inc
+        if new_lat < -90
+            new_lat = new_lat + 180
+        end
+    end
+    return new_lat
+end
+
+"""
+    next_lon(lon::Float64, inc::Int, direction::Symbol)
+
+Increment longitude by `inc` in either positive direction
+(`direction=:increase`) or in the negative direction (`direction=:decrease`).
+Assumes longitude runs from 0 to 360 (deg E).
+"""
+function next_lon(lon::Float64, inc::Int, direction::Symbol)
+    if lon < 0 || lon > 360
+        error("Longitude must be between 0 and 360")
+    end
+
+    if direction == :increase
+        new_lon = lon + inc
+        if new_lon > 360
+            new_lon = new_lon - 360
+        end
+    elseif direction == :decrease
+        new_lon = lon - inc
+        if new_lon < 0
+            new_lon = new_lon + 360
+        end
+    end
+    return new_lon
 end

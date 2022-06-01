@@ -24,12 +24,12 @@ include(joinpath("downscale.jl"))
 # include calibration functions
 include(joinpath("calibration/main_calibration.jl"))
 
-# -------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------
-# Function to create 'Building blocks for Relevant Ice and Climate Knowledge' (BRICK) model.
-# -------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------
+# function to create 'Building blocks for Relevant Ice and Climate Knowledge' (BRICK) model.
+"""
+    get_model(;rcp_scenario::String="RCP85", start_year::Int=1850, end_year::Int=2020)
 
+TODO DOCSTRING
+"""
 function get_model(;rcp_scenario::String="RCP85", start_year::Int=1850, end_year::Int=2020)
 
     #-----------------------#

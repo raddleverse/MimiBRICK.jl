@@ -4,7 +4,14 @@ using Distributions
 using Mimi
 using MimiSNEASY
 
-# Create a function to run SNEASY-BRICK climate model over historic period.
+#-------------------------------------------------------------------------------
+# Function to run SNEASY-BRICK climate model over historic period.
+# ------------------------------------------------------------------------------
+"""
+    create_sneasy_brick(;rcp_scenario::String = "RCP85", start_year::Int=1850, end_year::Int=2020)
+    
+TODO DOCSTRING
+"""
 function create_sneasy_brick(; rcp_scenario::String="RCP85", start_year::Int=1850, end_year::Int=2020)
 
  	# ---------------------------------------------

@@ -1,14 +1,3 @@
-##------------------------------------------------------------------------------
-##------------------------------------------------------------------------------
-## This function carries out a Markov chain Monte Carlo calibration of BRICK.
-## This includes one of the following possible model configurations:
-## (1) BRICK standalone (forced by input global mean surface temperatures and ocean heat uptake data)
-## (2) DOECLIM+BRICK
-## (3) SNEASY+BRICK
-##------------------------------------------------------------------------------
-##------------------------------------------------------------------------------
-
-# Load required Julia packages.
 using CSVFiles
 using DataFrames
 using Distributions
@@ -21,9 +10,40 @@ using MCMCDiagnostics
 using Random
 using StatsBase
 
-function run_calibration(;output_dir::String, model_config="brick", calibration_start_year=1850, calibration_end_year=2005,
-                         total_chain_length=1000, burnin_length=0, threshold_gr=1.1, num_walkers=2,
-                         size_subsample=1000, start_from_priors=false, calibration_data_dir::Union{String, Nothing} = nothing)
+#-------------------------------------------------------------------------------
+# This function carries out a Markov chain Monte Carlo calibration of BRICK.
+# This includes one of the following possible model configurations:
+# (1) BRICK standalone (forced by input global mean surface temperatures and ocean heat uptake data)
+# (2) DOECLIM+BRICK
+# (3) SNEASY+BRICK
+#-------------------------------------------------------------------------------
+
+"""
+    run_calibration(;   output_dir::String, 
+                        model_config="brick", 
+                        calibration_start_year=1850, 
+                        calibration_end_year=2005,
+                        total_chain_length=1000, 
+                        burnin_length=0, 
+                        threshold_gr=1.1, 
+                        num_walkers=2,
+                        size_subsample=1000, 
+                        start_from_priors=false,
+                        calibration_data_dir::Union{String, Nothing} = nothing
+                    )
+"""
+function run_calibration(;  output_dir::String, 
+                            model_config="brick", 
+                            calibration_start_year=1850, 
+                            calibration_end_year=2005,
+                            total_chain_length=1000, 
+                            burnin_length=0, 
+                            threshold_gr=1.1, 
+                            num_walkers=2,
+                            size_subsample=1000, 
+                            start_from_priors=false,
+                            calibration_data_dir::Union{String, Nothing} = nothing
+                        )
 
     # set calibration data directory if one was not provided ie. it is set as nothing
     if isnothing(calibration_data_dir)

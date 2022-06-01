@@ -20,7 +20,6 @@ Arguments:
 - model_config (default = "brick") - model configuration with possible options: (1) "brick", (2) "doeclimbrick", (3) "sneasybrick"
 - start_year (default = 1850) - start year for calibration
 - end_year (default = 2017) - end year for calibration
-
 """
 function run_hindcast(; output_dir::String,
                         model_config::String = "brick",
