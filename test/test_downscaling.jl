@@ -20,11 +20,8 @@ threshold_gr            = 1.1
 
 for model_config in ["brick", "sneasybrick", "doeclimbrick"]
     
-    # Create the log-posterior functions
-    log_posterior_brick=MimiBRICK.construct_brick_log_posterior(MimiBRICK.construct_run_brick(calibration_start_year, calibration_end_year), model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=false)
-
     # run calibration
-    MimiBRICK.run_calibration(log_posterior_brick; output_dir=tmp_dir, model_config=model_config, calibration_start_year=1850, calibration_end_year=2017,
+    MimiBRICK.run_calibration(output_dir=tmp_dir, model_config=model_config, calibration_start_year=1850, calibration_end_year=2017,
                         total_chain_length=total_chain_length, burnin_length=0, threshold_gr=threshold_gr, num_walkers=2,
                         size_subsample=size_subsample, start_from_priors=false)
 
