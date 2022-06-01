@@ -117,7 +117,7 @@ The calibration that is done here follows the same procedure as outlined in [Won
   * the specific length depends on the model configuration; [Gelman and Rubin (1992)](https://projecteuclid.org/journals/statistical-science/volume-7/issue-4/Inference-from-Iterative-Simulation-Using-Multiple-Sequences/10.1214/ss/1177011136.full) potential scale reduction factor is checked < 1.1 for convergence
 * subsample 10,000 concomitant parameter sets from the remaining burned-in chain. These samples are used for the hindcast and projections for analysis
 
-This is all done by running the `calibration/calibration_driver.jl` script. This script runs the `MimiBRICK.run_calibration` function three times: using `model_config=brick`, `doeclimbrick` and `sneasybrick`. If you want to verify that things are working properly but not wait hours for results, then it is recommended that you try a shorter calibration. This is done in `test_calibration.jl`, but you can do this by modifying the arguments for:
+This is all done by running the `examples/calibration_driver.jl` script. This script runs the `MimiBRICK.run_calibration` function three times: using `model_config=brick`, `doeclimbrick` and `sneasybrick`. If you want to verify that things are working properly but not wait hours for results, then it is recommended that you try a shorter calibration. This is done in `Calibration_Example.ipynb`, and is achieved by by modifying the arguments for:
 * `total_chain_length` - for the three configurations, 1 million iterations typically takes less than an hour. If you are just checking that things are working properly, doing 10,000 would of course be faster, and likely sufficient
 * `burnin_length` - this must be less than `total_chain_length`
 * `threshold_gr` - if you do a short test calibration, it will yell at you that some of the parameters' potential scale reduction factors are not less than this threshold. You don't need to do anything about it, just letting you know so you don't worry about it.
@@ -137,7 +137,7 @@ Note that calibrations of 20 million iterations will take multiple hours to comp
 
 ## Running the model hindcasts
 
-This is done for the hindcast period 1850-2017 by using the `calibration/run_hindcast.jl` script, using `model_config=brick`, `doeclimbrick` and `sneasybrick` (three times). For the hindcast, no RCP scenario needs to be specified, because all of them follow historical radiative forcing/emissions trends up to 2005.
+This is done for the hindcast period 1850-2017 by using the `MimiBRICK.run_hindcast` function, using `model_config=brick`, `doeclimbrick` and `sneasybrick` (three times). For the hindcast, no RCP scenario needs to be specified, because all of them follow historical radiative forcing/emissions trends up to 2005.
 
 The standard set of parameters that are being used for the hindcast and projection simulations are the sub-sample of 10,000 from the MCMC calibration described above (`parameters_subsample_(model_config).csv`). If you have a different parameter file that you want to run the hindcasts under, you will want to modify the section of `run_hindcast.jl` titled `Set paths for results files` (line 41).
 
@@ -155,7 +155,7 @@ This script will add model configuration-specific directory that was constructed
 
 ## Running the model projections under different RCP scenarios
 
-This is done for the period 1850-2300 (but can be modified to any period between 1765 and 2300) by using the `calibration/run_projections.jl` script, using `model_config=brick`, `doeclimbrick` or `sneasybrick` and `rcp_scenario="RCP26"`, `"RCP45"`, `"RCP60"`, or `"RCP85"`. Note that the RCP scenario forcing files are all the same until 2005, and the provided stand-alone BRICK temperature and ocean heat forcing files cover the period 1850-2300.
+This is done for the period 1850-2300 (but can be modified to any period between 1765 and 2300) by using the `MimiBRICK.run_projections` function, using `model_config=brick`, `doeclimbrick` or `sneasybrick` and `rcp_scenario="RCP26"`, `"RCP45"`, `"RCP60"`, or `"RCP85"`. Note that the RCP scenario forcing files are all the same until 2005, and the provided stand-alone BRICK temperature and ocean heat forcing files cover the period 1850-2300.
 
 This script will add to the model configuration-specific directory that was constructed above (or came with the model codes). It will create a sub-directory called `projections_csv`, and a sub-directory within there that is specific to each RCP scenario used will be created. The projections files are analogous to the hindcast files that are generated, and will populate the `projections_csv/[RCP scenario]` directory.
 
@@ -169,15 +169,16 @@ For stand-alone BRICK, which requires temperature and ocean heat time series as 
 
 ## Generating projections of local mean sea-level change
 
-The `downscale.jl` file contains routines to downscale the BRICK global sea level projections to local. This uses the sea-level "fingerprints" of [Slangen et al. (2014)](https://link.springer.com/article/10.1007/s10584-014-1080-9). To downscale to local level using the three model configurations supported here and the sea-level hindcast and projections included in this repository, no changes are needed. If you decide to generate new ensembles, you will need to update the `brick_results_dir`, `doeclimbrick_results_dir`, and/or `sneasybrick_results_dir` paths that are set in `downscale.jl`. The downscaling routine will automatically create a subdirectory in the model output `results` directory called `localslr`. In this subdirectory, the routine will save an output file with the downscaled local mean sea level change model output.
+The `MimiBRICK.downscale_brick` function downscales the BRICK global sea level projections to local. This uses the sea-level "fingerprints" of [Slangen et al. (2014)](https://link.springer.com/article/10.1007/s10584-014-1080-9). The downscaling routine will automatically create a subdirectory in the output directory called `localslr`. In this subdirectory, the routine will save an output file with the downscaled local mean sea level change model output.
 
 This routine will downscale either a full ensemble of BRICK model simulations or just the maximum a posteriori model simulation to a specific latitude and longitude point. These are provided by the user as `lat` (degrees north) and `lon` (degrees east). Other needed function arguments include:
-* `model_config` - (string) one of `"brick"`, `"doeclimbrick"`, or `"sneasybrick"`. Only the BRICK projections are being downscaled (no CO2 or temperature, for example), but the `downscale_brick` function will find the relevant input data and tag the output files appropriately based on the `model_config` setting.
-* `proj_or_hind` - (string)one of `"proj"` (projections) or `"hind"` (hindcast). They're treated similarly when running the model, but this helps for finding the output files in the `results` directories.
-* `rcp_scenario` - (string) one of `"RCP26"`, `"RCP45"`, `"RCP60"`, or `"RCP85"`. If running a hindcast, this does not matter.
-* `ensemble_or_map` - (string) one of `"ensemble"` or `"map"`. If `"ensemble"`, then will downscale the full BRICK ensemble that matches the provided `model_config`, `proj_or_hind`, and `rcp_scenario` settings. If `"map"`, will only downscale the maximum a posteriori simulation.
+* `results_dir` - (String) the directory holding model outputs
+* `model_config` - (String) one of `"brick"`, `"doeclimbrick"`, or `"sneasybrick"`. Only the BRICK projections are being downscaled (no CO2 or temperature, for example), but the `downscale_brick` function will find the relevant input data and tag the output files appropriately based on the `model_config` setting.
+* `proj_or_hind` - (String) one of `"proj"` (projections) or `"hind"` (hindcast). They're treated similarly when running the model, but this helps for finding the output files in the `results` directories.
+* `rcp_scenario` - (String) one of `"RCP26"`, `"RCP45"`, `"RCP60"`, or `"RCP85"`. If running a hindcast, this does not matter.
+* `ensemble_or_map` - (String) one of `"ensemble"` or `"map"`. If `"ensemble"`, then will downscale the full BRICK ensemble that matches the provided `model_config`, `proj_or_hind`, and `rcp_scenario` settings. If `"map"`, will only downscale the maximum a posteriori simulation.
 
-An example for use can be found in `test/test_downscaling.jl`. This example includes a few specifications, for example in one the BRICK (standalone model) maximum a posteriori sea-level rise projection under RCP8.5 is downscaled for New York City using the following settings:
+An example for use can be found in `test/test_downscaling.jl` as well as `examples/Calibration_Example.jl`. This example includes a few specifications, for example in one the BRICK (standalone model) maximum a posteriori sea-level rise projection under RCP8.5 is downscaled for New York City using the following settings:
 
 ```julia
 lat = 40.7128 # deg N
