@@ -1,9 +1,3 @@
-# #-------------------------------------------------------------------------------------------------------
-# #-------------------------------------------------------------------------------------------------------
-# # This file contains functions that are used for the model calibrations.
-# #-------------------------------------------------------------------------------------------------------
-# #-------------------------------------------------------------------------------------------------------
-
 using Missings
 using DataFrames
 using Distributions
@@ -12,20 +6,25 @@ using KernelDensity
 using CSVFiles
 using Statistics
 
-#######################################################################################################################
-# LOAD AND CLEAN UP DATA USED FOR MODEL CALIBRATION.
-#######################################################################################################################
-# Description: This function loads, cleans up, and merges all of the calibration data into a single dataframe.
-#
-# Function Arguments:
-#
-#       model_start_year         = The first year to include in the calibration data set.
-#       last_calibration_year    = The last year to run the model for calibration (i.e. 1980 will not consider any post-1980 observations).
-#       last_sea_level_norm_year = Some sea level data sets may need to be normalized to different years depending on when the calibration ends (this
-#                                  may be necessary for out-of-sample tests). These data sets will be normalized from 1961-last norm year, default = 1961-1990.
-#       calibration_data_dir    = Data directory for calibration data. Defaults to package calibration data directory, changing this is not recommended.
-#----------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+# This file contains functions that are used for the model calibrations.
+#-------------------------------------------------------------------------------
 
+"""
+    load_calibration_data(model_start_year::Int, last_calibration_year::Int; last_sea_level_norm_year::Int=1990, calibration_data_dir::Union{Nothing, String} = nothing)
+
+LOAD AND CLEAN UP DATA USED FOR MODEL CALIBRATION.
+
+Description: This function loads, cleans up, and merges all of the calibration data into a single dataframe.
+
+Function Arguments:
+
+      model_start_year         = The first year to include in the calibration data set.
+      last_calibration_year    = The last year to run the model for calibration (i.e. 1980 will not consider any post-1980 observations).
+      last_sea_level_norm_year = Some sea level data sets may need to be normalized to different years depending on when the calibration ends (this
+                                 may be necessary for out-of-sample tests). These data sets will be normalized from 1961-last norm year, default = 1961-1990.
+      calibration_data_dir    = Data directory for calibration data. Defaults to package calibration data directory, changing this is not recommended.
+"""
 function load_calibration_data(model_start_year::Int, last_calibration_year::Int; last_sea_level_norm_year::Int=1990, calibration_data_dir::Union{Nothing, String} = nothing)
 
     # Create column of calibration years and calculate indicies for calibration time period relative to 1765-2020 (will crop later).
@@ -422,21 +421,23 @@ function load_calibration_data(model_start_year::Int, last_calibration_year::Int
     return df, ais_trend_df, te_trend_df
 end
 
-#######################################################################################################################
-# CALCULATE AR(1) LOG-LIKELIHOOD.
-########################################################################################################################
-# Description: This function calculates the AR(1) log-likelihood in terms of the data-model residuls when accounting for
-#              time-varying observation errors. It follows "The Effects of Time-Varying Observation Errors on Semi-Empirical
-#              Sea-Level Projections" (Ruckert et al., 2017) DOI 10.1007/s10584-016-1858-z.
-#
-# Function Arguments:
-#
-#       residuals = A vector of data-model residuals.
-#       σ         = AR(1) innovation standard deviation.
-#       ρ         = AR(1) autocorrelation term.
-#       ϵ         = A vector of time-varying observation error estimates (from calibration data sets).
-#----------------------------------------------------------------------------------------------------------------------
 
+"""
+    hetero_logl_ar1(residuals::Array{Float64,1}, σ::Float64, ρ::Float64, ϵ::Array{Union{Float64, Missings.Missing},1})
+
+CALCULATE AR(1) LOG-LIKELIHOOD.
+
+Description: This function calculates the AR(1) log-likelihood in terms of the data-model residuls when accounting for
+             time-varying observation errors. It follows "The Effects of Time-Varying Observation Errors on Semi-Empirical
+             Sea-Level Projections" (Ruckert et al., 2017) DOI 10.1007/s10584-016-1858-z.
+
+Function Arguments:
+
+      residuals = A vector of data-model residuals.
+      σ         = AR(1) innovation standard deviation.
+      ρ         = AR(1) autocorrelation term.
+      ϵ         = A vector of time-varying observation error estimates (from calibration data sets).
+"""
 function hetero_logl_ar1(residuals::Array{Float64,1}, σ::Float64, ρ::Float64, ϵ::Array{Union{Float64, Missings.Missing},1})
 
     # Calculate length of residuals.
@@ -493,20 +494,21 @@ function hetero_logl_car1(residuals::Array{Float64,1}, indices::Array{Int64,1}, 
     return logpdf(MvNormal(cov_matrix), residuals)
 end
 
-#######################################################################################################
-# CALCULATE MODELED SEA LEVEL TRENDS
-#######################################################################################################
-# Description: This function calculates the trend in different modeled sea level contributions over
-#              a user-specified time period.
-#
-# Function Arguments:
-#
-#       model_output = A vector of modeled annual sea level rise values.
-#       obs_trends   = The matrix of observed sea level trends provided by the "load_calibration_data" function defined above.
-#       start_year   = First year of the model run.
-#       end_year     = Last year of the model run.
-#----------------------------------------------------------------------------------------------------------------------
+"""
+    calculate_trends(model_output::Array{Float64,1}, obs_trends::DataFrame, start_year::Int, end_year::Int)
 
+CALCULATE MODELED SEA LEVEL TRENDS
+
+Description: This function calculates the trend in different modeled sea level contributions over
+             a user-specified time period.
+
+Function Arguments:
+
+      model_output = A vector of modeled annual sea level rise values.
+      obs_trends   = The matrix of observed sea level trends provided by the "load_calibration_data" function defined above.
+      start_year   = First year of the model run.
+      end_year     = Last year of the model run.
+"""
 function calculate_trends(model_output::Array{Float64,1}, obs_trends::DataFrame, start_year::Int, end_year::Int)
 
     # Get number of trends to calculate.
@@ -528,21 +530,22 @@ function calculate_trends(model_output::Array{Float64,1}, obs_trends::DataFrame,
     return modeled_trends
 end
 
-#######################################################################################################
-# CALCULATE KERNEL DENSITY ESTIMATES WITH TRUNCATED BOUNDS
-#######################################################################################################
-# Description: This function creates a fitted kernel density object (from KernelDensity.jl package) and
-#              crops the edges to user-specified lower and upper bounds (setting boundaries beforehand,
-#              can lead to issues with some parameters because, "Due to the fourier transforms used
-#              internally, there should be sufficient spacing to prevent wrap-around at the boundaries")
-#
-# Function Arguments:
-#
-#       data        = Parameter samples used for the kernel density estimate.
-#       lower_bound = Minimum parameter value corresponding to the lower bound of the fitted density.
-#       upper_bound = Maximum parameter value corresponding to the upper bound of the fitted density.
-#----------------------------------------------------------------------------------------------------------------------
+"""
+    truncated_kernel(data, lower_bound, upper_bound)
 
+CALCULATE KERNEL DENSITY ESTIMATES WITH TRUNCATED BOUNDS
+
+Description: This function creates a fitted kernel density object (from KernelDensity.jl package) and
+             crops the edges to user-specified lower and upper bounds (setting boundaries beforehand,
+             can lead to issues with some parameters because, "Due to the fourier transforms used
+             internally, there should be sufficient spacing to prevent wrap-around at the boundaries")
+
+Function Arguments:
+
+      data        = Parameter samples used for the kernel density estimate.
+      lower_bound = Minimum parameter value corresponding to the lower bound of the fitted density.
+      upper_bound = Maximum parameter value corresponding to the upper bound of the fitted density.
+"""
 function truncated_kernel(data, lower_bound, upper_bound)
 
     # Estimate kernel density without specifying boundaries to avoid wrap-around at margins.
@@ -569,20 +572,21 @@ function truncated_kernel(data, lower_bound, upper_bound)
     return truncated_kde_interp
 end
 
-#######################################################################################################################
-# SIMULATE STATIONARY AR(1) PROCESS WITH TIME VARYING OBSERVATION ERRORS.
-#######################################################################################################################
-# Description: This function simulates a stationary AR(1) process (given time-varying observation errors supplied with
-#              each calibration data set) to superimpose noise onto the climate model projections.
-#
-# Function Arguments:
-#
-#       n = Number of time periods (years) the model is being run for.
-#       σ = Calibrated standard deviation.
-#       ρ = Calibrated autocorrelation coefficient.
-#       ϵ = Time-varying observation errors.
-#----------------------------------------------------------------------------------------------------------------------
+"""
+    simulate_ar1_noise(n::Int, σ::Float64, ρ::Float64, ϵ::Array{Float64,1})
 
+SIMULATE STATIONARY AR(1) PROCESS WITH TIME VARYING OBSERVATION ERRORS.
+
+Description: This function simulates a stationary AR(1) process (given time-varying observation errors supplied with
+             each calibration data set) to superimpose noise onto the climate model projections.
+
+Function Arguments:
+
+      n = Number of time periods (years) the model is being run for.
+      σ = Calibrated standard deviation.
+      ρ = Calibrated autocorrelation coefficient.
+      ϵ = Time-varying observation errors.
+"""
 function simulate_ar1_noise(n::Int, σ::Float64, ρ::Float64, ϵ::Array{Float64,1})
 
     # Define AR(1) stationary process variance.
@@ -599,20 +603,21 @@ function simulate_ar1_noise(n::Int, σ::Float64, ρ::Float64, ϵ::Array{Float64,
     return rand(MvNormal(cov_matrix))
 end
 
-#######################################################################################################################
-# SIMULATE STATIONARY CAR(1) PROCESS WITH TIME VARYING OBSERVATION ERRORS.
-#######################################################################################################################
-# Description: This function simulates a stationary CAR(1) process (given time-varying observation errors supplied with
-#              each calibration data set) to superimpose noise onto the climate model projections.
-#
-# Function Arguments:
-#
-#       n              = Number of time periods (years) the model is being run for.
-#       α₀             = Calibrated term describing correlation memory of CAR(1) process.
-#       σ²_white_noise = Calibrated continuous white noise process variance term.
-#       ϵ              = Time-varying observation errors.
-#----------------------------------------------------------------------------------------------------------------------
+"""
+    simulate_car1_noise(n, α₀, σ²_white_noise, ϵ)
 
+SIMULATE STATIONARY CAR(1) PROCESS WITH TIME VARYING OBSERVATION ERRORS.
+
+Description: This function simulates a stationary CAR(1) process (given time-varying observation errors supplied with
+             each calibration data set) to superimpose noise onto the climate model projections.
+
+Function Arguments:
+
+      n              = Number of time periods (years) the model is being run for.
+      α₀             = Calibrated term describing correlation memory of CAR(1) process.
+      σ²_white_noise = Calibrated continuous white noise process variance term.
+      ϵ              = Time-varying observation errors.
+"""
 function simulate_car1_noise(n, α₀, σ²_white_noise, ϵ)
 
     # Indices for full time horizon.
@@ -631,20 +636,21 @@ function simulate_car1_noise(n, α₀, σ²_white_noise, ϵ)
     return rand(MvNormal(cov_matrix))
 end
 
-#######################################################################################################################
-# REPLICATE TIME-VARYING OBSERVATION ERRORS FOR PERIODS WITHOUT COVERAGE.
-#######################################################################################################################
-# Description: This function creates a time-series of observation errors for the entire model time horizon. For years
-#              without observation error estimates, the error remains constant at the average of the ten nearest error
-#              values in time.
-#
-# Function Arguments:
-#
-#       start_year = The first year to run the climate model.
-#       end_year   = The final year to run the climate model.
-#       error_data = A vector of time-varying observation errors supplied with each calibration data set.
-#----------------------------------------------------------------------------------------------------------------------
+"""
+    replicate_errors(start_year::Int, end_year::Int, error_data)
 
+REPLICATE TIME-VARYING OBSERVATION ERRORS FOR PERIODS WITHOUT COVERAGE.
+
+Description: This function creates a time-series of observation errors for the entire model time horizon. For years
+             without observation error estimates, the error remains constant at the average of the ten nearest error
+             values in time.
+
+Function Arguments:
+
+      start_year = The first year to run the climate model.
+      end_year   = The final year to run the climate model.
+      error_data = A vector of time-varying observation errors supplied with each calibration data set.
+"""
 function replicate_errors(start_year::Int, end_year::Int, error_data)
 
     # Initialize model years and measurement error vector.

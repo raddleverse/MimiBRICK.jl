@@ -1,14 +1,3 @@
-##------------------------------------------------------------------------------
-##------------------------------------------------------------------------------
-## This function carries out a Markov chain Monte Carlo calibration of BRICK.
-## This includes one of the following possible model configurations:
-## (1) BRICK standalone (forced by input global mean surface temperatures and ocean heat uptake data)
-## (2) DOECLIM+BRICK
-## (3) SNEASY+BRICK
-##------------------------------------------------------------------------------
-##------------------------------------------------------------------------------
-
-# Load required Julia packages.
 using CSVFiles
 using DataFrames
 using Distributions
@@ -20,6 +9,14 @@ using RobustAdaptiveMetropolisSampler
 using MCMCDiagnostics
 using Random
 using StatsBase
+
+#-------------------------------------------------------------------------------
+# This function carries out a Markov chain Monte Carlo calibration of BRICK.
+# This includes one of the following possible model configurations:
+# (1) BRICK standalone (forced by input global mean surface temperatures and ocean heat uptake data)
+# (2) DOECLIM+BRICK
+# (3) SNEASY+BRICK
+#-------------------------------------------------------------------------------
 
 """
     run_calibration(;   output_dir::String, 

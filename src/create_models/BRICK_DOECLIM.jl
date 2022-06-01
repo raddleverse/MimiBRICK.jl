@@ -5,11 +5,14 @@ using Mimi
 using MimiSNEASY
 
 # -------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------
 # Function to create 'Building blocks for Relevant Ice and Climate Knowledge' (BRICK) model.
 # -------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------
 
+"""
+    create_brick_doeclim(;rcp_scenario::String = "RCP85", start_year::Int=1850, end_year::Int=2020)
+    
+TODO DOCSTRING
+"""
 function create_brick_doeclim(;rcp_scenario::String = "RCP85", start_year::Int=1850, end_year::Int=2020)
 
     #-----------------------#
