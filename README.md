@@ -174,7 +174,7 @@ The `MimiBRICK.downscale_brick` function downscales the BRICK global sea level p
 This routine will downscale either a full ensemble of BRICK model simulations or just the maximum a posteriori model simulation to a specific latitude and longitude point. These are provided by the user as `lat` (degrees north) and `lon` (degrees east). Other needed function arguments include:
 * `results_dir` - (String) the directory holding model outputs
 * `model_config` - (String) one of `"brick"`, `"doeclimbrick"`, or `"sneasybrick"`. Only the BRICK projections are being downscaled (no CO2 or temperature, for example), but the `downscale_brick` function will find the relevant input data and tag the output files appropriately based on the `model_config` setting.
-* `proj_or_hind` - (String) one of `"proj"` (projections) or `"hind"` (hindcast). They're treated similarly when running the model, but this helps for finding the output files in the `results` directories.
+* `proj_or_hind` - (String) one of `"proj"` (projections) or `"hind"` (hindcast). They're treated similarly when running the model, but this helps for finding the output files in the `results_dir` directories.
 * `rcp_scenario` - (String) one of `"RCP26"`, `"RCP45"`, `"RCP60"`, or `"RCP85"`. If running a hindcast, this does not matter.
 * `ensemble_or_map` - (String) one of `"ensemble"` or `"map"`. If `"ensemble"`, then will downscale the full BRICK ensemble that matches the provided `model_config`, `proj_or_hind`, and `rcp_scenario` settings. If `"map"`, will only downscale the maximum a posteriori simulation.
 
@@ -189,7 +189,7 @@ rcp_scenario = "RCP85"
 ensemble_or_map = "map"
 ```
 
-The following line of code performs the actual downscaling and saves the output files to the appropriate `results` directory.
+The following line of code performs the actual downscaling and saves the output files to the appropriate `results_dir` directory.
 ```julia
 years, lsl = downscale_brick(lon=lon, lat=lat, results_dir=results_dir, proj_or_hind=proj_or_hind, ensemble_or_map=ensemble_or_map, model_config=model_config, rcp_scenario=rcp_scenario)
 ```
