@@ -10,8 +10,17 @@ using MimiSNEASY
 
 """
     create_brick_doeclim(;rcp_scenario::String = "RCP85", start_year::Int=1850, end_year::Int=2020)
-    
-TODO DOCSTRING
+
+RETURN A MIMI MODEL INSTANCE WITH MIMIBRICK AND DOECLIM COUPLED TOGETHER
+
+Description: This function loads forcing data, sets up model parameters, and
+makes the model component variable connections.
+
+Function Arguments:
+
+        rcp_scenario = RCP scenario for exogenous forcing
+        start_year   = initial year of the simulation period
+        end_year     = ending year of the simulation period
 """
 function create_brick_doeclim(;rcp_scenario::String = "RCP85", start_year::Int=1850, end_year::Int=2020)
 

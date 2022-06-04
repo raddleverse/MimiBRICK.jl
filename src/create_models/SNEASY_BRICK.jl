@@ -9,8 +9,17 @@ using MimiSNEASY
 # ------------------------------------------------------------------------------
 """
     create_sneasy_brick(;rcp_scenario::String = "RCP85", start_year::Int=1850, end_year::Int=2020)
-    
-TODO DOCSTRING
+
+RETURN A MIMI MODEL INSTANCE WITH MIMIBRICK AND MIMISNEASY COUPLED TOGETHER
+
+Description: This function loads forcing data, sets up model parameters, and
+makes the model component variable connections.
+
+Function Arguments:
+
+        rcp_scenario = RCP scenario for exogenous forcing
+        start_year   = initial year of the simulation period
+        end_year     = ending year of the simulation period
 """
 function create_sneasy_brick(; rcp_scenario::String="RCP85", start_year::Int=1850, end_year::Int=2020)
 
@@ -137,7 +146,7 @@ function create_sneasy_brick(; rcp_scenario::String="RCP85", start_year::Int=185
 
     # Set parameter connections (:component => :parameter).
 
-    # in default BRICK we use a model parameter :model_global_surface_temperature 
+    # in default BRICK we use a model parameter :model_global_surface_temperature
     # here and connect all components to that, but here we will individually
     # connect the components to :doeclim since they are now pulling from another
     # component's variable and not from a model shared parameter

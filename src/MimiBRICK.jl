@@ -28,7 +28,13 @@ include(joinpath("calibration/main_calibration.jl"))
 """
     get_model(;rcp_scenario::String="RCP85", start_year::Int=1850, end_year::Int=2020)
 
-TODO DOCSTRING
+RETURN A MIMIBRICK MODEL INSTANCE THAT CAN BE MODIFIED AND RUN.
+
+Function Arguments:
+
+      rcp_scenario = RCP scenario for exogenous forcing
+      start_year   = initial year of the simulation period
+      end_year     = ending year of the simulation period
 """
 function get_model(;rcp_scenario::String="RCP85", start_year::Int=1850, end_year::Int=2020)
 
