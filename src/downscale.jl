@@ -180,7 +180,7 @@ function downscale_brick(;lon::Float64,
     lon_rounded = round(lon, digits=2)
     if proj_or_hind=="proj"
         filename_output = joinpath(filepath_output,"projections_lsl-lat$(lat_rounded)-lon$(lon_rounded)_$(model_config).csv")
-    elseif if proj_or_hind=="hind"
+    elseif proj_or_hind=="hind"
         filename_output = joinpath(filepath_output,"hindcast_lsl-lat$(lat_rounded)-lon$(lon_rounded)_$(model_config).csv")
     end
     CSV.write(filename_output, DataFrame(outputs, :auto))
