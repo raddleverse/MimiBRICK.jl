@@ -10,7 +10,7 @@ using NetCDF
 """
     construct_doeclimbrick_log_prior(joint_antarctic_prior::Bool, uniform_ECS::Bool; calibration_data_dir::Union{String, Nothing} = nothing)
 
-CALCULATE TOTAL (LOG) PRIOR PROBABILITY.
+Calculate total (log) prior probability for doeclimbrick.
 
 Description: This creates a function that will calculate the total (log) prior probability of the uncertain model,
              initial condition, and statistical process parameters specific to the DOECLIM-BRICK model. It uses
@@ -218,7 +218,7 @@ end
 """
     construct_doeclimbrick_log_posterior(f_run_model!; model_start_year::Int=1850, calibration_end_year::Int=2017, joint_antarctic_prior::Bool=false, uniform_ECS::Bool=false)
 
-CALCULATE LOG POSTERIOR.
+Calculate log posterior for doeclimbrick.
 
 Description: This creates a function that calculates the log-posterior probability of the uncertain model, initial
              condition, and statistical process parameters.
@@ -436,3 +436,7 @@ function construct_doeclimbrick_log_posterior(f_run_model!; model_start_year::In
     # Return log posterior function given user specifications.
     return doeclimbrick_log_posterior
 end
+
+##------------------------------------------------------------------------------
+## End
+##------------------------------------------------------------------------------

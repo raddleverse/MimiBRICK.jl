@@ -11,7 +11,7 @@ using MimiSNEASY
 """
     create_brick_doeclim(;rcp_scenario::String = "RCP85", start_year::Int=1850, end_year::Int=2020)
 
-RETURN A MIMI MODEL INSTANCE WITH MIMIBRICK AND DOECLIM COUPLED TOGETHER
+Return a Mimi model instance with MimiBRICK and DOECLIM coupled together.
 
 Description: This function loads forcing data, sets up model parameters, and
 makes the model component variable connections.
@@ -185,3 +185,7 @@ function create_brick_doeclim(;rcp_scenario::String = "RCP85", start_year::Int=1
     return brick_doeclim
 
 end
+
+##------------------------------------------------------------------------------
+## End
+##------------------------------------------------------------------------------

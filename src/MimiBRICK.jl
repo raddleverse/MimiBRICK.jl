@@ -1,5 +1,3 @@
-#using Distributions
-
 module MimiBRICK
 
 # Load required packages
@@ -28,7 +26,7 @@ include(joinpath("calibration/main_calibration.jl"))
 """
     get_model(;rcp_scenario::String="RCP85", start_year::Int=1850, end_year::Int=2020)
 
-RETURN A MIMIBRICK MODEL INSTANCE THAT CAN BE MODIFIED AND RUN.
+Return a MimiBRICK model instance that can be modified and run.
 
 Function Arguments:
 

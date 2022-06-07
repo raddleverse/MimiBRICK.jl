@@ -14,12 +14,12 @@ using Mimi
 Function to run BRICK (standalone, or with DOECLIM or SNEASY) over the
 historic period and save the hindcast results to CSV files. 
 
-Arguments:
+Function Arguments:
 
-- outdir - paths for results files - subsample of model parameters, and associated log-posterior scores, and printed results of this function
-- model_config (default = "brick") - model configuration with possible options: (1) "brick", (2) "doeclimbrick", (3) "sneasybrick"
-- start_year (default = 1850) - start year for calibration
-- end_year (default = 2017) - end year for calibration
+    - outdir - paths for results files - subsample of model parameters, and associated log-posterior scores, and printed results of this function
+    - model_config (default = "brick") - model configuration with possible options: (1) "brick", (2) "doeclimbrick", (3) "sneasybrick"
+    - start_year (default = 1850) - start year for calibration
+    - end_year (default = 2017) - end year for calibration
 """
 function run_hindcast(; output_dir::String,
                         model_config::String = "brick",

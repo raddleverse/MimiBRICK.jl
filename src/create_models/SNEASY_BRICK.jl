@@ -10,7 +10,7 @@ using MimiSNEASY
 """
     create_sneasy_brick(;rcp_scenario::String = "RCP85", start_year::Int=1850, end_year::Int=2020)
 
-RETURN A MIMI MODEL INSTANCE WITH MIMIBRICK AND MIMISNEASY COUPLED TOGETHER
+Return a Mimi model instance with MimiBRICK and MimiSNEASY coupled together.
 
 Description: This function loads forcing data, sets up model parameters, and
 makes the model component variable connections.

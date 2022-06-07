@@ -24,15 +24,15 @@ Downscale BRICK projections to a single point, using either the whole ensemble
 or only the maximum a posteriori ensemble member. Note this function assumes a
 specific folder structure and file naming within the top level results_dir.
 
-Arguments:
+Function Arguments:
 
-- lon = longitude (degrees East) of location for downscaling
-- lat = latitude (degrees North) of location for downscaling
-- results_dir = the top level directory of results
-- proj_or_hind = "proj" for projections, or "hind" for hindcast
-- ensemble_or_map = "ensemble" for entire posterior ensemble, or "map" for the maximum a posteriori ensemble member (single simulation)
-- model_config = "brick", "doeclimbrick", or "sneasybrick"
-- rcp_scenario = "RCP26", "RCP45", "RCP60", or "RCP85" (default). Doesn't matter for hindcast.
+    - lon = longitude (degrees East) of location for downscaling
+    - lat = latitude (degrees North) of location for downscaling
+    - results_dir = the top level directory of results
+    - proj_or_hind = "proj" for projections, or "hind" for hindcast
+    - ensemble_or_map = "ensemble" for entire posterior ensemble, or "map" for the maximum a posteriori ensemble member (single simulation)
+    - model_config = "brick", "doeclimbrick", or "sneasybrick"
+    - rcp_scenario = "RCP26", "RCP45", "RCP60", or "RCP85" (default). Doesn't matter for hindcast.
 """
 function downscale_brick(;lon::Float64, 
                             lat::Float64, 
@@ -268,3 +268,7 @@ function next_lon(lon::Float64, inc::Int, direction::Symbol)
     end
     return new_lon
 end
+
+##------------------------------------------------------------------------------
+## End
+##------------------------------------------------------------------------------
