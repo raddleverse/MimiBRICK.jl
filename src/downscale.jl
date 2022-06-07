@@ -11,19 +11,28 @@ using StatsBase
 #-------------------------------------------------------------------------------
 
 """
-    downscale_brick(;lon, lat, results_dir, proj_or_hind, ensemble_or_map, model_config, rcp_scenario="RCP85")
-
+    downscale_brick(;lon::Float64, 
+                                lat::Float64, 
+                                results_dir::String, 
+                                proj_or_hind::String, 
+                                ensemble_or_map::String, 
+                                model_config::String, 
+                                rcp_scenario::String="RCP85"
+                            )
+                            
 Downscale BRICK projections to a single point, using either the whole ensemble
 or only the maximum a posteriori ensemble member. Note this function assumes a
 specific folder structure and file naming within the top level results_dir.
 
-lon = longitude (degrees East) of location for downscaling
-lat = latitude (degrees North) of location for downscaling
-results_dir = the top level directory of results ie. "my_brick_results_20M_20-02-2022"
-proj_or_hind = "proj" for projections, or "hind" for hindcast
-ensemble_or_map = "ensemble" for entire posterior ensemble, or "map" for the maximum a posteriori ensemble member (single simulation)
-model_config = "brick", "doeclimbrick", or "sneasybrick"
-rcp_scenario = "RCP26", "RCP45", "RCP60", or "RCP85" (default). Doesn't matter for hindcast.
+Function Arguments:
+
+    - lon = longitude (degrees East) of location for downscaling
+    - lat = latitude (degrees North) of location for downscaling
+    - results_dir = the top level directory of results
+    - proj_or_hind = "proj" for projections, or "hind" for hindcast
+    - ensemble_or_map = "ensemble" for entire posterior ensemble, or "map" for the maximum a posteriori ensemble member (single simulation)
+    - model_config = "brick", "doeclimbrick", or "sneasybrick"
+    - rcp_scenario = "RCP26", "RCP45", "RCP60", or "RCP85" (default). Doesn't matter for hindcast.
 """
 function downscale_brick(;lon::Float64, 
                             lat::Float64, 
@@ -169,7 +178,11 @@ function downscale_brick(;lon::Float64,
 
     lat_rounded = round(lat, digits=2)
     lon_rounded = round(lon, digits=2)
-    filename_output = joinpath(filepath_output,"projections_lsl-lat$(lat_rounded)-lon$(lon_rounded)_$(model_config).csv")
+    if proj_or_hind=="proj"
+        filename_output = joinpath(filepath_output,"projections_lsl-lat$(lat_rounded)-lon$(lon_rounded)_$(model_config).csv")
+    elseif proj_or_hind=="hind"
+        filename_output = joinpath(filepath_output,"hindcast_lsl-lat$(lat_rounded)-lon$(lon_rounded)_$(model_config).csv")
+    end
     CSV.write(filename_output, DataFrame(outputs, :auto))
 
     return years, lsl_out
@@ -255,3 +268,7 @@ function next_lon(lon::Float64, inc::Int, direction::Symbol)
     end
     return new_lon
 end
+
+##------------------------------------------------------------------------------
+## End
+##------------------------------------------------------------------------------

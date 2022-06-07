@@ -15,14 +15,13 @@ using Mimi
 Function to run BRICK (standalone, or with DOECLIM or SNEASY) over the projections
 period and save the results to CSV files. 
 
-Arguments:
+Function Arguments:
 
-- outdir - paths for results files - subsample of model parameters, and associated log-posterior scores, and printed results of this function
-- model_config (default = "brick") - model configuration with possible options: (1) "brick", (2) "doeclimbrick", (3) "sneasybrick"
-- rcp_scenario (default = "RCP85) - RCP scenario with possible options: (1) RCP26, (2) RCP45, (3) RCP60, (4) RCP85
-- start_year (default = 1850) - start year for calibration
-- end_year (default = 2300) - end year for calibration
-
+    - outdir - paths for results files - subsample of model parameters, and associated log-posterior scores, and printed results of this function
+    - model_config (default = "brick") - model configuration with possible options: (1) "brick", (2) "doeclimbrick", (3) "sneasybrick"
+    - rcp_scenario (default = "RCP85) - RCP scenario with possible options: (1) RCP26, (2) RCP45, (3) RCP60, (4) RCP85
+    - start_year (default = 1850) - start year for calibration
+    - end_year (default = 2300) - end year for calibration
 """
 function run_projections(; output_dir::String,
                         model_config::String = "brick",

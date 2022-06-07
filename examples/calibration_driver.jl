@@ -1,15 +1,4 @@
 using MimiBRICK
-using CSVFiles
-using DataFrames
-using Distributions
-using KernelDensity
-using LinearAlgebra
-using Mimi
-using NetCDF
-using RobustAdaptiveMetropolisSampler
-using MCMCDiagnostics
-using Random
-using StatsBase
 
 ##------------------------------------------------------------------------------
 ##------------------------------------------------------------------------------

@@ -31,6 +31,13 @@ using StatsBase
                         start_from_priors=false,
                         calibration_data_dir::Union{String, Nothing} = nothing
                     )
+                    
+This function carries out a Markov chain Monte Carlo calibration of BRICK.
+This includes one of the following possible model configurations set with `model_config`
+    (1) BRICK standalone (forced by input global mean surface temperatures and ocean heat uptake data)
+    (2) DOECLIM+BRICK
+    (3) SNEASY+BRICK
+
 """
 function run_calibration(;  output_dir::String, 
                             model_config="brick", 

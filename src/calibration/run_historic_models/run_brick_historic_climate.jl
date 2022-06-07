@@ -7,7 +7,7 @@ using Mimi
 """
     construct_run_brick(calibration_start_year::Int, calibration_end_year::Int)
 
-TODO DOCSTRING
+Create a function to run the BRICK model over the historic period.
 """
 function construct_run_brick(calibration_start_year::Int, calibration_end_year::Int)
 
@@ -131,3 +131,7 @@ function construct_run_brick(calibration_start_year::Int, calibration_end_year::
     # Return run model function.
     return run_brick!
 end
+
+##------------------------------------------------------------------------------
+## End
+##------------------------------------------------------------------------------

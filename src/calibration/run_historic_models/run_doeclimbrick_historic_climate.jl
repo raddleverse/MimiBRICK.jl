@@ -7,7 +7,7 @@ using Mimi
 """
     construct_run_doeclimbrick(calibration_start_year::Int, calibration_end_year::Int)
 
-TODO DOCSTRING
+Create a function to run the DOECLIM+BRICK model over the historic period.
 """
 function construct_run_doeclimbrick(calibration_start_year::Int, calibration_end_year::Int)
 
@@ -151,3 +151,7 @@ function construct_run_doeclimbrick(calibration_start_year::Int, calibration_end
     # Return run model function.
     return run_doeclimbrick!
 end
+
+##------------------------------------------------------------------------------
+## End
+##------------------------------------------------------------------------------

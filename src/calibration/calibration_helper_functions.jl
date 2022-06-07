@@ -13,17 +13,17 @@ using Statistics
 """
     load_calibration_data(model_start_year::Int, last_calibration_year::Int; last_sea_level_norm_year::Int=1990, calibration_data_dir::Union{Nothing, String} = nothing)
 
-LOAD AND CLEAN UP DATA USED FOR MODEL CALIBRATION.
+Load and clean up data used for model calibration.
 
 Description: This function loads, cleans up, and merges all of the calibration data into a single dataframe.
 
 Function Arguments:
 
-      model_start_year         = The first year to include in the calibration data set.
-      last_calibration_year    = The last year to run the model for calibration (i.e. 1980 will not consider any post-1980 observations).
-      last_sea_level_norm_year = Some sea level data sets may need to be normalized to different years depending on when the calibration ends (this
+    - model_start_year         = The first year to include in the calibration data set.
+    - last_calibration_year    = The last year to run the model for calibration (i.e. 1980 will not consider any post-1980 observations).
+    - last_sea_level_norm_year = Some sea level data sets may need to be normalized to different years depending on when the calibration ends (this
                                  may be necessary for out-of-sample tests). These data sets will be normalized from 1961-last norm year, default = 1961-1990.
-      calibration_data_dir    = Data directory for calibration data. Defaults to package calibration data directory, changing this is not recommended.
+    - calibration_data_dir    = Data directory for calibration data. Defaults to package calibration data directory, changing this is not recommended.
 """
 function load_calibration_data(model_start_year::Int, last_calibration_year::Int; last_sea_level_norm_year::Int=1990, calibration_data_dir::Union{Nothing, String} = nothing)
 
@@ -425,7 +425,7 @@ end
 """
     hetero_logl_ar1(residuals::Array{Float64,1}, σ::Float64, ρ::Float64, ϵ::Array{Union{Float64, Missings.Missing},1})
 
-CALCULATE AR(1) LOG-LIKELIHOOD.
+Calculate AR(1) log-likelihood.
 
 Description: This function calculates the AR(1) log-likelihood in terms of the data-model residuls when accounting for
              time-varying observation errors. It follows "The Effects of Time-Varying Observation Errors on Semi-Empirical
@@ -457,25 +457,27 @@ function hetero_logl_ar1(residuals::Array{Float64,1}, σ::Float64, ρ::Float64, 
     return logpdf(MvNormal(cov_matrix), residuals)
 end
 
-#######################################################################################################################
-# CALCULATE CAR(1) LOG-LIKELIHOOD.
-########################################################################################################################
-# Description: This function calculates the continuous time autoregressive, or CAR(1), log-likelihood for irregularly
-#              spaced data in terms of the data-model residuls when accounting for time-varying observation errors. It
-#              builds off of "The Effects of Time-Varying Observation Errors on Semi-Empirical Sea-Level Projections"
-#              (Ruckert et al., 2017) DOI 10.1007/s10584-016-1858-z and "The Analysis of Irregularly Observed Stochastic
-#              Astronomical Time-Series – I. Basics of Linear Stochastic Differential Equations" (Koen, 2005)
-#              doi.org/10.1111/j.1365-2966.2005.09213.x
-#
-# Function Arguments:
-#
-#       residuals      = A vector of data-model residuals.
-#       indices        = Index positions of observations relative to model time horizon (i.e. the first model time period = 1, the second = 2, etc.).
-#       σ²_white_noise = Variance of the continuous white noise process.
-#       α₀             = Parameter describing correlation memory of CAR(1) process.
-#       ϵ              = A vector of time-varying observation error estimates (from calibration data sets).
-#----------------------------------------------------------------------------------------------------------------------
+"""
 
+    hetero_logl_car1(residuals::Array{Float64,1}, indices::Array{Int64,1}, σ²_white_noise::Float64, α₀::Float64, ϵ::Array{Union{Float64, Missings.Missing},1})
+
+Calculate CAR(1) log-likelihood.
+
+Description: This function calculates the continuous time autoregressive, or CAR(1), log-likelihood for irregularly
+             spaced data in terms of the data-model residuls when accounting for time-varying observation errors. It
+             builds off of "The Effects of Time-Varying Observation Errors on Semi-Empirical Sea-Level Projections"
+             (Ruckert et al., 2017) DOI 10.1007/s10584-016-1858-z and "The Analysis of Irregularly Observed Stochastic
+             Astronomical Time-Series – I. Basics of Linear Stochastic Differential Equations" (Koen, 2005)
+             doi.org/10.1111/j.1365-2966.2005.09213.x
+
+Function Arguments:
+
+      residuals      = A vector of data-model residuals.
+      indices        = Index positions of observations relative to model time horizon (i.e. the first model time period = 1, the second = 2, etc.).
+      σ²_white_noise = Variance of the continuous white noise process.
+      α₀             = Parameter describing correlation memory of CAR(1) process.
+      ϵ              = A vector of time-varying observation error estimates (from calibration data sets).
+"""
 function hetero_logl_car1(residuals::Array{Float64,1}, indices::Array{Int64,1}, σ²_white_noise::Float64, α₀::Float64, ϵ::Array{Union{Float64, Missings.Missing},1})
 
     # Calculate length of residuals.
@@ -497,7 +499,7 @@ end
 """
     calculate_trends(model_output::Array{Float64,1}, obs_trends::DataFrame, start_year::Int, end_year::Int)
 
-CALCULATE MODELED SEA LEVEL TRENDS
+Calculate modeled sea level trends.
 
 Description: This function calculates the trend in different modeled sea level contributions over
              a user-specified time period.
@@ -533,7 +535,7 @@ end
 """
     truncated_kernel(data, lower_bound, upper_bound)
 
-CALCULATE KERNEL DENSITY ESTIMATES WITH TRUNCATED BOUNDS
+Calculate kernel density estimates with truncated bounds.
 
 Description: This function creates a fitted kernel density object (from KernelDensity.jl package) and
              crops the edges to user-specified lower and upper bounds (setting boundaries beforehand,
@@ -575,7 +577,7 @@ end
 """
     simulate_ar1_noise(n::Int, σ::Float64, ρ::Float64, ϵ::Array{Float64,1})
 
-SIMULATE STATIONARY AR(1) PROCESS WITH TIME VARYING OBSERVATION ERRORS.
+Simulate stationary AR(1) process with time varying observation errors.
 
 Description: This function simulates a stationary AR(1) process (given time-varying observation errors supplied with
              each calibration data set) to superimpose noise onto the climate model projections.
@@ -606,7 +608,7 @@ end
 """
     simulate_car1_noise(n, α₀, σ²_white_noise, ϵ)
 
-SIMULATE STATIONARY CAR(1) PROCESS WITH TIME VARYING OBSERVATION ERRORS.
+Simulate stationary CAR(1) process with time varying observation errors.
 
 Description: This function simulates a stationary CAR(1) process (given time-varying observation errors supplied with
              each calibration data set) to superimpose noise onto the climate model projections.
@@ -671,3 +673,7 @@ function replicate_errors(start_year::Int, end_year::Int, error_data)
 
     return errors
 end
+
+##------------------------------------------------------------------------------
+## End
+##------------------------------------------------------------------------------
