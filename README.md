@@ -169,7 +169,7 @@ For stand-alone BRICK, which requires temperature and ocean heat time series as 
 
 ## Generating projections of local mean sea-level change
 
-The `MimiBRICK.downscale_brick` function downscales the BRICK global sea level projections to local. This uses the sea-level "fingerprints" of [Slangen et al. (2014)](https://link.springer.com/article/10.1007/s10584-014-1080-9). The downscaling routine will automatically create a subdirectory in the output directory called `localslr`. In this subdirectory, the routine will save an output file with the downscaled local mean sea level change model output.
+The `MimiBRICK.downscale_brick` function downscales the BRICK global sea level projections to local. This uses the sea-level "fingerprints" of [Slangen et al. (2014)](https://link.springer.com/article/10.1007/s10584-014-1080-9). The downscaling routine will automatically create a subdirectory in the output directory's `hindcast_csv` or `projections_csv/RCPXX/` subdirectory (depending on specification of `proj_or_hind` argument) called `localslr`. In this subdirectory, the routine will save an output file with the downscaled local mean sea level change model output.
 
 This routine will downscale either a full ensemble of BRICK model simulations or just the maximum a posteriori model simulation to a specific latitude and longitude point. These are provided by the user as `lat` (degrees north) and `lon` (degrees east). Other needed function arguments include:
 * `results_dir` - (String) the directory holding model outputs
