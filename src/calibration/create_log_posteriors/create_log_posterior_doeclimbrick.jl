@@ -1,36 +1,43 @@
+using Missings
+using DataFrames
+using Distributions
+using NetCDF
 
-# Load required data to create Antarctic ice sheet informative priors (posterior parameters from previous calibration to paleo data).
-# Note: this excludes the Antarctic variance term because the model uses an AR(1) model for the recent instrumental observations.
-#       From original BRICK Fortran/R code: "var.dais was fit to paleo data-model mismatch, not representative of the current era."
-antarctic_paleo_file   = joinpath("..","data", "calibration_data", "DAISfastdyn_calibratedParameters_gamma_29Jan2017.nc")
-antarctic_paleo_params = convert(Array{Float64,2}, ncread(antarctic_paleo_file, "DAIS_parameters"))'[:,1:15]
+#-------------------------------------------------------------------------------
+# This file contains functions used to calculate the log-posterior for the DOECLIM-BRICK model.
+#-------------------------------------------------------------------------------
 
-# #-------------------------------------------------------------------------------------------------------
-# #-------------------------------------------------------------------------------------------------------
-# # This file contains functions used to calculate the log-posterior for the DOECLIM-BRICK model.
-# #-------------------------------------------------------------------------------------------------------
-# #-------------------------------------------------------------------------------------------------------
+"""
+    construct_doeclimbrick_log_prior(joint_antarctic_prior::Bool, uniform_ECS::Bool; calibration_data_dir::Union{String, Nothing} = nothing)
 
+Calculate total (log) prior probability for doeclimbrick.
 
-#######################################################################################################################
-# CALCULATE TOTAL (LOG) PRIOR PROBABILITY.
-#######################################################################################################################
-# Description: This creates a function that will calculate the total (log) prior probability of the uncertain model,
-#              initial condition, and statistical process parameters specific to the DOECLIM-BRICK model. It uses
-#              non-uniform priors for the Antarctic ice sheet parameters, informed by a previous model calibration to
-#              paleo data. There are two options for the Antarctic priors (1) fitting marginal distributions using a
-#              kernel density estimation or (2) fitting a multivariate normal distribution that accounts for correlations
-#              that emerge during the paleo calibration (note, many of the marginal paleo pdfs are not normally distributed).
-#
-# Function Arguments:
-#
-#     joint_antarctic_prior = TRUE/FALSE check for whether to use a joint normal prior distribution (TRUE = option 1 described
-#                             above) or fitted marginal kernel density estimates (FLASE = option 2 described above).
-#     uniform_ECS           = TRUE/FALSE check for whether or not to use a uniform prior distribution for the equilibrium
-#                             climate sensitivity (true = use uniform).
-#----------------------------------------------------------------------------------------------------------------------
+Description: This creates a function that will calculate the total (log) prior probability of the uncertain model,
+             initial condition, and statistical process parameters specific to the DOECLIM-BRICK model. It uses
+             non-uniform priors for the Antarctic ice sheet parameters, informed by a previous model calibration to
+             paleo data. There are two options for the Antarctic priors (1) fitting marginal distributions using a
+             kernel density estimation or (2) fitting a multivariate normal distribution that accounts for correlations
+             that emerge during the paleo calibration (note, many of the marginal paleo pdfs are not normally distributed).
 
-function construct_doeclimbrick_log_prior(joint_antarctic_prior::Bool, uniform_ECS::Bool)
+Function Arguments:
+
+      joint_antarctic_prior   = TRUE/FALSE check for whether to use a joint normal prior distribution (TRUE = option 1 described
+                              above) or fitted marginal kernel density estimates (FLASE = option 2 described above).
+      uniform_ECS             = TRUE/FALSE check for whether or not to use a uniform prior distribution for the equilibrium
+                              climate sensitivity (true = use uniform).
+      calibration_data_dir    = Data directory for calibration data. Defaults to package calibration data directory, changing this is not recommended.
+"""
+function construct_doeclimbrick_log_prior(joint_antarctic_prior::Bool, uniform_ECS::Bool; calibration_data_dir::Union{String, Nothing} = nothing)
+    
+    # set calibration data directory if one was not provided ie. it is set as nothing
+    if isnothing(calibration_data_dir)
+        calibration_data_dir = joinpath(@__DIR__, "..", "..", "..", "data", "calibration_data")
+    end
+    # Load required data to create Antarctic ice sheet informative priors (posterior parameters from previous calibration to paleo data).
+    # Note: this excludes the Antarctic variance term because the model uses an AR(1) model for the recent instrumental observations.
+    #       From original BRICK Fortran/R code: "var.dais was fit to paleo data-model mismatch, not representative of the current era."
+    antarctic_paleo_file   = joinpath(calibration_data_dir, "DAISfastdyn_calibratedParameters_gamma_29Jan2017.nc")
+    antarctic_paleo_params = convert(Array{Float64,2}, ncread(antarctic_paleo_file, "DAIS_parameters"))'[:,1:15]
 
     #---------------------------------------------
     # Antarctic ice sheet priors
@@ -208,25 +215,24 @@ function construct_doeclimbrick_log_prior(joint_antarctic_prior::Bool, uniform_E
     return total_log_prior
 end
 
+"""
+    construct_doeclimbrick_log_posterior(f_run_model!; model_start_year::Int=1850, calibration_end_year::Int=2017, joint_antarctic_prior::Bool=false, uniform_ECS::Bool=false)
 
+Calculate log posterior for doeclimbrick.
 
-#######################################################################################################################
-# CALCULATE LOG POSTERIOR.
-#######################################################################################################################
-# Description: This creates a function that calculates the log-posterior probability of the uncertain model, initial
-#              condition, and statistical process parameters.
-#
-# Function Arguments:
-#
-#     f_run_model           = A function that runs the specific climate model version and returns the output being calibrated to observations.
-#     model_start_year      = First year to run the model (not necessarily first year of the calibration if model initializes earlier).
-#     end_year              = The final year to run the model calibration (defaults to 2017).
-#     joint_antarctic_prior = TRUE/FALSE check for whether to use a joint normal prior distribution (TRUE = option 1 described
-#                             above) or fitted marginal kernel density estimates (FLASE = option 2 described above).
-#     uniform_ECS           = TRUE/FALSE check for whether or not to use a uniform prior distribution for the equilibrium
-#                             climate sensitivity (true = use uniform).
-#----------------------------------------------------------------------------------------------------------------------
+Description: This creates a function that calculates the log-posterior probability of the uncertain model, initial
+             condition, and statistical process parameters.
 
+Function Arguments:
+
+    f_run_model           = A function that runs the specific climate model version and returns the output being calibrated to observations.
+    model_start_year      = First year to run the model (not necessarily first year of the calibration if model initializes earlier).
+    end_year              = The final year to run the model calibration (defaults to 2017).
+    joint_antarctic_prior = TRUE/FALSE check for whether to use a joint normal prior distribution (TRUE = option 1 described
+                            above) or fitted marginal kernel density estimates (FLASE = option 2 described above).
+    uniform_ECS           = TRUE/FALSE check for whether or not to use a uniform prior distribution for the equilibrium
+                            climate sensitivity (true = use uniform).
+"""
 function construct_doeclimbrick_log_posterior(f_run_model!; model_start_year::Int=1850, calibration_end_year::Int=2017, joint_antarctic_prior::Bool=false, uniform_ECS::Bool=false)
 
    # Create a vector of calibration years and calculate total number of years to run model.
@@ -237,7 +243,7 @@ function construct_doeclimbrick_log_posterior(f_run_model!; model_start_year::In
     doeclimbrick_log_prior = construct_doeclimbrick_log_prior(joint_antarctic_prior, uniform_ECS)
 
     # Load calibration data/observations.
-    calibration_data, obs_antarctic_trends, obs_thermal_trends = load_calibration_data(model_start_year, calibration_end_year, last_sea_level_norm_year=1990)
+    calibration_data, obs_antarctic_trends, obs_thermal_trends = MimiBRICK.load_calibration_data(model_start_year, calibration_end_year, last_sea_level_norm_year=1990)
 
     # Calculate indices for each year that has an observation in calibration data sets.
     indices_temperature_data   = findall(x-> !ismissing(x), calibration_data.hadcrut_temperature_obs)
@@ -430,3 +436,7 @@ function construct_doeclimbrick_log_posterior(f_run_model!; model_start_year::In
     # Return log posterior function given user specifications.
     return doeclimbrick_log_posterior
 end
+
+##------------------------------------------------------------------------------
+## End
+##------------------------------------------------------------------------------

@@ -2,10 +2,25 @@ using CSVFiles
 using DataFrames
 using Distributions
 using Mimi
-using MimiBRICK
 using MimiSNEASY
 
-# Create a function to run SNEASY-BRICK climate model over historic period.
+#-------------------------------------------------------------------------------
+# Function to run SNEASY-BRICK climate model over historic period.
+# ------------------------------------------------------------------------------
+"""
+    create_sneasy_brick(;rcp_scenario::String = "RCP85", start_year::Int=1850, end_year::Int=2020)
+
+Return a Mimi model instance with MimiBRICK and MimiSNEASY coupled together.
+
+Description: This function loads forcing data, sets up model parameters, and
+makes the model component variable connections.
+
+Function Arguments:
+
+        rcp_scenario = RCP scenario for exogenous forcing
+        start_year   = initial year of the simulation period
+        end_year     = ending year of the simulation period
+"""
 function create_sneasy_brick(; rcp_scenario::String="RCP85", start_year::Int=1850, end_year::Int=2020)
 
  	# ---------------------------------------------
@@ -37,13 +52,13 @@ function create_sneasy_brick(; rcp_scenario::String="RCP85", start_year::Int=185
 	m = MimiSNEASY.get_model(start_year=start_year, end_year=end_year)
 
 	# Add in BRICK sea level rise components.
-	add_comp!(m, MimiBRICK.antarctic_ocean,        after = :ccm)
-	add_comp!(m, MimiBRICK.antarctic_icesheet,     after = :antarctic_ocean)
-	add_comp!(m, MimiBRICK.glaciers_small_icecaps, after = :antarctic_icesheet)
-	add_comp!(m, MimiBRICK.greenland_icesheet,     after = :glaciers_small_icecaps)
-	add_comp!(m, MimiBRICK.thermal_expansion, 	   after = :greenland_icesheet)
-	add_comp!(m, MimiBRICK.landwater_storage, 	   after = :thermal_expansion)
-	add_comp!(m, MimiBRICK.global_sea_level, 	   after = :landwater_storage)
+	add_comp!(m, antarctic_ocean,           after = :ccm)
+	add_comp!(m, antarctic_icesheet,        after = :antarctic_ocean)
+	add_comp!(m, glaciers_small_icecaps,    after = :antarctic_icesheet)
+	add_comp!(m, greenland_icesheet,        after = :glaciers_small_icecaps)
+	add_comp!(m, thermal_expansion,         after = :greenland_icesheet)
+	add_comp!(m, landwater_storage,         after = :thermal_expansion)
+	add_comp!(m, global_sea_level,          after = :landwater_storage)
 
     # Set new time dimension for all coupled model components.
     set_dimension!(m, :time, model_years)
@@ -131,7 +146,7 @@ function create_sneasy_brick(; rcp_scenario::String="RCP85", start_year::Int=185
 
     # Set parameter connections (:component => :parameter).
 
-    # in default BRICK we use a model parameter :model_global_surface_temperature 
+    # in default BRICK we use a model parameter :model_global_surface_temperature
     # here and connect all components to that, but here we will individually
     # connect the components to :doeclim since they are now pulling from another
     # component's variable and not from a model shared parameter
@@ -155,5 +170,4 @@ function create_sneasy_brick(; rcp_scenario::String="RCP85", start_year::Int=185
     # Return SNEASY-BRICK model.
     return m
 
-    
 end

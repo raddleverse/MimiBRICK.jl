@@ -1,7 +1,8 @@
 .ipynb_checkpoints
 .DS_Store
 /results
-/Manifest.toml
 results.zip
 .vscode/settings.json
-
+calibration_results
+downscaling_results
+hindcast_projections_results

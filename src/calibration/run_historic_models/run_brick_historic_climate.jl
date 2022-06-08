@@ -1,15 +1,19 @@
-#--------------------------------------------------------------------------------------------------------------
+using Mimi
+
+#-------------------------------------------------------------------------------
 # Create a function to run the BRICK model over the historic period.
-#--------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
-# Load model file.
-using MimiBRICK
+"""
+    construct_run_brick(calibration_start_year::Int, calibration_end_year::Int)
 
+Create a function to run the BRICK model over the historic period.
+"""
 function construct_run_brick(calibration_start_year::Int, calibration_end_year::Int)
 
     # Load an instance of DOECLIM+BRICK model.
-    # WARNING: for general use, use `m = MimiBRICK.get_model!(...[arguments here]...)`  instead
-    m = Mimi.build(MimiBRICK.get_model(rcp_scenario="RCP85", start_year=calibration_start_year, end_year=calibration_end_year))
+    # WARNING: for general use, use `m = get_model!(...[arguments here]...)`  instead
+    m = Mimi.build(get_model(rcp_scenario="RCP85", start_year=calibration_start_year, end_year=calibration_end_year))
 
     # Get indices needed to normalize temperature anomalies relative to 1861-1880 mean (DOECLIM+BRICK starts in 1850 by default).
     temperature_norm_indices = findall((in)(1861:1880), 1850:calibration_end_year)
@@ -127,3 +131,7 @@ function construct_run_brick(calibration_start_year::Int, calibration_end_year::
     # Return run model function.
     return run_brick!
 end
+
+##------------------------------------------------------------------------------
+## End
+##------------------------------------------------------------------------------

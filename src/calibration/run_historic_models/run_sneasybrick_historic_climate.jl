@@ -1,10 +1,14 @@
-#--------------------------------------------------------------------------------------------------------------
+using Mimi
+
+#-------------------------------------------------------------------------------
 # Create a function to run the SNEASY+BRICK model over the historic period.
-#--------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
-# Load model file.
-include("../../src/create_models/SNEASY_BRICK.jl")
+"""
+    construct_run_sneasybrick(calibration_start_year::Int, calibration_end_year::Int)
 
+Create a function to run the SNEASY+BRICK model over the historic period.
+"""
 function construct_run_sneasybrick(calibration_start_year::Int, calibration_end_year::Int)
 
     # Load an instance of SNEASY+BRICK model.
@@ -172,3 +176,7 @@ function construct_run_sneasybrick(calibration_start_year::Int, calibration_end_
     # Return run model function.
     return run_sneasybrick!
 end
+
+##------------------------------------------------------------------------------
+## End
+##------------------------------------------------------------------------------

@@ -1,3 +1,5 @@
+using Mimi
+
 @defcomp greenland_icesheet begin
 
     # --------------------

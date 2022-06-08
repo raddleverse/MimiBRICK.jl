@@ -1,3 +1,5 @@
+using Mimi
+
 @defcomp global_sea_level begin
 
     # --------------------

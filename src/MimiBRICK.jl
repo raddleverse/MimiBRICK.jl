@@ -1,5 +1,3 @@
-#using Distributions
-
 module MimiBRICK
 
 # Load required packages
@@ -14,12 +12,28 @@ include(joinpath("components", "greenland_icesheet_component.jl"))
 include(joinpath("components", "landwater_storage_component.jl"))
 include(joinpath("components", "thermal_expansion_component.jl"))
 
-# -------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------
-# Function to create 'Building blocks for Relevant Ice and Climate Knowledge' (BRICK) model.
-# -------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------
+# include creation functions for two other model variants
+include(joinpath("create_models", "SNEASY_BRICK.jl"))
+include(joinpath("create_models", "BRICK_DOECLIM.jl"))
 
+# include other helper functions
+include(joinpath("downscale.jl"))
+
+# include calibration functions
+include(joinpath("calibration/main_calibration.jl"))
+
+# function to create 'Building blocks for Relevant Ice and Climate Knowledge' (BRICK) model.
+"""
+    get_model(;rcp_scenario::String="RCP85", start_year::Int=1850, end_year::Int=2020)
+
+Return a MimiBRICK model instance that can be modified and run.
+
+Function Arguments:
+
+      rcp_scenario = RCP scenario for exogenous forcing
+      start_year   = initial year of the simulation period
+      end_year     = ending year of the simulation period
+"""
 function get_model(;rcp_scenario::String="RCP85", start_year::Int=1850, end_year::Int=2020)
 
     #-----------------------#
