@@ -673,7 +673,7 @@ version = "1.4.0"
 
 [[deps.MimiBRICK]]
 deps = ["CSV", "CSVFiles", "DataFrames", "Dates", "Distributions", "Interpolations", "KernelDensity", "LinearAlgebra", "MCMCDiagnostics", "Mimi", "MimiSNEASY", "Missings", "NetCDF", "Plots", "Query", "Random", "RobustAdaptiveMetropolisSampler", "SpecialFunctions", "Statistics", "StatsBase"]
-git-tree-sha1 = "39518c095f64d2b7cd44f52c78a17afe2ac725f3"
+git-tree-sha1 = "57b34694ee81777e4d8c5747c9978c5573518fd8"
 repo-rev = "master"
 repo-url = "https://github.com/raddleverse/MimiBRICK.jl"
 uuid = "91f4afc7-28cd-4627-b11a-a83dc9ff1a58"
