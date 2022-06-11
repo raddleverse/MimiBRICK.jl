@@ -437,9 +437,9 @@ version = "0.13.6"
 
 [[deps.InverseFunctions]]
 deps = ["Test"]
-git-tree-sha1 = "c6cf981474e7094ce044168d329274d797843467"
+git-tree-sha1 = "b3364212fb5d870f724876ffcd34dd8ec6d98918"
 uuid = "3587e190-3f89-42d0-90ee-14403ec27112"
-version = "0.1.6"
+version = "0.1.7"
 
 [[deps.InvertedIndices]]
 git-tree-sha1 = "bee5f1ef5bf65df56bdd2e40447590b272a5471f"
@@ -673,7 +673,7 @@ version = "1.4.0"
 
 [[deps.MimiBRICK]]
 deps = ["CSV", "CSVFiles", "DataFrames", "Dates", "Distributions", "Interpolations", "KernelDensity", "LinearAlgebra", "MCMCDiagnostics", "Mimi", "MimiSNEASY", "Missings", "NetCDF", "Plots", "Query", "Random", "RobustAdaptiveMetropolisSampler", "SpecialFunctions", "Statistics", "StatsBase"]
-git-tree-sha1 = "57b34694ee81777e4d8c5747c9978c5573518fd8"
+git-tree-sha1 = "dd0d6c7e94d5592159da0bad1604ec351c3cc5e5"
 repo-rev = "master"
 repo-url = "https://github.com/raddleverse/MimiBRICK.jl"
 uuid = "91f4afc7-28cd-4627-b11a-a83dc9ff1a58"
@@ -681,11 +681,9 @@ version = "1.0.0-DEV"
 
 [[deps.MimiSNEASY]]
 deps = ["CSVFiles", "DataFrames", "DelimitedFiles", "Mimi", "Query", "SpecialFunctions"]
-git-tree-sha1 = "3338a5ea1ebdab9c80b5c8b94134d8efcf0bd71b"
-repo-rev = "master"
-repo-url = "https://github.com/anthofflab/MimiSNEASY.jl"
+git-tree-sha1 = "e618e8e94f2bcacc334c9006d54700575159e27e"
 uuid = "3f1801d0-c5f8-11e9-1568-bf13fd643260"
-version = "1.0.3-DEV"
+version = "1.0.2"
 
 [[deps.Missings]]
 deps = ["DataAPI"]
@@ -701,9 +699,9 @@ uuid = "14a3606d-f60d-562e-9121-12d972cd8159"
 
 [[deps.MutableArithmetics]]
 deps = ["LinearAlgebra", "SparseArrays", "Test"]
-git-tree-sha1 = "3f419c608647de2afb8c05a1b1911f45b35418e2"
+git-tree-sha1 = "4e675d6e9ec02061800d6cfb695812becbd03cdf"
 uuid = "d8a4904e-b15c-11e9-3269-09a3773c0cb0"
-version = "1.0.3"
+version = "1.0.4"
 
 [[deps.NaNMath]]
 git-tree-sha1 = "737a5957f387b17e74d4ad2f440eb330b39a62c5"
@@ -1024,9 +1022,9 @@ version = "1.8.6"
 
 [[deps.StaticArrays]]
 deps = ["LinearAlgebra", "Random", "Statistics"]
-git-tree-sha1 = "383a578bdf6e6721f480e749d503ebc8405a0b22"
+git-tree-sha1 = "2bbd9f2e40afd197a1379aef05e0d85dba649951"
 uuid = "90137ffa-7385-5640-81b9-e52037218182"
-version = "1.4.6"
+version = "1.4.7"
 
 [[deps.Statistics]]
 deps = ["LinearAlgebra", "SparseArrays"]
