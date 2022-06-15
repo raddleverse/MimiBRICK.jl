@@ -23,7 +23,8 @@ This code was created using [Julia v1.6](https://julialang.org/downloads/) and r
 (1) Run the following line to install the Mimi implementation of BRICK:
 
 ```julia
-] add https://github.com/raddleverse/MimiBRICK.jl.git
+] 
+add https://github.com/raddleverse/MimiBRICK.jl.git
 ```
 
 _Note: Once MimiBRICK is officially published and packaged, this will be replaced by a simpler `add MimiBRICK`. But until that time, just point at the Github URL there._
