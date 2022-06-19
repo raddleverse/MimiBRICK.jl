@@ -21,7 +21,7 @@ authors:
     affiliation: 4
   - name: Alexander Bakker
     orcid: 0000-0002-1017-7665
-    affiliation: 5,7
+    affiliation: "5,7"
   - name: Klaus Keller
     orcid: 0000-0002-5451-8687
     affiliation: 6
