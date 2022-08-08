@@ -24,7 +24,7 @@ This code was created using [Julia v1.6](https://julialang.org/downloads/) and r
 (1) Run the following line to install the Mimi implementation of BRICK:
 
 ```julia
-] 
+]
 add https://github.com/raddleverse/MimiBRICK.jl.git
 ```
 
@@ -33,7 +33,7 @@ _Note: Once MimiBRICK is officially published and packaged, this will be replace
 (2) To exit back to Julia, hit the `backspace` key.
 
 <br>
-    
+
 ## Running baseline cases with default parameters and unit tests
 
 If you would like to take a look at the unit tests run with Continuous Integration for this package, feel free to take a look at the `runtests.jl` file, and the separate testing scripts it calls [here](https://github.com/raddleverse/MimiBRICK.jl/tree/master/test).
@@ -113,6 +113,18 @@ run(m)
 ```
 
 The `create_sneasy_brick()` constructor has the same arguments as the DOECLIM-BRICK constructor, so you can change the RCP scenario and the time period.
+
+<br>
+
+## Author Contributions
+
+* TW: initial model development, software development, model calibration and validation, conceptualization, projection direction and overall management
+* LR: software development, package maintenance, conceptualization
+* FE: software development, model calibration and validation, conceptualization
+* VS: software testing, model calibration and validation, conceptualization
+* AB: initial model development, software testing, conceptualization
+* KK: software testing, conceptualization
+* DA: software development, package maintenance, conceptualization, project direction
 
 <br>
 
