@@ -116,12 +116,12 @@ function construct_doeclimbrick_log_prior(joint_antarctic_prior::Bool, uniform_E
     prior_ρ_glaciers         = Uniform(-0.99, 0.99)
     prior_ρ_greenland        = Uniform(-0.99, 0.99)
     prior_ρ_antarctic        = Uniform(-0.99, 0.99)
-    prior_ρ_gmsl             = Truncated(Normal(0.8, .25), -1.0, 1.0)
+    prior_ρ_gmsl             = truncated(Normal(0.8, .25), -1.0, 1.0)
 
     # -----------------------------------------
     # Initial Condition Priors.
     # -----------------------------------------
-    prior_temperature_0      = Truncated(Normal(),-0.3, 0.3)
+    prior_temperature_0      = truncated(Normal(),-0.3, 0.3)
     prior_ocean_heat_0       = Uniform(-100, 0)
     prior_thermal_s₀         = Uniform(-0.0484, 0.0484) # BRICK defaults. # Initial sea level rise due to thermal expansion designated in 1850 (m SLE).
     prior_greenland_v₀       = Uniform(7.16, 7.56)
@@ -139,7 +139,7 @@ function construct_doeclimbrick_log_prior(joint_antarctic_prior::Bool, uniform_E
     if uniform_ECS == true
         prior_ECS = Uniform(0.0, 10.0)
     else
-        prior_ECS = Truncated(Cauchy(3.0,2.0), 0.0, 10.0)
+        prior_ECS = truncated(Cauchy(3.0,2.0), 0.0, 10.0)
     end
 
     # ---------------------------------------------
