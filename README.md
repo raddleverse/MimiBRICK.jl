@@ -35,7 +35,7 @@ Installation instructions and example use cases can be found in the GitHub Pages
 
 ## Contributions
 
-Contributions to Mimi codes are most welcome! More information can be found at in the Mimi Framework site at https://www.mimiframework.org/. Users are encouraged to engage with the development team on GitHub and in the [Mimi Development Forum](https://forum.mimiframework.org/).
+Contributions to Mimi codes are most welcome! More information can be found at in the Mimi Framework site at https://www.mimiframework.org/. Users are encouraged to engage with the development team on GitHub and in the [Mimi Framework Forum](https://forum.mimiframework.org/).
 
 ### Contributions to the initial v1.0 of MimiBRICK.jl
 
