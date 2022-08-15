@@ -33,9 +33,13 @@ Installation instructions and example use cases can be found in the GitHub Pages
 
 <br>
 
-## Author Contributions
+## Contributions
 
-* TW: initial model development, software development, model calibration and validation, conceptualization, projection direction and overall management
+Contributions to Mimi codes are most welcome! More information can be found at in the Mimi Framework site at https://www.mimiframework.org/. Users are encouraged to engage with the development team on GitHub and in the [Mimi Development Forum](https://forum.mimiframework.org/).
+
+### Contributions to the initial v1.0 of MimiBRICK.jl
+
+* TW: initial model development, software development, model calibration and validation, conceptualization, projection direction, and overall management
 * LR: software development, package maintenance, conceptualization
 * FE: software development, model calibration and validation, conceptualization
 * VS: software testing, model calibration and validation, conceptualization
