@@ -25,6 +25,8 @@ This implementation includes examples for using observational data to calibrate 
   * Please let us know of any new results that should be incorporated into the [Introduction-and-Library repository](https://github.com/raddleverse/Introduction-and-Library)! See the README.md file in that repository for more information.
   * Also please let us know of any model modifications and/or bug fixes that might usefully be incorporated into the main BRICK codes. Creating an "Issue" here is a great way to do that (top horizontal menu bar in the GitHub browser).
 
+<br>
+
 ## Installation and Examples
 
 Installation instructions and example use cases can be found in the GitHub Pages site: https://raddleverse.github.io/MimiBRICK.jl/
