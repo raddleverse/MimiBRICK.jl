@@ -209,7 +209,7 @@ function get_fingerprints()
     fpAIS = ncread(fp_file,"AIS")
     fpGSIC = ncread(fp_file,"GLAC")
     fpGIS = ncread(fp_file,"GIS")
-    ncclose()
+    nothing
 
     return fplat,fplon,fpAIS,fpGSIC,fpGIS
 end
