@@ -7,6 +7,14 @@ This repository will have the latest "standard" BRICK version and codes demonstr
 
 <br>
 
+## Statement of Need
+
+MimiBRICK.jl is an implementation of the [Building Blocks for Relevant Ice and Climate Knowledge (BRICK) semi-empirical model for sea-level change](https://doi.org/10.5194/gmd-10-2741-2017) in the Mimi integrated modeling framework (https://www.mimiframework.org/). The Mimi modeling framework is a coding platform that facilitates coupling models and running coupled modeling experiments. MimiBRICK.jl is flexible, efficient, and modular, to facilitate incorporating BRICK into coupled models and integrated assessments of climate impacts in a modular fashion to provide global average as well as local sea-level projections. This focus on tight model coupling and integrated modeling is a key feature of MimiBRICK.jl and broader Mimi modeling framework.
+
+This implementation includes examples for using observational data to calibrate the model, as well as various configurations in which MimiBRICK.jl is coupled to other climate model components. For users who do not wish to re-run computationally intensive model calibration algorithms, this implementation also includes scripts for using existing calibration output for standard future climate change scenarios, and examples downscaling these global projections for assessments of local impacts.
+
+<br>
+
 ## Recommended Use
 
 * If you would like to use previously published BRICK results as part of a new analysis, but do not necessarily want to re-run the model, then we recommend to go to the [**Introduction-and-Library** repository](https://github.com/raddleverse/Introduction-and-Library). There, you will find links for each published BRICK study, including links for the calibrated model parameter data sets and the calibrated model projections for sea level, temperature, and any other relevant outputs. Accompanying this package, in the `examples` directory, you will find a Zenodo repository linked. This repository has a set of calibration output and model ensembles that can be used without re-calibrating the model.
