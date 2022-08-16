@@ -17,12 +17,11 @@ This implementation includes examples for using observational data to calibrate 
 
 ## Recommended Use
 
-* If you would like to use previously published BRICK results as part of a new analysis, but do not necessarily want to re-run the model, then we recommend to go to the [**Introduction-and-Library** repository](https://github.com/raddleverse/Introduction-and-Library). There, you will find links for each published BRICK study, including links for the calibrated model parameter data sets and the calibrated model projections for sea level, temperature, and any other relevant outputs. Accompanying this package, in the `examples` directory, you will find a Zenodo repository linked. This repository has a set of calibration output and model ensembles that can be used without re-calibrating the model.
+* If you would like to use previously published BRICK results as part of a new analysis, but do not necessarily want to re-run the model, then we recommend to go to the [accompanying Zenodo repository](https://zenodo.org/record/6626335). In the near future, we will compile a library of other previously published studies using BRICK, including any other relevant outputs. 
 * If you would like to run the model yourself, then you are in the right place!
   * It is assumed that users will not clone/download this Git repository. Instead, you can add and use the package as described below. Those commands and the commands to set up and run the model can be executed from the directories that contain the rest of your project codes.
   * Load the MimiBRICK package (or if you wish to edit the package either fork the master branch from this repository or download the zipped file of codes)
   * Do your analysis
-  * Please let us know of any new results that should be incorporated into the [Introduction-and-Library repository](https://github.com/raddleverse/Introduction-and-Library)! See the README.md file in that repository for more information.
   * Also please let us know of any model modifications and/or bug fixes that might usefully be incorporated into the main BRICK codes. Creating an "Issue" here is a great way to do that (top horizontal menu bar in the GitHub browser).
 
 <br>
