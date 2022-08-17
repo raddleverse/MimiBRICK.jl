@@ -15,7 +15,17 @@ This implementation includes examples for using observational data to calibrate 
 
 <br>
 
-## Recommended Use
+## Structure
+
+* `/calibration` - functions for setting up model forcing for calibration
+* `/data` - calibration and forcing scenario data
+* `/docs` - files for GitHub Pages site documentation
+* `/examples` - Jupyter notebooks demonstrating the workflows for model calibration, downscaling global sea-level change to local, and making model hindcasts and projections; we anticipate that it will be useful to take these notebooks and modifying them to fit users' own use cases
+* `/joss_submission` - files associated with the MimiBRICK.jl Journal of Open Source Software submission
+* `/src` - functions for the actual component submodels of BRICK, for configuring these models as a combined coupled BRICK model, for performing the downscaling to local sea-level change, and for performing the model calibration; includes the likelihood function configuration
+* `/test` - contains tests for out-of-box model configurations, testing a small model calibration, and downscaling to local sea-level change; used for continuous integration testing
+
+### Recommended Use
 
 * If you would like to use previously published BRICK results as part of a new analysis, but do not necessarily want to re-run the model, then we recommend to go to the [accompanying Zenodo repository](https://zenodo.org/record/6626335). In the near future, we will compile a library of other previously published studies using BRICK, including any other relevant outputs. 
 * If you would like to run the model yourself, then you are in the right place!
@@ -24,20 +34,20 @@ This implementation includes examples for using observational data to calibrate 
   * Do your analysis
   * Also please let us know of any model modifications and/or bug fixes that might usefully be incorporated into the main BRICK codes. Creating an "Issue" here is a great way to do that (top horizontal menu bar in the GitHub browser).
 
-<br>
-
-## Installation and Examples
+### Installation and Examples
 
 This code was created using Julia v1.6 and requires several Julia packages. It is recommended that you use Julia v1.6 (or later). Julia may be downloaded from http://julialang.org/downloads/.
 
 (1) Run the following line to install the Mimi implementation of BRICK:
 
+```
 ]
 add MimiBRICK
+```
 
 (2) To exit back to Julia, hit the backspace key.
 
-Further instructions and example use cases can be found in the GitHub Pages site: https://raddleverse.github.io/MimiBRICK.jl/
+Further instructions and example use cases can be found in the `examples` directory and on the GitHub Pages site https://raddleverse.github.io/MimiBRICK.jl/.
 
 <br>
 
