@@ -1,75 +1,33 @@
 # MimiBRICK.jl
 
-```@contents
+MimiBRICK.jl is an implementation of the [Building Blocks for Relevant Ice and Climate Knowledge (BRICK) semi-empirical model for sea-level change](https://doi.org/10.5194/gmd-10-2741-2017) in the Mimi integrated modeling framework (https://www.mimiframework.org/). The Mimi modeling framework is a coding platform that facilitates coupling models and running coupled modeling experiments. MimiBRICK.jl is flexible, efficient, and modular, to facilitate incorporating BRICK into coupled models and integrated assessments of climate impacts in a modular fashion to provide global average as well as local sea-level projections. This focus on tight model coupling and integrated modeling is a key feature of MimiBRICK.jl and broader Mimi modeling framework.
+
+This implementation includes examples for using observational data to calibrate the model, as well as various configurations in which MimiBRICK.jl is coupled to other climate model components. For users who do not wish to re-run computationally intensive model calibration algorithms, this implementation also includes scripts for using existing calibration output for standard future climate change scenarios, and examples downscaling these global projections for assessments of local impacts. Pre-run model calibration and simulation output can be found in the [accompanying Zenodo repository](https://zenodo.org/record/6626335).
+
+```@autodocs
+Modules = [MimiBRICK]
 ```
 
-### Functions for creating typical coupled model instances beyond stand-alone BRICK.
+<br>
 
-```@docs
+## Author Contributions
 
-MimiBRICK.create_brick_doeclim(;rcp_scenario::String = "RCP85", start_year::Int=1850, end_year::Int=2020)
+* TW: initial model development, software development, model calibration and validation, conceptualization, projection direction and overall management
+* LR: software development, package maintenance, conceptualization
+* FE: software development, model calibration and validation, conceptualization
+* VS: software testing, model calibration and validation, conceptualization
+* AB: initial model development, software testing, conceptualization
+* KK: software testing, conceptualization
+* DA: software development, package maintenance, conceptualization, project direction
 
-MimiBRICK.create_sneasy_brick(;rcp_scenario::String = "RCP85", start_year::Int=1850, end_year::Int=2020)
-```
+<br>
 
-### Functions for creating prior and posterior distributions for BRICK and typical coupled model configuration (including likelihoods)
+## License
 
-```@docs
-MimiBRICK.construct_brick_log_prior(joint_antarctic_prior::Bool; calibration_data_dir::Union{String, Nothing} = nothing)
+Copyright 2022 Tony Wong, Lisa Rennels, Frank Errickson, Vivek Srikrishnan, Alexander Bakker, Klaus Keller, and David Anthoff
 
-MimiBRICK.construct_brick_log_posterior(f_run_model!; model_start_year::Int=1852, calibration_end_year::Int=2017, joint_antarctic_prior::Bool=false)
+This file and codes in this repository are part of MimiBRICK.jl (Building blocks for Relevant Ice and Climate Knowledge). MimiBRICK.jl is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
-MimiBRICK.construct_doeclimbrick_log_prior(joint_antarctic_prior::Bool, uniform_ECS::Bool; calibration_data_dir::Union{String, Nothing} = nothing)
+MimiBRICK.jl is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
-MimiBRICK.construct_doeclimbrick_log_posterior(f_run_model!; model_start_year::Int=1850, calibration_end_year::Int=2017, joint_antarctic_prior::Bool=false, uniform_ECS::Bool=false)
-
-MimiBRICK.construct_sneasybrick_log_prior(joint_antarctic_prior::Bool, uniform_ECS::Bool; calibration_data_dir::Union{String, Nothing} = nothing)
-
-MimiBRICK.construct_sneasybrick_log_posterior(f_run_model!; model_start_year::Int=1850, calibration_end_year::Int=2017, joint_antarctic_prior::Bool=false, uniform_ECS::Bool=false)
-```
-
-### Calibration functionality
-
-```@docs
-MimiBRICK.load_calibration_data(model_start_year::Int, last_calibration_year::Int; last_sea_level_norm_year::Int=1990, calibration_data_dir::Union{Nothing, String} = nothing)
-
-MimiBRICK.hetero_logl_ar1(residuals::Array{Float64,1}, σ::Float64, ρ::Float64, ϵ::Array{Union{Float64, Missings.Missing},1})
-
-MimiBRICK.hetero_logl_car1(residuals::Array{Float64,1}, indices::Array{Int64,1}, σ²_white_noise::Float64, α₀::Float64, ϵ::Array{Union{Float64, Missings.Missing},1})
-
-MimiBRICK.calculate_trends(model_output::Array{Float64,1}, obs_trends::DataFrame, start_year::Int, end_year::Int)
-
-MimiBRICK.truncated_kernel(data, lower_bound, upper_bound)
-
-MimiBRICK.simulate_ar1_noise(n::Int, σ::Float64, ρ::Float64, ϵ::Array{Float64,1})
-
-MimiBRICK.simulate_car1_noise(n, α₀, σ²_white_noise, ϵ)
-
-MimiBRICK.replicate_errors(start_year::Int, end_year::Int, error_data)
-
-MimiBRICK.run_calibration(;   output_dir::String,
-                      model_config="brick",
-                      calibration_start_year=1850,
-                      calibration_end_year=2005,
-                      total_chain_length=1000,
-                      burnin_length=0,
-                      threshold_gr=1.1,
-                      num_walkers=2,
-                      size_subsample=1000,
-                      start_from_priors=false,
-                      calibration_data_dir::Union{String, Nothing} = nothing
-                  )
-
-MimiBRICK.run_hindcast(; output_dir::String,
-                  model_config::String = "brick",
-                  start_year::Int = 1850,
-                  end_year = 2017,
-              )
-
-MimiBRICK.run_projections(; output_dir::String,
-                      model_config::String = "brick",
-                      rcp_scenario::String = "RCP85",
-                      start_year::Int = 1850,
-                      end_year = 2300,
-                  )
-```
+You should have received a copy of the GNU General Public License along with MimiBRICK.jl (`LICENSE.md)`). If not, see http://www.gnu.org/licenses/.
