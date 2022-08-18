@@ -1,3 +1,0 @@
-# MimiBRICK.jl
-
-placeholder

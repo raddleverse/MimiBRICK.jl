@@ -1,14 +1,13 @@
-using Documenter, MimiBRICK
+using MimiBRICK
+using Documenter
+using Missings,DataFrames
 
 makedocs(
 	doctest = false,
     modules = [MimiBRICK],
-	sitename = "MimiBRICK.jl",
-	pages = [
-		"Home" => "index.md",
-		"Installation" => "src/installation.md",
-		"Calibratoin" => "src/calibration.md",
-		"Examples" => "src/examples.md",
+	sitename = "MimiBRICK.jl Documentation",
+	pages = ["Home" => "index.md",
+	         "Installation and Examples" => "install_and_examples.md"
 	],
 	format = Documenter.HTML(prettyurls = get(ENV, "JULIA_NO_LOCAL_PRETTY_URLS", nothing) === nothing)
 )
