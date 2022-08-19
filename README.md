@@ -110,7 +110,7 @@ add MimiBRICK
 
 (2) To exit back to Julia, hit the backspace key.
 
-Further instructions and example use cases can be found in the `examples` directory and on the GitHub Pages site https://raddleverse.github.io/MimiBRICK.jl/.
+Further instructions and example use cases can be found in the `examples` directory and on the GitHub Pages site https://raddleverse.github.io/MimiBRICK.jl/ and [MimiBRICK.jl documentation](https://raddleverse.github.io/MimiBRICK.jl/dev/).
 
 <br>
 
