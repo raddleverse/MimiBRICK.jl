@@ -2,7 +2,7 @@
 
 This repository will have the latest "standard" BRICK version and codes demonstrating its calibration in three configurations: (i) alone (forced by temperature and ocean heat), (ii) coupled to DOECLIM, and (iii) coupled to SNEASY. Standard calibration output will be provided as well as examples and scripts for downscaling the projections to a 1-degree grid for local sea-level rise.
 
-<br>
+
 
 ## Recommended Use
 
@@ -26,7 +26,7 @@ add MimiBRICK
 
 (2) To exit back to Julia, hit the `backspace` key.
 
-<br>
+
 
 ## Running baseline cases with default parameters and unit tests
 

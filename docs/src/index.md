@@ -8,7 +8,7 @@ This implementation includes examples for using observational data to calibrate 
 Modules = [MimiBRICK]
 ```
 
-<br>
+
 
 ## Author Contributions
 
@@ -20,7 +20,7 @@ Modules = [MimiBRICK]
 * KK: software testing, conceptualization
 * DA: software development, package maintenance, conceptualization, project direction
 
-<br>
+
 
 ## License
 
