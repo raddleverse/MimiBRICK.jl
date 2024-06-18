@@ -14,7 +14,7 @@ mkpath(tmp_dir)
 # calibration set up - very small set since we just need files to run downscaling
 calibration_start_year  = 1850
 calibration_end_year    = 2017
-total_chain_length      = 100
+total_chain_length      = 250
 size_subsample          = 10
 threshold_gr            = 1.1
 

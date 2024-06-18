@@ -6,7 +6,7 @@ using LinearAlgebra
 using Mimi
 using NetCDF
 using RobustAdaptiveMetropolisSampler
-using MCMCDiagnostics
+using MCMCDiagnosticTools
 using Random
 using StatsBase
 
@@ -130,19 +130,20 @@ function run_calibration(;  output_dir::String,
     chain_burned = chain_raw[(burnin_length+1):total_chain_length,:]
     log_post_burned = log_post[(burnin_length+1):total_chain_length]
 
-    # Check convergence by computing Gelman and Rubin diagnostic for each parameter (potential scale reduction factor)
-    psrf = Array{Float64,1}(undef , num_parameters)
+    # Using multivariate GR diagnostic (checking single variate PSRF like before)
+    chains3 = zeros(Int(size(chain_burned)[1]/num_walkers), num_walkers, size(chain_burned)[2])
     for p in 1:num_parameters
-        chains = reshape(chain_burned[:,p], Int(size(chain_burned)[1]/num_walkers), num_walkers)
-        chains = [chains[:,k] for k in 1:num_walkers]
-        psrf[p] = potential_scale_reduction(chains...)
+        chains3[:,:,p] = reshape(chain_burned[:,p], Int(size(chain_burned)[1]/num_walkers), num_walkers)
     end
+    # Gelman and Rubin (1992) potential scale reduction factor
+    psrf = gelmandiag_multivariate(chains3).psrf
 
     # Check if psrf < threshold_gr for each parameters
     if all(x -> x < threshold_gr, psrf)
         println("All parameter chains have Gelman and Rubin PSRF < ",threshold_gr)
     else
         println("WARNING: some parameter chains have Gelman and Rubin PSRF > ",threshold_gr)
+        println("You may want to check other convergence diagnostics.")
         for p in 1:num_parameters
             println(parnames[p],"  ",round(psrf[p],digits=4))
         end
