@@ -1,6 +1,6 @@
 name = "MimiBRICK"
 uuid = "91f4afc7-28cd-4627-b11a-a83dc9ff1a58"
-version = "1.0.2-DEV"
+version = "1.2.0-dev"
 
 [deps]
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
