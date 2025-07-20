@@ -31,7 +31,7 @@ function create_brick_doeclim(;ssprcp_scenario::String = "ssp245", start_year::I
     # Set model years.
 	model_years = collect(start_year:end_year)
 
-    # Load and clean up RCP radiative forcing data for DOEclim (options include "RCP26", "RCP45", "RCP60", and "RCP85").
+    # Load SSP-RCP radiative forcing data for DOECLIM (index into appropriate years).
     ssprcp_forcing_data = DataFrame(load(joinpath(@__DIR__, "..", "..", "data", "model_data", "rcmip-radiative-forcing-annual-means-v5-1-0.csv"), skiplines_begin=0))
 
     # Isolate radiative forcing from CO₂, aerosols, and all other sources.
