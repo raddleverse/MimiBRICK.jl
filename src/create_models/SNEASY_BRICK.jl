@@ -1,6 +1,7 @@
 using CSVFiles
 using DataFrames
 using Distributions
+using Interpolations
 using Mimi
 using MimiSNEASY
 
@@ -37,11 +38,27 @@ function create_sneasy_brick(; ssprcp_scenario::String="ssp245", start_year::Int
 
     # Calculate CO₂ emissions.
     filtered_df = filter(row -> row.Scenario==ssprcp_scenario && row.Variable=="Emissions|CO2" && row.Region=="World", ssprcp_emissions_data)
-    ssprcp_co2_emissions = [filtered_df[1,string(c)] for c in model_years]
+    ssprcp_co2_emissions = [filtered_df[1,string(c)] for c in model_years]./1000 # data in MtC, model expects GtC
+    # get full data through interpolation (projection is every 10y)
+    co2 = ssprcp_co2_emissions[findall(!ismissing, ssprcp_co2_emissions)]
+    years_co2 = model_years[findall(!ismissing, ssprcp_co2_emissions)]
+    interp_co2 = linear_interpolation(years_co2, co2);
+    idx_to_fill = findall(ismissing, ssprcp_co2_emissions)
+    for i in idx_to_fill
+        ssprcp_co2_emissions[i] = interp_co2(model_years[i])
+    end
 
-    # Get RCP N₂O concentrations (used for CO₂ radiative forcing calculations).
+    # Get N₂O concentrations (used for CO₂ radiative forcing calculations).
     filtered_df = filter(row -> row.Scenario==ssprcp_scenario && row.Variable=="Atmospheric Concentrations|N2O" && row.Region=="World", ssprcp_concentrations_data)
     ssprcp_n2o_concentration = [filtered_df[1,string(c)] for c in model_years]
+    ### get full data through interpolation (projection is every 10y)
+    ##n2o = ssprcp_n2o_concentration[findall(!ismissing, ssprcp_n2o_concentration)]
+    ##years_n2o = model_years[findall(!ismissing, ssprcp_n2o_concentration)]
+    ##interp_n2o = linear_interpolation(years_n2o, n2o);
+    ##idx_to_fill = findall(ismissing, ssprcp_n2o_concentration)
+    ##for i in idx_to_fill
+    ##    ssprcp_n2o_concentration[i] = interp_n2o(model_years[i])
+    ##end
 
     # Calculate exogenous radiative forcings.
     filtered_df = filter(row -> row.Scenario == ssprcp_scenario && row.Variable == "Effective Radiative Forcing|Anthropogenic|CO2", ssprcp_forcing_data)
@@ -50,6 +67,25 @@ function create_sneasy_brick(; ssprcp_scenario::String="ssp245", start_year::Int
     ssprcp_aerosol_forcing = [filtered_df[1,string(c)] for c in model_years]
     filtered_df = filter(row -> row.Scenario == ssprcp_scenario && row.Variable == "Effective Radiative Forcing", ssprcp_forcing_data)
     ssprcp_other_forcing = [filtered_df[1,string(c)] for c in model_years] .- forcing_CO₂ .- ssprcp_aerosol_forcing
+
+##OLD for testing
+    #rcp_indices = findall((in)(model_years), 1765:2500)
+	## Load emissions and forcing data (index into appropriate years).
+  	#rcp_emissions      = DataFrame(load(joinpath(@__DIR__, "data", "model_data", rcp_scenario*"_emissions.csv"), skiplines_begin=36))
+    #rcp_concentrations = DataFrame(load(joinpath(@__DIR__, "data", "model_data", rcp_scenario*"_concentrations.csv"), skiplines_begin=37))
+    #rcp_forcing        = DataFrame(load(joinpath(@__DIR__, "data", "model_data", rcp_scenario*"_midyear_radforcings.csv"), skiplines_begin=58))
+
+    ## Calculate CO₂ emissions.
+    #rcp_co2_emissions = (rcp_emissions.FossilCO2 .+ rcp_emissions.OtherCO2)[rcp_indices]
+
+    # Get RCP N₂O concentrations (used for CO₂ radiative forcing calculations).
+    #rcp_n2o_concentration = rcp_concentrations.N2O[rcp_indices]
+
+    # Calculate exogenous radiative forcings.
+    #rcp_aerosol_forcing    = (rcp_forcing.TOTAER_DIR_RF .+ rcp_forcing.CLOUD_TOT_RF)[rcp_indices]
+    #rcp_other_forcing      = (rcp_forcing.TOTAL_INCLVOLCANIC_RF .- rcp_forcing.CO2_RF .- rcp_forcing.TOTAER_DIR_RF .- rcp_forcing.CLOUD_TOT_RF)[rcp_indices]
+##OLD for testing
+
 
 
   	# Get an instance of Mimi-BRICK sea level rise model and set time dimension.
