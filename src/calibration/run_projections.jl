@@ -19,13 +19,14 @@ Function Arguments:
 
     - outdir - paths for results files - subsample of model parameters, and associated log-posterior scores, and printed results of this function
     - model_config (default = "brick") - model configuration with possible options: (1) "brick", (2) "doeclimbrick", (3) "sneasybrick"
-    - rcp_scenario (default = "RCP85) - RCP scenario with possible options: (1) RCP26, (2) RCP45, (3) RCP60, (4) RCP85
+    - ssprcp_scenario (default = "ssp245") - SSP-RCP scenario with possible options: (1) ssp126, (2) ssp245, (3) ssp370, (4) ssp460, (5) ssp585
+              NB: currently only functional for DOECLIM-BRICK. Others must use original RCP arguments (RCP26, 45, 60, or 85)
     - start_year (default = 1850) - start year for calibration
     - end_year (default = 2300) - end year for calibration
 """
 function run_projections(; output_dir::String,
                         model_config::String = "brick",
-                        rcp_scenario::String = "RCP85",
+                        ssprcp_scenario::String = "ssp245",
                         start_year::Int = 1850,
                         end_year = 2300,
                     )
@@ -51,11 +52,11 @@ function run_projections(; output_dir::String,
 
     # Get model instance
     if model_config=="brick"
-        m = get_model(rcp_scenario=rcp_scenario, start_year=start_year, end_year=end_year)
+        m = get_model(rcp_scenario=ssprcp_scenario, start_year=start_year, end_year=end_year)
     elseif model_config=="doeclimbrick"
-        m = create_brick_doeclim(rcp_scenario=rcp_scenario, start_year=start_year, end_year=end_year)
+        m = create_brick_doeclim(ssprcp_scenario=ssprcp_scenario, start_year=start_year, end_year=end_year)
     elseif model_config=="sneasybrick"
-        m = create_sneasy_brick(rcp_scenario=rcp_scenario, start_year=start_year, end_year=end_year)
+        m = create_sneasy_brick(ssprcp_scenario=ssprcp_scenario, start_year=start_year, end_year=end_year)
     end
 
     # Load calibration data from 1765-2017 (measurement errors used in simulated noise).

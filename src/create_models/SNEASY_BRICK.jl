@@ -8,7 +8,7 @@ using MimiSNEASY
 # Function to run SNEASY-BRICK climate model over historic period.
 # ------------------------------------------------------------------------------
 """
-    create_sneasy_brick(;rcp_scenario::String = "RCP85", start_year::Int=1850, end_year::Int=2020)
+    create_sneasy_brick(;ssprcp_scenario::String = "ssp245", start_year::Int=1850, end_year::Int=2020)
 
 Return a Mimi model instance with MimiBRICK and MimiSNEASY coupled together.
 
@@ -17,11 +17,11 @@ makes the model component variable connections.
 
 Function Arguments:
 
-        rcp_scenario = RCP scenario for exogenous forcing
-        start_year   = initial year of the simulation period
-        end_year     = ending year of the simulation period
+        ssprcp_scenario = SSP-RCP scenario for exogenous forcing
+        start_year      = initial year of the simulation period
+        end_year        = ending year of the simulation period
 """
-function create_sneasy_brick(; rcp_scenario::String="RCP85", start_year::Int=1850, end_year::Int=2020)
+function create_sneasy_brick(; ssprcp_scenario::String="ssp245", start_year::Int=1850, end_year::Int=2020)
 
  	# ---------------------------------------------
     # Load and clean up necessary data.
@@ -30,8 +30,8 @@ function create_sneasy_brick(; rcp_scenario::String="RCP85", start_year::Int=185
 	# Set model years.
 	model_years = collect(start_year:end_year)
 
-    # Find indices for RCP data (1765-2500) corresponding to DICE years.
-    rcp_indices = findall((in)(model_years), 1765:2500)
+    ### Find indices for RCP data (1765-2500) corresponding to DICE years.
+    ##rcp_indices = findall((in)(model_years), 1765:2500)
 
 	# Load emissions and forcing data (index into appropriate years).
   	rcp_emissions      = DataFrame(load(joinpath(@__DIR__, "..", "..", "data", "model_data", rcp_scenario*"_emissions.csv"), skiplines_begin=36))
