@@ -208,7 +208,7 @@ function run_projections(; output_dir::String,
         greenland[i,:]   = m[:greenland_icesheet, :greenland_sea_level] .- mean(m[:greenland_icesheet, :greenland_sea_level][sealevel_norm_indices_1992_2001]) .+ ar1_noise_greenland
         antarctic[i,:]   = m[:antarctic_icesheet, :ais_sea_level] .- mean(m[:antarctic_icesheet, :ais_sea_level][sealevel_norm_indices_1992_2001]) .+ ar1_noise_antarctic
         thermal_sl[i,:]  = m[:thermal_expansion, :te_sea_level]
-        lws_sl[i,:].     = m[:landwater_storage, :lws_sea_level]
+        lws_sl[i,:]      = m[:landwater_storage, :lws_sea_level]
         gmsl[i,:]        = m[:global_sea_level, :sea_level_rise] .- mean(m[:global_sea_level, :sea_level_rise][sealevel_norm_indices_1961_1990]) .+ ar1_noise_gmsl
         if (model_config == "doeclimbrick") | (model_config == "sneasybrick")
             temperature[i,:] = m[:doeclim, :temp] .- mean(m[:doeclim, :temp][temperature_norm_indices]) .+ ar1_noise_temperature .+ temperature_0
