@@ -69,10 +69,10 @@ function run_projections(; output_dir::String,
     greenland    = zeros(Union{Missing, Float64}, num_ens, num_years)
     thermal_sl   = zeros(Union{Missing, Float64}, num_ens, num_years)
     antarctic    = zeros(Union{Missing, Float64}, num_ens, num_years)
-    lws_sl       = zeros(Union{Missing, Float64}, num_ens, num_years)
+    lws_sl       = zeros(Union{Missing, Float64}, num_ens, num_years) # SLR
     gmsl         = zeros(Union{Missing, Float64}, num_ens, num_years)
     # Also need to calculate landwater storage contribution so it is the same between base and pulse runs.
-    landwater_storage_sl = zeros(Union{Missing, Float64}, num_ens, num_years)
+    landwater_storage_sl = zeros(Union{Missing, Float64}, num_ens, num_years) # yearly trend
     # Pre-allocate vectors to hold simulated CAR(1) & AR(1) with measurement error noise.
     ar1_noise_glaciers    = zeros(num_years)
     ar1_noise_greenland   = zeros(num_years)
@@ -236,7 +236,7 @@ function run_projections(; output_dir::String,
 
     # Writing output tables.
     write_output_table("gmsl", rcp_scenario, gmsl, filepath_output)
-    write_output_table("landwater_storage_sl", rcp_scenario, landwater_storage_sl, filepath_output)
+    write_output_table("landwater_storage_sl", rcp_scenario, lws_sl, filepath_output)
     write_output_table("glaciers", rcp_scenario, glaciers, filepath_output)
     write_output_table("greenland", rcp_scenario, greenland, filepath_output)
     write_output_table("antarctic", rcp_scenario, antarctic, filepath_output)
@@ -263,7 +263,7 @@ function run_projections(; output_dir::String,
     map_outputs = zeros(Union{Missing, Float64}, num_outputs, num_years)
     map_outputs[1,:] = model_years
     map_outputs[2,:] = gmsl[idx_max,:]
-    map_outputs[3,:] = landwater_storage_sl[idx_max,:]
+    map_outputs[3,:] = lws_sl[idx_max,:]
     map_outputs[4,:] = glaciers[idx_max,:]
     map_outputs[5,:] = greenland[idx_max,:]
     map_outputs[6,:] = antarctic[idx_max,:]
