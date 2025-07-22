@@ -69,6 +69,7 @@ function run_projections(; output_dir::String,
     greenland    = zeros(Union{Missing, Float64}, num_ens, num_years)
     thermal_sl   = zeros(Union{Missing, Float64}, num_ens, num_years)
     antarctic    = zeros(Union{Missing, Float64}, num_ens, num_years)
+    lws_sl       = zeros(Union{Missing, Float64}, num_ens, num_years)
     gmsl         = zeros(Union{Missing, Float64}, num_ens, num_years)
     # Also need to calculate landwater storage contribution so it is the same between base and pulse runs.
     landwater_storage_sl = zeros(Union{Missing, Float64}, num_ens, num_years)
@@ -152,7 +153,6 @@ function run_projections(; output_dir::String,
         # Calculate land water storage contribution to sea level rise (sampled from Normal distribution) and set same scenario for base and pulse runs.
         landwater_storage_sl[i,:] = rand(Normal(0.0003, 0.00018), num_years)
         update_param!(m, :landwater_storage, :lws_random_sample, landwater_storage_sl[i,:])
-        update_param!(m, :landwater_storage, :lws_random_sample, landwater_storage_sl[i,:])
 
         if (model_config == "doeclimbrick") | (model_config == "sneasybrick")
             # add the DOECLIM/SNEASY common parameters
@@ -208,6 +208,7 @@ function run_projections(; output_dir::String,
         greenland[i,:]   = m[:greenland_icesheet, :greenland_sea_level] .- mean(m[:greenland_icesheet, :greenland_sea_level][sealevel_norm_indices_1992_2001]) .+ ar1_noise_greenland
         antarctic[i,:]   = m[:antarctic_icesheet, :ais_sea_level] .- mean(m[:antarctic_icesheet, :ais_sea_level][sealevel_norm_indices_1992_2001]) .+ ar1_noise_antarctic
         thermal_sl[i,:]  = m[:thermal_expansion, :te_sea_level]
+        lws_sl[i,:].     = m[:landwater_storage, :lws_sea_level]
         gmsl[i,:]        = m[:global_sea_level, :sea_level_rise] .- mean(m[:global_sea_level, :sea_level_rise][sealevel_norm_indices_1961_1990]) .+ ar1_noise_gmsl
         if (model_config == "doeclimbrick") | (model_config == "sneasybrick")
             temperature[i,:] = m[:doeclim, :temp] .- mean(m[:doeclim, :temp][temperature_norm_indices]) .+ ar1_noise_temperature .+ temperature_0
