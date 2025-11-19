@@ -46,6 +46,7 @@ function create_sneasy_brick(; ssprcp_scenario::String="ssp245", start_year::Int
     years_co2 = all_years[findall(!ismissing, all_co2)]           # years with not-missing co2
     interp_co2 = linear_interpolation(years_co2, co2);            # create linear interpolant
     ssprcp_co2_emissions = interp_co2(model_years)                # interpolant matches data for all present values, linear interpolation between
+    ssprcp_co2_emissions = ssprcp_co2_emissions * 12/44           # RCMIP data are GtCO2, but SNEASY needs GtC; convert using ratio of molecular weights
 
     # Get N₂O concentrations (used for CO₂ radiative forcing calculations).
     filtered_df = filter(row -> row.Scenario==ssprcp_scenario && row.Variable=="Atmospheric Concentrations|N2O" && row.Region=="World", ssprcp_concentrations_data)
