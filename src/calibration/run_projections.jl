@@ -19,13 +19,14 @@ Function Arguments:
 
     - outdir - paths for results files - subsample of model parameters, and associated log-posterior scores, and printed results of this function
     - model_config (default = "brick") - model configuration with possible options: (1) "brick", (2) "doeclimbrick", (3) "sneasybrick"
-    - rcp_scenario (default = "RCP85) - RCP scenario with possible options: (1) RCP26, (2) RCP45, (3) RCP60, (4) RCP85
+    - ssprcp_scenario (default = "ssp245") - SSP-RCP scenario with possible options: (1) ssp126, (2) ssp245, (3) ssp370, (4) ssp460, (5) ssp585
+              NB: currently only functional for DOECLIM-BRICK. Others must use original RCP arguments (RCP26, 45, 60, or 85)
     - start_year (default = 1850) - start year for calibration
     - end_year (default = 2300) - end year for calibration
 """
 function run_projections(; output_dir::String,
                         model_config::String = "brick",
-                        rcp_scenario::String = "RCP85",
+                        ssprcp_scenario::String = "ssp245",
                         start_year::Int = 1850,
                         end_year = 2300,
                     )
@@ -51,11 +52,11 @@ function run_projections(; output_dir::String,
 
     # Get model instance
     if model_config=="brick"
-        m = get_model(rcp_scenario=rcp_scenario, start_year=start_year, end_year=end_year)
+        m = get_model(rcp_scenario=ssprcp_scenario, start_year=start_year, end_year=end_year)
     elseif model_config=="doeclimbrick"
-        m = create_brick_doeclim(rcp_scenario=rcp_scenario, start_year=start_year, end_year=end_year)
+        m = create_brick_doeclim(ssprcp_scenario=ssprcp_scenario, start_year=start_year, end_year=end_year)
     elseif model_config=="sneasybrick"
-        m = create_sneasy_brick(rcp_scenario=rcp_scenario, start_year=start_year, end_year=end_year)
+        m = create_sneasy_brick(ssprcp_scenario=ssprcp_scenario, start_year=start_year, end_year=end_year)
     end
 
     # Load calibration data from 1765-2017 (measurement errors used in simulated noise).
@@ -68,9 +69,10 @@ function run_projections(; output_dir::String,
     greenland    = zeros(Union{Missing, Float64}, num_ens, num_years)
     thermal_sl   = zeros(Union{Missing, Float64}, num_ens, num_years)
     antarctic    = zeros(Union{Missing, Float64}, num_ens, num_years)
+    lws_sl       = zeros(Union{Missing, Float64}, num_ens, num_years) # SLR
     gmsl         = zeros(Union{Missing, Float64}, num_ens, num_years)
     # Also need to calculate landwater storage contribution so it is the same between base and pulse runs.
-    landwater_storage_sl = zeros(Union{Missing, Float64}, num_ens, num_years)
+    landwater_storage_sl = zeros(Union{Missing, Float64}, num_ens, num_years) # yearly trend
     # Pre-allocate vectors to hold simulated CAR(1) & AR(1) with measurement error noise.
     ar1_noise_glaciers    = zeros(num_years)
     ar1_noise_greenland   = zeros(num_years)
@@ -151,7 +153,6 @@ function run_projections(; output_dir::String,
         # Calculate land water storage contribution to sea level rise (sampled from Normal distribution) and set same scenario for base and pulse runs.
         landwater_storage_sl[i,:] = rand(Normal(0.0003, 0.00018), num_years)
         update_param!(m, :landwater_storage, :lws_random_sample, landwater_storage_sl[i,:])
-        update_param!(m, :landwater_storage, :lws_random_sample, landwater_storage_sl[i,:])
 
         if (model_config == "doeclimbrick") | (model_config == "sneasybrick")
             # add the DOECLIM/SNEASY common parameters
@@ -207,6 +208,7 @@ function run_projections(; output_dir::String,
         greenland[i,:]   = m[:greenland_icesheet, :greenland_sea_level] .- mean(m[:greenland_icesheet, :greenland_sea_level][sealevel_norm_indices_1992_2001]) .+ ar1_noise_greenland
         antarctic[i,:]   = m[:antarctic_icesheet, :ais_sea_level] .- mean(m[:antarctic_icesheet, :ais_sea_level][sealevel_norm_indices_1992_2001]) .+ ar1_noise_antarctic
         thermal_sl[i,:]  = m[:thermal_expansion, :te_sea_level]
+        lws_sl[i,:]      = m[:landwater_storage, :lws_sea_level]
         gmsl[i,:]        = m[:global_sea_level, :sea_level_rise] .- mean(m[:global_sea_level, :sea_level_rise][sealevel_norm_indices_1961_1990]) .+ ar1_noise_gmsl
         if (model_config == "doeclimbrick") | (model_config == "sneasybrick")
             temperature[i,:] = m[:doeclim, :temp] .- mean(m[:doeclim, :temp][temperature_norm_indices]) .+ ar1_noise_temperature .+ temperature_0
@@ -234,7 +236,7 @@ function run_projections(; output_dir::String,
 
     # Writing output tables.
     write_output_table("gmsl", rcp_scenario, gmsl, filepath_output)
-    write_output_table("landwater_storage_sl", rcp_scenario, landwater_storage_sl, filepath_output)
+    write_output_table("landwater_storage_sl", rcp_scenario, lws_sl, filepath_output)
     write_output_table("glaciers", rcp_scenario, glaciers, filepath_output)
     write_output_table("greenland", rcp_scenario, greenland, filepath_output)
     write_output_table("antarctic", rcp_scenario, antarctic, filepath_output)
@@ -261,7 +263,7 @@ function run_projections(; output_dir::String,
     map_outputs = zeros(Union{Missing, Float64}, num_outputs, num_years)
     map_outputs[1,:] = model_years
     map_outputs[2,:] = gmsl[idx_max,:]
-    map_outputs[3,:] = landwater_storage_sl[idx_max,:]
+    map_outputs[3,:] = lws_sl[idx_max,:]
     map_outputs[4,:] = glaciers[idx_max,:]
     map_outputs[5,:] = greenland[idx_max,:]
     map_outputs[6,:] = antarctic[idx_max,:]

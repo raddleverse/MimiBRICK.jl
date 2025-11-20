@@ -13,7 +13,7 @@ function construct_run_sneasybrick(calibration_start_year::Int, calibration_end_
 
     # Load an instance of SNEASY+BRICK model.
     # WARNING: for general use, use `m = create_sneasy_brick!(...[arguments here]...)`  instead
-    m = Mimi.build(create_sneasy_brick(; rcp_scenario = "RCP85", start_year=calibration_start_year, end_year=calibration_end_year))
+    m = Mimi.build(create_sneasy_brick(; ssprcp_scenario = "ssp245", start_year=calibration_start_year, end_year=calibration_end_year))
 
     # Get indices needed to normalize temperature anomalies relative to 1861-1880 mean (SNEASY+BRICK starts in 1850 by default).
     temperature_norm_indices = findall((in)(1861:1880), 1850:calibration_end_year)

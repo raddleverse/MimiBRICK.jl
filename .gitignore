@@ -1,3 +1,4 @@
+src/results/
 docs/build/
 .ipynb_checkpoints
 .DS_Store
@@ -5,4 +6,4 @@ docs/build/
 /Manifest.toml
 results.zip
 .vscode/settings.json
-
+hindcast_projections_results
