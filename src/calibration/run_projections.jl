@@ -23,12 +23,18 @@ Function Arguments:
               NB: currently only functional for DOECLIM-BRICK. Others must use original RCP arguments (RCP26, 45, 60, or 85)
     - start_year (default = 1850) - start year for calibration
     - end_year (default = 2300) - end year for calibration
+    - magicc_sampling (default = false) - use MAGICC ensemble temperature and ocean heat uptake forcing
+    - magicc_resample (default = false) - true:  use whatever num_ens is and sample from MAGICC ensemble with replacement
+                                          false: run 1 BRICK simulation for each MAGICC ensemble member
+                                          NB: currently only false works
 """
 function run_projections(; output_dir::String,
                         model_config::String = "brick",
                         ssprcp_scenario::String = "ssp245",
                         start_year::Int = 1850,
                         end_year = 2300,
+                        magicc_sampling = false,
+                        magicc_resample = false,
                     )
     
     ##==============================================================================
@@ -46,13 +52,34 @@ function run_projections(; output_dir::String,
     num_ens = size(parameters)[1]
     num_par = size(parameters)[2]
     parnames = names(parameters)
+    
+    # read MAGICC forcing data
+    if magicc_sampling
+        filename_magicc = joinpath(@__DIR__, "..", "data", "model_data", "MAGICC7.5.3_SSP-RCPs_Nauels2025.csv")
+        df_magicc = DataFrame(load(filename_magicc))
+        num_magicc = length(unique(df_magicc.ensemble_member))
+        # TODO: reduce to the temperature and ocheat for the desired SSP-RCP scenario, for desired SSP-RCP scenario
+        df_magicc_ocheat = filter(row -> row.scenario == ssprcp_scenario && row.variable == "Heat Content|Ocean", df_magicc)
+        df_magicc_temp   = filter(row -> row.scenario == ssprcp_scenario && row.variable == "Surface Air Temperature Change", df_magicc)
+
+        ###forcing_CO₂ = [filtered_df[1,string(c)] for c in model_years]
+        # example grabbing just one ensemble member
+        magicc_years = [parse(Int,(nom[1:4])) for nom in names(df_magicc_temp)[8:end]]
+        
+        # TODO: get a sample of BRICK parameters of smae size as the MAGICC data set
+        # TODO: this can also be larger, and just resample the MAGICC data
+        if ~magicc_resample
+            num_ens = min(num_ens, num_magicc)
+        end
+    end
+
 
     ##==============================================================================
     ## Run model at each set
 
     # Get model instance
     if model_config=="brick"
-        m = get_model(rcp_scenario=ssprcp_scenario, start_year=start_year, end_year=end_year)
+        m = get_model(ssprcp_scenario=ssprcp_scenario, start_year=start_year, end_year=end_year)
     elseif model_config=="doeclimbrick"
         m = create_brick_doeclim(ssprcp_scenario=ssprcp_scenario, start_year=start_year, end_year=end_year)
     elseif model_config=="sneasybrick"
@@ -167,6 +194,25 @@ function run_projections(; output_dir::String,
                 update_param!(m, :ccm, :Eta, parameters[i, findall(x->x=="CO2_diffusivity",parnames)][1])
                 update_param!(m, :rfco2, :N₂O_0, parameters[i, findall(x->x=="N2O_0",parnames)][1])
             end
+        end
+
+        # update temperature and ocean heat from MAGICC
+        if magicc_sampling
+            # get just this ensemble member's temperature and ocean heat uptake
+            df_ens_temp = filter(row -> row.ensemble_member == i-1, df_magicc_temp)[1,8:end]
+            temperature_scenario = DataFrame((Year = magicc_years, temperature = Vector(df_ens_temp)))
+            df_ens_ocheat = filter(row -> row.ensemble_member == i-1, df_magicc_ocheat)[1,8:end]
+            ocheat_scenario = DataFrame((Year = magicc_years, ocheat = Vector(df_ens_ocheat)/10)) # /10 to convert to 10^22 J
+            # normalize ocheat relative to 1961-1990
+            #TODO
+
+            # and modify the defaults from get_model
+            # temperature
+            temperature_idx = findall((in)(start_year:end_year), temperature_scenario[!,:Year])
+            update_param!(m, :model_global_surface_temperature,  temperature_scenario[temperature_idx,:"temperature"])
+            # ocean heat uptake
+            oceanheat_idx = findall((in)(start_year:end_year), ocheat_scenario[!,:Year])
+            update_param!(m, :thermal_expansion, :ocean_heat_interior, ocheat_scenario[oceanheat_idx, :"ocheat"])
         end
 
         # run model
