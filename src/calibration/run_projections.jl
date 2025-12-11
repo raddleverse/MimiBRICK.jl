@@ -7,7 +7,7 @@ using Mimi
 """
     run_projections(; output_dir::String,
                         model_config::String = "brick",
-                        rcp_scenario::String = "RCP85",
+                        ssprcp_scenario::String = "ssp245",
                         start_year::Int = 1850,
                         end_year = 2300,
                     )
@@ -58,18 +58,19 @@ function run_projections(; output_dir::String,
         filename_magicc = joinpath(@__DIR__, "..", "data", "model_data", "MAGICC7.5.3_SSP-RCPs_Nauels2025.csv")
         df_magicc = DataFrame(load(filename_magicc))
         num_magicc = length(unique(df_magicc.ensemble_member))
-        # TODO: reduce to the temperature and ocheat for the desired SSP-RCP scenario, for desired SSP-RCP scenario
+        # filter to the temperature and ocheat for the desired SSP-RCP scenario, for desired SSP-RCP scenario
         df_magicc_ocheat = filter(row -> row.scenario == ssprcp_scenario && row.variable == "Heat Content|Ocean", df_magicc)
         df_magicc_temp   = filter(row -> row.scenario == ssprcp_scenario && row.variable == "Surface Air Temperature Change", df_magicc)
-
-        ###forcing_CO₂ = [filtered_df[1,string(c)] for c in model_years]
-        # example grabbing just one ensemble member
         magicc_years = [parse(Int,(nom[1:4])) for nom in names(df_magicc_temp)[8:end]]
         
-        # TODO: get a sample of BRICK parameters of smae size as the MAGICC data set
-        # TODO: this can also be larger, and just resample the MAGICC data
+        # TODO: need to add functionality for if magicc_resample=true
+        # --> get a sample of BRICK parameters of smae size as the MAGICC data set
+        #     this can also be larger, and just resample the MAGICC data
         if ~magicc_resample
             num_ens = min(num_ens, num_magicc)
+            # TODO: ultimately will want to grab the appropriate samples that match
+            parameters = parameters[1:num_ens,:]
+            logpost = logpost[1:num_ens]
         end
     end
 
@@ -134,6 +135,9 @@ function run_projections(; output_dir::String,
     # Get indices needed to normalize all sea level rise sources.
     sealevel_norm_indices_1961_1990 = findall((in)(1961:1990), start_year:end_year)
     sealevel_norm_indices_1992_2001 = findall((in)(1992:2001), start_year:end_year)
+
+    # Ocean heat normalization years
+    ocheat_norm_indices_1961_1990 = findall((in)(1961:1990), magicc_years)
 
     # Loop over parameters and run the model
     for i = 1:num_ens
@@ -204,7 +208,8 @@ function run_projections(; output_dir::String,
             df_ens_ocheat = filter(row -> row.ensemble_member == i-1, df_magicc_ocheat)[1,8:end]
             ocheat_scenario = DataFrame((Year = magicc_years, ocheat = Vector(df_ens_ocheat)/10)) # /10 to convert to 10^22 J
             # normalize ocheat relative to 1961-1990
-            #TODO
+            baseline = mean(ocheat_scenario.ocheat[ocheat_norm_indices_1961_1990])
+            ocheat_scenario.ocheat .-= baseline
 
             # and modify the defaults from get_model
             # temperature
@@ -271,28 +276,36 @@ function run_projections(; output_dir::String,
     ## Save output
 
     # make appropriate directory if needed
-    filepath_output = joinpath(output_dir, "projections_csv",rcp_scenario)
+    if magicc_sampling
+        filepath_output = joinpath(output_dir, "projections_csv", "magicc-$(model_config)", ssprcp_scenario)
+    else
+        filepath_output = joinpath(output_dir, "projections_csv", model_config, ssprcp_scenario)
+    end
     mkpath(filepath_output)
 
     # Transposing so each column is a different ensemble member, and each row is a different year
-    function write_output_table(field_name, rcp, field_array, output_path)
-        filename_output = joinpath(output_path,"projections_$(field_name)_$(rcp)_$(model_config).csv")
+    function write_output_table(field_name, rcp, field_array, output_path, magicc_sampling)
+        if magicc_sampling
+            filename_output = joinpath(output_path,"projections_$(field_name)_$(rcp)_magicc-$(model_config).csv")
+        else
+            filename_output = joinpath(output_path,"projections_$(field_name)_$(rcp)_$(model_config).csv")
+        end
         CSV.write(filename_output, DataFrame(field_array', :auto))
     end
 
     # Writing output tables.
-    write_output_table("gmsl", rcp_scenario, gmsl, filepath_output)
-    write_output_table("landwater_storage_sl", rcp_scenario, lws_sl, filepath_output)
-    write_output_table("glaciers", rcp_scenario, glaciers, filepath_output)
-    write_output_table("greenland", rcp_scenario, greenland, filepath_output)
-    write_output_table("antarctic", rcp_scenario, antarctic, filepath_output)
-    write_output_table("thermal", rcp_scenario, thermal_sl, filepath_output)
+    write_output_table("gmsl", ssprcp_scenario, gmsl, filepath_output, magicc_sampling)
+    write_output_table("landwater_storage_sl", ssprcp_scenario, lws_sl, filepath_output, magicc_sampling)
+    write_output_table("glaciers", ssprcp_scenario, glaciers, filepath_output, magicc_sampling)
+    write_output_table("greenland", ssprcp_scenario, greenland, filepath_output, magicc_sampling)
+    write_output_table("antarctic", ssprcp_scenario, antarctic, filepath_output, magicc_sampling)
+    write_output_table("thermal", ssprcp_scenario, thermal_sl, filepath_output, magicc_sampling)
     if (model_config == "doeclimbrick") | (model_config == "sneasybrick")
-        write_output_table("temperature", rcp_scenario, temperature, filepath_output)
-        write_output_table("ocean_heat", rcp_scenario, ocean_heat, filepath_output)
+        write_output_table("temperature", ssprcp_scenario, temperature, filepath_output, magicc_sampling)
+        write_output_table("ocean_heat", ssprcp_scenario, ocean_heat, filepath_output, magicc_sampling)
         if (model_config == "sneasybrick")
-            write_output_table("co2", rcp_scenario, co2, filepath_output)
-            write_output_table("oceanco2", rcp_scenario, oceanco2, filepath_output)
+            write_output_table("co2", ssprcp_scenario, co2, filepath_output, magicc_sampling)
+            write_output_table("oceanco2", ssprcp_scenario, oceanco2, filepath_output, magicc_sampling)
         end
     end
 
@@ -323,7 +336,11 @@ function run_projections(; output_dir::String,
         end
     end
     df_map_outputs = DataFrame(map_outputs', colnames_out)
-    filename_map_outputs = joinpath(filepath_output,"projections_MAP_$(rcp_scenario)_$(model_config).csv")
+    if magicc_sampling
+        filename_map_outputs = joinpath(filepath_output,"projections_MAP_$(ssprcp_scenario)_magicc-$(model_config).csv")
+    else
+        filename_map_outputs = joinpath(filepath_output,"projections_MAP_$(ssprcp_scenario)_$(model_config).csv")
+    end
     CSV.write(filename_map_outputs, df_map_outputs)
 end
 
