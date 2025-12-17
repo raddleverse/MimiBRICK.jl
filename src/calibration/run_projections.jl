@@ -137,7 +137,11 @@ function run_projections(; output_dir::String,
     sealevel_norm_indices_1992_2001 = findall((in)(1992:2001), start_year:end_year)
 
     # Ocean heat normalization years
-    ocheat_norm_indices_1961_1990 = findall((in)(1961:1990), magicc_years)
+    if magicc_sampling
+        ocheat_norm_indices_1961_1990 = findall((in)(1961:1990), magicc_years)
+    else
+        ocheat_norm_indices_1961_1990 = findall((in)(1961:1990), model_years)
+    end
 
     # Loop over parameters and run the model
     for i = 1:num_ens
