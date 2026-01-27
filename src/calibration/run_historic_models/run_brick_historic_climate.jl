@@ -13,7 +13,7 @@ function construct_run_brick(calibration_start_year::Int, calibration_end_year::
 
     # Load an instance of DOECLIM+BRICK model.
     # WARNING: for general use, use `m = get_model!(...[arguments here]...)`  instead
-    m = Mimi.build(get_model(rcp_scenario="RCP85", start_year=calibration_start_year, end_year=calibration_end_year))
+    m = Mimi.build(get_model(ssprcp_scenario="ssp245", start_year=calibration_start_year, end_year=calibration_end_year))
 
     # Get indices needed to normalize temperature anomalies relative to 1861-1880 mean (DOECLIM+BRICK starts in 1850 by default).
     temperature_norm_indices = findall((in)(1861:1880), 1850:calibration_end_year)
