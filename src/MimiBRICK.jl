@@ -35,7 +35,7 @@ Function Arguments:
       start_year      = initial year of the simulation period
       end_year        = ending year of the simulation period
 """
-function get_model(;ssprcp_scenario::String="RCP85", start_year::Int=1850, end_year::Int=2020)
+function get_model(;ssprcp_scenario::String="ssp245", start_year::Int=1850, end_year::Int=2020)
 
     #-----------------------#
     # ----- Load Data ----- #
