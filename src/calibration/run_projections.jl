@@ -55,7 +55,7 @@ function run_projections(; output_dir::String,
     
     # read MAGICC forcing data
     if magicc_sampling
-        filename_magicc = joinpath(@__DIR__, "..", "data", "model_data", "MAGICC7.5.3_SSP-RCPs_Nauels2025.csv")
+        filename_magicc = joinpath(@__DIR__, "..", "..", "data", "model_data", "MAGICC7.5.3_SSP-RCPs_Nauels2025.csv")
         df_magicc = DataFrame(load(filename_magicc))
         num_magicc = length(unique(df_magicc.ensemble_member))
         # filter to the temperature and ocheat for the desired SSP-RCP scenario, for desired SSP-RCP scenario
@@ -211,9 +211,12 @@ function run_projections(; output_dir::String,
             temperature_scenario = DataFrame((Year = magicc_years, temperature = Vector(df_ens_temp)))
             df_ens_ocheat = filter(row -> row.ensemble_member == i-1, df_magicc_ocheat)[1,8:end]
             ocheat_scenario = DataFrame((Year = magicc_years, ocheat = Vector(df_ens_ocheat)/10)) # /10 to convert to 10^22 J
+            # normalize temperature relative to 1861-1880 (matching data for DOECLIM/SNEASY-BRICK calibration)
+            temp_baseline = mean(temperature_scenario.temperature[temperature_norm_indices])
+            temperature_scenario.temperature .-= temp_baseline
             # normalize ocheat relative to 1961-1990
-            baseline = mean(ocheat_scenario.ocheat[ocheat_norm_indices_1961_1990])
-            ocheat_scenario.ocheat .-= baseline
+            ocheat.baseline = mean(ocheat_scenario.ocheat[ocheat_norm_indices_1961_1990])
+            ocheat_scenario.ocheat .-= ocheat.baseline
 
             # and modify the defaults from get_model
             # temperature
