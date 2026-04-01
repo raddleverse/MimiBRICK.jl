@@ -215,8 +215,8 @@ function run_projections(; output_dir::String,
             temp_baseline = mean(temperature_scenario.temperature[temperature_norm_indices])
             temperature_scenario.temperature .-= temp_baseline
             # normalize ocheat relative to 1961-1990
-            ocheat.baseline = mean(ocheat_scenario.ocheat[ocheat_norm_indices_1961_1990])
-            ocheat_scenario.ocheat .-= ocheat.baseline
+            ocheat_baseline = mean(ocheat_scenario.ocheat[ocheat_norm_indices_1961_1990])
+            ocheat_scenario.ocheat .-= ocheat_baseline
 
             # and modify the defaults from get_model
             # temperature
