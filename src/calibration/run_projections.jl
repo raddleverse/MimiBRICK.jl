@@ -211,9 +211,12 @@ function run_projections(; output_dir::String,
             temperature_scenario = DataFrame((Year = magicc_years, temperature = Vector(df_ens_temp)))
             df_ens_ocheat = filter(row -> row.ensemble_member == i-1, df_magicc_ocheat)[1,8:end]
             ocheat_scenario = DataFrame((Year = magicc_years, ocheat = Vector(df_ens_ocheat)/10)) # /10 to convert to 10^22 J
+            # normalize temperature relative to 1861-1880 (matching data for DOECLIM/SNEASY-BRICK calibration)
+            temp_baseline = mean(temperature_scenario.temperature[temperature_norm_indices])
+            temperature_scenario.temperature .-= temp_baseline
             # normalize ocheat relative to 1961-1990
-            baseline = mean(ocheat_scenario.ocheat[ocheat_norm_indices_1961_1990])
-            ocheat_scenario.ocheat .-= baseline
+            ocheat_baseline = mean(ocheat_scenario.ocheat[ocheat_norm_indices_1961_1990])
+            ocheat_scenario.ocheat .-= ocheat_baseline
 
             # and modify the defaults from get_model
             # temperature
