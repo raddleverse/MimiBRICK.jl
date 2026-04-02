@@ -3,6 +3,7 @@ using DataFrames
 using LinearAlgebra
 using CSVFiles
 using Mimi
+using Random
 
 """
     run_projections(; output_dir::String,
@@ -41,6 +42,7 @@ function run_projections(; output_dir::String,
     ## Initial set-up
     model_years  = collect(start_year:end_year)
     num_years = length(model_years)
+    Random.seed!(2026)
 
     ##==============================================================================
     ## Read subsample of parameters
