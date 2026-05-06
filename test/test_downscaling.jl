@@ -27,7 +27,7 @@ for model_config in ["brick", "sneasybrick", "doeclimbrick"]
 
     # run hindcast and projections 
     MimiBRICK.run_hindcast(output_dir=tmp_dir, model_config=model_config)
-    MimiBRICK.run_projections(output_dir=tmp_dir, model_config=model_config)
+    MimiBRICK.run_projections(output_dir=tmp_dir, model_config=model_config, ssprcp_scenario="ssp245")
 
     # Lat and Lon for New York City
     lat=40.7128 # deg N
@@ -43,7 +43,7 @@ for model_config in ["brick", "sneasybrick", "doeclimbrick"]
     @test all([isa(years[i],Number) for i=1:length(years)])
 
     # testing projections ensemble
-    years, lsl_proj_ens=MimiBRICK.downscale_brick(lon=lon, lat=lat, results_dir=tmp_dir, proj_or_hind="proj", ensemble_or_map="ensemble", model_config=model_config, ssprcp_scenario="ssp585")
+    years, lsl_proj_ens=MimiBRICK.downscale_brick(lon=lon, lat=lat, results_dir=tmp_dir, proj_or_hind="proj", ensemble_or_map="ensemble", model_config=model_config, ssprcp_scenario="ssp245")
     @test size(lsl_proj_ens)[1]==451
     @test size(lsl_proj_ens)[2]==10
     @test length(years)==451
@@ -51,7 +51,7 @@ for model_config in ["brick", "sneasybrick", "doeclimbrick"]
     @test all([isa(years[i],Number) for i=1:length(years)])
 
     # testing projections with MAP
-    years, lsl_map=MimiBRICK.downscale_brick(lon=lon, lat=lat, results_dir=tmp_dir, proj_or_hind="proj", ensemble_or_map="map", model_config=model_config, ssprcp_scenario="ssp585")
+    years, lsl_map=MimiBRICK.downscale_brick(lon=lon, lat=lat, results_dir=tmp_dir, proj_or_hind="proj", ensemble_or_map="map", model_config=model_config, ssprcp_scenario="ssp245")
     @test ndims(lsl_map)==1
     @test length(lsl_map)==451
     @test length(years)==451
