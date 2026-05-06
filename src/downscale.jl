@@ -44,7 +44,7 @@ function downscale_brick(;lon::Float64,
                         )
 
     if proj_or_hind=="proj"
-        slr_dir = joinpath(results_dir, "projections_csv", ssprcp_scenario)
+        slr_dir = joinpath(results_dir, "projections_csv", model_config, ssprcp_scenario)
         MAP = DataFrame(load(joinpath(slr_dir,"projections_MAP_$(ssprcp_scenario)_$(model_config).csv")))
         years = MAP[:,:YEAR]
         if ensemble_or_map=="ensemble"
