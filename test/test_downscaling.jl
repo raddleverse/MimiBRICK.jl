@@ -35,7 +35,7 @@ for model_config in ["brick", "sneasybrick", "doeclimbrick"]
 
     # specification 1
     # testing hindcast ensemble
-    years, lsl_hind_ens=MimiBRICK.downscale_brick(lon=lon, lat=lat, results_dir=tmp_dir, proj_or_hind="hind", ensemble_or_map="ensemble", model_config=model_config, rcp_scenario="RCP26")
+    years, lsl_hind_ens=MimiBRICK.downscale_brick(lon=lon, lat=lat, results_dir=tmp_dir, proj_or_hind="hind", ensemble_or_map="ensemble", model_config=model_config, ssprcp_scenario="ssp126")
     @test size(lsl_hind_ens)[1]==168
     @test size(lsl_hind_ens)[2]==10
     @test length(years)==168
@@ -43,7 +43,7 @@ for model_config in ["brick", "sneasybrick", "doeclimbrick"]
     @test all([isa(years[i],Number) for i=1:length(years)])
 
     # testing projections ensemble
-    years, lsl_proj_ens=MimiBRICK.downscale_brick(lon=lon, lat=lat, results_dir=tmp_dir, proj_or_hind="proj", ensemble_or_map="ensemble", model_config=model_config, rcp_scenario="RCP85")
+    years, lsl_proj_ens=MimiBRICK.downscale_brick(lon=lon, lat=lat, results_dir=tmp_dir, proj_or_hind="proj", ensemble_or_map="ensemble", model_config=model_config, ssprcp_scenario="ssp585")
     @test size(lsl_proj_ens)[1]==451
     @test size(lsl_proj_ens)[2]==10
     @test length(years)==451
@@ -51,7 +51,7 @@ for model_config in ["brick", "sneasybrick", "doeclimbrick"]
     @test all([isa(years[i],Number) for i=1:length(years)])
 
     # testing projections with MAP
-    years, lsl_map=MimiBRICK.downscale_brick(lon=lon, lat=lat, results_dir=tmp_dir, proj_or_hind="proj", ensemble_or_map="map", model_config=model_config, rcp_scenario="RCP85")
+    years, lsl_map=MimiBRICK.downscale_brick(lon=lon, lat=lat, results_dir=tmp_dir, proj_or_hind="proj", ensemble_or_map="map", model_config=model_config, ssprcp_scenario="ssp585")
     @test ndims(lsl_map)==1
     @test length(lsl_map)==451
     @test length(years)==451
