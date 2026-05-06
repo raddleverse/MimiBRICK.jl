@@ -17,7 +17,7 @@ using StatsBase
                                 proj_or_hind::String, 
                                 ensemble_or_map::String, 
                                 model_config::String, 
-                                rcp_scenario::String="RCP85"
+                                ssprcp_scenario::String="ssp245"
                             )
                             
 Downscale BRICK projections to a single point, using either the whole ensemble
@@ -32,7 +32,7 @@ Function Arguments:
     - proj_or_hind = "proj" for projections, or "hind" for hindcast
     - ensemble_or_map = "ensemble" for entire posterior ensemble, or "map" for the maximum a posteriori ensemble member (single simulation)
     - model_config = "brick", "doeclimbrick", or "sneasybrick"
-    - rcp_scenario = "RCP26", "RCP45", "RCP60", or "RCP85" (default). Doesn't matter for hindcast.
+    - ssprcp_scenario (default = "ssp245") - SSP-RCP scenario with possible options: (1) ssp126, (2) ssp245, (3) ssp370, (4) ssp460, (5) ssp585, (6) ssp534-over
 """
 function downscale_brick(;lon::Float64, 
                             lat::Float64, 
@@ -40,19 +40,19 @@ function downscale_brick(;lon::Float64,
                             proj_or_hind::String, 
                             ensemble_or_map::String, 
                             model_config::String, 
-                            rcp_scenario::String="RCP85"
+                            ssprcp_scenario::String="ssp245"
                         )
 
     if proj_or_hind=="proj"
-        slr_dir = joinpath(results_dir, "projections_csv", rcp_scenario)
-        MAP = DataFrame(load(joinpath(slr_dir,"projections_MAP_$(rcp_scenario)_$(model_config).csv")))
+        slr_dir = joinpath(results_dir, "projections_csv", ssprcp_scenario)
+        MAP = DataFrame(load(joinpath(slr_dir,"projections_MAP_$(ssprcp_scenario)_$(model_config).csv")))
         years = MAP[:,:YEAR]
         if ensemble_or_map=="ensemble"
-            AIS = CSV.read(joinpath(slr_dir,"projections_antarctic_$(rcp_scenario)_$(model_config).csv"), DataFrame)
-            GIS = CSV.read(joinpath(slr_dir,"projections_greenland_$(rcp_scenario)_$(model_config).csv"), DataFrame)
-            GSIC = CSV.read(joinpath(slr_dir,"projections_glaciers_$(rcp_scenario)_$(model_config).csv"), DataFrame)
-            TE = CSV.read(joinpath(slr_dir,"projections_thermal_$(rcp_scenario)_$(model_config).csv"), DataFrame)
-            LWS = CSV.read(joinpath(slr_dir,"projections_landwater_storage_sl_$(rcp_scenario)_$(model_config).csv"), DataFrame)
+            AIS = CSV.read(joinpath(slr_dir,"projections_antarctic_$(ssprcp_scenario)_$(model_config).csv"), DataFrame)
+            GIS = CSV.read(joinpath(slr_dir,"projections_greenland_$(ssprcp_scenario)_$(model_config).csv"), DataFrame)
+            GSIC = CSV.read(joinpath(slr_dir,"projections_glaciers_$(ssprcp_scenario)_$(model_config).csv"), DataFrame)
+            TE = CSV.read(joinpath(slr_dir,"projections_thermal_$(ssprcp_scenario)_$(model_config).csv"), DataFrame)
+            LWS = CSV.read(joinpath(slr_dir,"projections_landwater_storage_sl_$(ssprcp_scenario)_$(model_config).csv"), DataFrame)
             num_ens = size(AIS)[2]
         elseif ensemble_or_map=="map"
             AIS = MAP[:,:AIS]
