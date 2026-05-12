@@ -1,17 +1,8 @@
-using Test
-using MimiBRICK
+using TestItemRunner
 
-@testset "MimiBRICK" begin 
+include("test_default.jl")
+include("test_modifications.jl")
+include("test_calibration.jl")
+include("test_downscaling.jl")
 
-      @info("test_default.jl")
-      @time include("test_default.jl")
-
-      @info("test_modifications.jl")
-      @time include("test_modifications.jl")
-
-      @info("test_calibration.jl")
-      @time include("test_calibration.jl")
-
-      @info("test_downscaling.jl")
-      @time include("test_downscaling.jl")
-end
+@run_package_tests
