@@ -3,6 +3,7 @@ using DataFrames
 using LinearAlgebra
 using CSVFiles
 using Mimi
+using Random
 
 """
     run_projections(; output_dir::String,
@@ -41,6 +42,7 @@ function run_projections(; output_dir::String,
     ## Initial set-up
     model_years  = collect(start_year:end_year)
     num_years = length(model_years)
+    Random.seed!(2026)
 
     ##==============================================================================
     ## Read subsample of parameters
@@ -55,7 +57,7 @@ function run_projections(; output_dir::String,
     
     # read MAGICC forcing data
     if magicc_sampling
-        filename_magicc = joinpath(@__DIR__, "..", "data", "model_data", "MAGICC7.5.3_SSP-RCPs_Nauels2025.csv")
+        filename_magicc = joinpath(@__DIR__, "..", "..", "data", "model_data", "MAGICC7.5.3_SSP-RCPs_Nauels2025.csv")
         df_magicc = DataFrame(load(filename_magicc))
         num_magicc = length(unique(df_magicc.ensemble_member))
         # filter to the temperature and ocheat for the desired SSP-RCP scenario, for desired SSP-RCP scenario
@@ -237,9 +239,9 @@ function run_projections(; output_dir::String,
         σ_antarctic              = parameters[i, findall(x->x=="sd_antarctic",parnames)][1]
         σ_gmsl                   = parameters[i, findall(x->x=="sd_gmsl",parnames)][1]
         ρ_glaciers               = parameters[i, findall(x->x=="rho_glaciers",parnames)][1]
-        ρ_greenland              = parameters[i, findall(x->x=="rho_glaciers",parnames)][1]
-        ρ_antarctic              = parameters[i, findall(x->x=="rho_glaciers",parnames)][1]
-        ρ_gmsl                   = parameters[i, findall(x->x=="rho_glaciers",parnames)][1]
+        ρ_greenland              = parameters[i, findall(x->x=="rho_greenland",parnames)][1]
+        ρ_antarctic              = parameters[i, findall(x->x=="rho_antarctic",parnames)][1]
+        ρ_gmsl                   = parameters[i, findall(x->x=="rho_gmsl",parnames)][1]
         ar1_noise_glaciers[:]    = simulate_ar1_noise(num_years, σ_glaciers,    ρ_glaciers,    obs_error_glaciers)
         ar1_noise_greenland[:]   = simulate_ar1_noise(num_years, σ_greenland,   ρ_greenland,   obs_error_greenland)
         ar1_noise_antarctic[:]   = simulate_ar1_noise(num_years, σ_antarctic,   ρ_antarctic,   obs_error_antarctic)
