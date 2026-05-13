@@ -239,9 +239,9 @@ function run_projections(; output_dir::String,
         σ_antarctic              = parameters[i, findall(x->x=="sd_antarctic",parnames)][1]
         σ_gmsl                   = parameters[i, findall(x->x=="sd_gmsl",parnames)][1]
         ρ_glaciers               = parameters[i, findall(x->x=="rho_glaciers",parnames)][1]
-        ρ_greenland              = parameters[i, findall(x->x=="rho_glaciers",parnames)][1]
-        ρ_antarctic              = parameters[i, findall(x->x=="rho_glaciers",parnames)][1]
-        ρ_gmsl                   = parameters[i, findall(x->x=="rho_glaciers",parnames)][1]
+        ρ_greenland              = parameters[i, findall(x->x=="rho_greenland",parnames)][1]
+        ρ_antarctic              = parameters[i, findall(x->x=="rho_antarctic",parnames)][1]
+        ρ_gmsl                   = parameters[i, findall(x->x=="rho_gmsl",parnames)][1]
         ar1_noise_glaciers[:]    = simulate_ar1_noise(num_years, σ_glaciers,    ρ_glaciers,    obs_error_glaciers)
         ar1_noise_greenland[:]   = simulate_ar1_noise(num_years, σ_greenland,   ρ_greenland,   obs_error_greenland)
         ar1_noise_antarctic[:]   = simulate_ar1_noise(num_years, σ_antarctic,   ρ_antarctic,   obs_error_antarctic)
