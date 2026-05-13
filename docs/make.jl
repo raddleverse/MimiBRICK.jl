@@ -1,6 +1,5 @@
 using MimiBRICK
 using Documenter
-using Missings,DataFrames
 
 makedocs(
 	doctest = false,
