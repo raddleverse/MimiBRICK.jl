@@ -11,6 +11,8 @@ using Random
                         ssprcp_scenario::String = "ssp245",
                         start_year::Int = 1850,
                         end_year = 2300,
+                        magicc_sampling = false,
+                        magicc_resample = false
                     )
 
 Function to run BRICK (standalone, or with DOECLIM or SNEASY) over the projections
