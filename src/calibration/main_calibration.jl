@@ -13,7 +13,6 @@ include("create_log_posteriors/create_log_posterior_doeclimbrick.jl")
 include("create_log_posteriors/create_log_posterior_sneasybrick.jl")
 
 include("calibration.jl")
-include("run_hindcast.jl")
 include("run_projections.jl")
 
 ##------------------------------------------------------------------------------

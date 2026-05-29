@@ -36,10 +36,11 @@ Below is a summary of the changes that would be needed to modify a component sub
     * Connect parameters across components using `connect_param` and `add_shared_param` near the bottom of the `brick` module, as needed
 * In `/src/calibration/run_historic_models/run_brick_historic_climate.jl`…
     * Add/modify the parameter names and `update_param` calls to match what is in the source code for your modified component and in `/src/MimiBRICK.jl`
-* In `/src/calibration/run_hindcast.jl` and `/src/calibration/run_projections.jl`…
+* In `/src/calibration/run_projections.jl`…
     * Modify the `ar1_noise_xxx` and `obs_error_xxx` variables, as needed, depending on whether the modified component uses a similar or new residual model. Might also require modifying at “Statistical noise models” if a new residual model is used
     * Modify `update_param` calls associated with the modified component (similarly to in `/src/MimiBRICK.jl`)
     * If your modification create new output that you would like to write to files, you may want to modify at “Save output” as well to include any new fields that you want to write
+    * For a hindcast (and comparison with calibration data), set the start and end years to span the desired period
 * If your altered the model components and the naming conventions for the model output CSV files, then you may also need to modify the `/src/downscale.jl` file to generate estimates of local sea-level change.
 * If you would like to modify the calibration data used, then you should modify…
     * the function `load_calibration_data` within `/src/calibration/calibration_helper_functions.jl`
@@ -99,7 +100,7 @@ end
 
 ### Installation and Examples
 
-This code was created using Julia v1.6 and requires several Julia packages. It is recommended that you use Julia v1.6 (or later). Julia may be downloaded from http://julialang.org/downloads/.
+This code was created using Julia v1.12 and requires several Julia packages. It is recommended that you use Julia v1.12 (or later). Julia may be downloaded from http://julialang.org/downloads/.
 
 (1) Run the following line to install the Mimi implementation of BRICK:
 

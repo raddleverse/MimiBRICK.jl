@@ -20,22 +20,12 @@
                                 total_chain_length=total_chain_length, burnin_length=0, threshold_gr=threshold_gr, check_gr=false, num_walkers=2,
                                 size_subsample=size_subsample, start_from_priors=false)
 
-            # run hindcast and projections 
-            MimiBRICK.run_hindcast(output_dir=tmp_dir, model_config=model_config)
-            MimiBRICK.run_projections(output_dir=tmp_dir, model_config=model_config, ssprcp_scenario="ssp245")
+    # run hindcast and projections 
+    MimiBRICK.run_projections(output_dir=tmp_dir, model_config=model_config, ssprcp_scenario="ssp245")
 
-            # Lat and Lon for New York City
-            lat=40.7128 # deg N
-            lon=360-74.0060 # 74.0060 deg W
-
-            # specification 1
-            # testing hindcast ensemble
-            years, lsl_hind_ens=MimiBRICK.downscale_brick(lon=lon, lat=lat, results_dir=tmp_dir, proj_or_hind="hind", ensemble_or_map="ensemble", model_config=model_config, ssprcp_scenario="ssp126")
-            @test size(lsl_hind_ens)[1]==168
-            @test size(lsl_hind_ens)[2]==10
-            @test length(years)==168
-            @test all([isa(lsl_hind_ens[i,end],Number) for i=1:length(years)])
-            @test all([isa(years[i],Number) for i=1:length(years)])
+    # Lat and Lon for New York City
+    lat=40.7128 # deg N
+    lon=360-74.0060 # 74.0060 deg W
 
             # testing projections ensemble
             years, lsl_proj_ens=MimiBRICK.downscale_brick(lon=lon, lat=lat, results_dir=tmp_dir, proj_or_hind="proj", ensemble_or_map="ensemble", model_config=model_config, ssprcp_scenario="ssp245")
