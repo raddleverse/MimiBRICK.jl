@@ -1,5 +1,6 @@
 *results*.zip
 tmp_dir
+MAGICC_AR7Fastrack_CMIP7.csv
 data/model_data/MAGICC7.5.3_SSP-RCPs_Nauels2025.csv
 src/results/
 docs/build/
