@@ -100,7 +100,7 @@ end
 
 ### Installation and Examples
 
-This code was created using Julia v1.6 and requires several Julia packages. It is recommended that you use Julia v1.6 (or later). Julia may be downloaded from http://julialang.org/downloads/.
+This code was created using Julia v1.12 and requires several Julia packages. It is recommended that you use Julia v1.12 (or later). Julia may be downloaded from http://julialang.org/downloads/.
 
 (1) Run the following line to install the Mimi implementation of BRICK:
 

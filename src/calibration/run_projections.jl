@@ -11,6 +11,8 @@ using Random
                         ssprcp_scenario::String = "ssp245",
                         start_year::Int = 1850,
                         end_year = 2300,
+                        magicc_sampling = false,
+                        magicc_resample = false
                     )
 
 Function to run BRICK (standalone, or with DOECLIM or SNEASY) over the projections
@@ -20,8 +22,7 @@ Function Arguments:
 
     - outdir - paths for results files - subsample of model parameters, and associated log-posterior scores, and printed results of this function
     - model_config (default = "brick") - model configuration with possible options: (1) "brick", (2) "doeclimbrick", (3) "sneasybrick"
-    - ssprcp_scenario (default = "ssp245") - SSP-RCP scenario with possible options: (1) ssp126, (2) ssp245, (3) ssp370, (4) ssp460, (5) ssp585
-              NB: currently only functional for DOECLIM-BRICK. Others must use original RCP arguments (RCP26, 45, 60, or 85)
+    - ssprcp_scenario (default = "ssp245") - SSP-RCP scenario with possible options: ssp119, ssp126, ssp245, ssp370, ssp460, ssp585, ssp534-over
     - start_year (default = 1850) - start year for calibration
     - end_year (default = 2300) - end year for calibration
     - magicc_sampling (default = false) - use MAGICC ensemble temperature and ocean heat uptake forcing

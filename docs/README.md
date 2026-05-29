@@ -26,7 +26,7 @@ This implementation includes examples for using observational data to calibrate 
 
 ## How To Install MimiBRICK
 
-This code was created using [Julia v1.6](https://julialang.org/downloads/) and requires several Julia packages. It is recommended that you use Julia v1.6 (or later). Julia may be downloaded from http://julialang.org/downloads/.
+This code was created using [Julia v1.12](https://julialang.org/downloads/) and requires several Julia packages. It is recommended that you use Julia v1.12 (or later). Julia may be downloaded from http://julialang.org/downloads/.
 
 (1) Run the following line to install the Mimi implementation of BRICK:
 
