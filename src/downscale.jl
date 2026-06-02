@@ -14,7 +14,6 @@ using StatsBase
     downscale_brick(;lon::Float64, 
                                 lat::Float64, 
                                 results_dir::String, 
-                                proj_or_hind::String, 
                                 ensemble_or_map::String, 
                                 model_config::String, 
                                 ssprcp_scenario::String="ssp245"
@@ -29,58 +28,35 @@ Function Arguments:
     - lon = longitude (degrees East) of location for downscaling
     - lat = latitude (degrees North) of location for downscaling
     - results_dir = the top level directory of results
-    - proj_or_hind = "proj" for projections, or "hind" for hindcast
     - ensemble_or_map = "ensemble" for entire posterior ensemble, or "map" for the maximum a posteriori ensemble member (single simulation)
     - model_config = "brick", "doeclimbrick", or "sneasybrick"
-    - ssprcp_scenario (default = "ssp245") - SSP-RCP scenario with possible options: (1) ssp126, (2) ssp245, (3) ssp370, (4) ssp460, (5) ssp585, (6) ssp534-over
+    - ssprcp_scenario (default = "ssp245") - SSP-RCP scenario with possible options: ssp119, ssp126, ssp245, ssp370, ssp460, ssp585, ssp534-over
 """
 function downscale_brick(;lon::Float64, 
                             lat::Float64, 
                             results_dir::String, 
-                            proj_or_hind::String, 
                             ensemble_or_map::String, 
                             model_config::String, 
                             ssprcp_scenario::String="ssp245"
                         )
 
-    if proj_or_hind=="proj"
-        slr_dir = joinpath(results_dir, "projections_csv", model_config, ssprcp_scenario)
-        MAP = DataFrame(load(joinpath(slr_dir,"projections_MAP_$(ssprcp_scenario)_$(model_config).csv")))
-        years = MAP[:,:YEAR]
-        if ensemble_or_map=="ensemble"
-            AIS = CSV.read(joinpath(slr_dir,"projections_antarctic_$(ssprcp_scenario)_$(model_config).csv"), DataFrame)
-            GIS = CSV.read(joinpath(slr_dir,"projections_greenland_$(ssprcp_scenario)_$(model_config).csv"), DataFrame)
-            GSIC = CSV.read(joinpath(slr_dir,"projections_glaciers_$(ssprcp_scenario)_$(model_config).csv"), DataFrame)
-            TE = CSV.read(joinpath(slr_dir,"projections_thermal_$(ssprcp_scenario)_$(model_config).csv"), DataFrame)
-            LWS = CSV.read(joinpath(slr_dir,"projections_landwater_storage_sl_$(ssprcp_scenario)_$(model_config).csv"), DataFrame)
-            num_ens = size(AIS)[2]
-        elseif ensemble_or_map=="map"
-            AIS = MAP[:,:AIS]
-            GIS = MAP[:,:GIS]
-            GSIC = MAP[:,:GLAC]
-            TE = MAP[:,:TE]
-            LWS = MAP[:,:LWS]
-            num_ens = 1
-        end
-    elseif proj_or_hind=="hind"
-        slr_dir = joinpath(results_dir, "hindcast_csv")
-        MAP = DataFrame(load(joinpath(slr_dir,"hindcast_MAP_$(model_config).csv")))
-        years = MAP[:,:YEAR]
-        if ensemble_or_map=="ensemble"
-            AIS = CSV.read(joinpath(slr_dir,"hindcast_antarctic_$(model_config).csv"), DataFrame)
-            GIS = CSV.read(joinpath(slr_dir,"hindcast_greenland_$(model_config).csv"), DataFrame)
-            GSIC = CSV.read(joinpath(slr_dir,"hindcast_glaciers_$(model_config).csv"), DataFrame)
-            TE = CSV.read(joinpath(slr_dir,"hindcast_thermal_$(model_config).csv"), DataFrame)
-            LWS = CSV.read(joinpath(slr_dir,"hindcast_landwater_storage_sl_$(model_config).csv"), DataFrame)
-            num_ens = size(AIS)[2]
-        elseif ensemble_or_map=="map"
-            AIS = MAP[:,:AIS]
-            GIS = MAP[:,:GIS]
-            GSIC = MAP[:,:GLAC]
-            TE = MAP[:,:TE]
-            LWS = MAP[:,:LWS]
-            num_ens = 1
-        end
+    slr_dir = joinpath(results_dir, "projections_csv", model_config, ssprcp_scenario)
+    MAP = DataFrame(load(joinpath(slr_dir,"projections_MAP_$(ssprcp_scenario)_$(model_config).csv")))
+    years = MAP[:,:YEAR]
+    if ensemble_or_map=="ensemble"
+        AIS = CSV.read(joinpath(slr_dir,"projections_antarctic_$(ssprcp_scenario)_$(model_config).csv"), DataFrame)
+        GIS = CSV.read(joinpath(slr_dir,"projections_greenland_$(ssprcp_scenario)_$(model_config).csv"), DataFrame)
+        GSIC = CSV.read(joinpath(slr_dir,"projections_glaciers_$(ssprcp_scenario)_$(model_config).csv"), DataFrame)
+        TE = CSV.read(joinpath(slr_dir,"projections_thermal_$(ssprcp_scenario)_$(model_config).csv"), DataFrame)
+        LWS = CSV.read(joinpath(slr_dir,"projections_landwater_storage_sl_$(ssprcp_scenario)_$(model_config).csv"), DataFrame)
+        num_ens = size(AIS)[2]
+    elseif ensemble_or_map=="map"
+        AIS = MAP[:,:AIS]
+        GIS = MAP[:,:GIS]
+        GSIC = MAP[:,:GLAC]
+        TE = MAP[:,:TE]
+        LWS = MAP[:,:LWS]
+        num_ens = 1
     end
     num_years = length(years)
 
@@ -178,11 +154,7 @@ function downscale_brick(;lon::Float64,
 
     lat_rounded = round(lat, digits=2)
     lon_rounded = round(lon, digits=2)
-    if proj_or_hind=="proj"
-        filename_output = joinpath(filepath_output,"projections_lsl-lat$(lat_rounded)-lon$(lon_rounded)_$(model_config).csv")
-    elseif proj_or_hind=="hind"
-        filename_output = joinpath(filepath_output,"hindcast_lsl-lat$(lat_rounded)-lon$(lon_rounded)_$(model_config).csv")
-    end
+    filename_output = joinpath(filepath_output,"projections_lsl-lat$(lat_rounded)-lon$(lon_rounded)_$(model_config).csv")
     CSV.write(filename_output, DataFrame(outputs, :auto))
 
     return years, lsl_out
