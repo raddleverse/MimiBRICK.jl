@@ -108,7 +108,6 @@ using Mimi
             v.antartic_surface_temperature[t] = (p.global_surface_temperature[t-1] - p.ais_temperature_intercept) / p.ais_temperature_coefficient
 
             # Calculate precipitation.
-            ###v.precipitation[t] = p.ais_precipitation₀ * exp(p.ais_κ * v.antartic_surface_temperature[t])
             v.precipitation[t] = exp(p.ais_precipitation₀) * exp(p.ais_κ * v.antartic_surface_temperature[t])
 
             # Calculate mass balance gradient.
