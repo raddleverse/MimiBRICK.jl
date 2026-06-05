@@ -20,7 +20,7 @@ period and save the results to CSV files.
 
 Function Arguments:
 
-    - outdir - paths for results files - subsample of model parameters, and associated log-posterior scores, and printed results of this function
+    - output_dir - paths for results files - subsample of model parameters, and associated log-posterior scores, and printed results of this function
     - model_config (default = "brick") - model configuration with possible options: (1) "brick", (2) "doeclimbrick", (3) "sneasybrick"
     - ssprcp_scenario (default = "ssp245") - SSP-RCP scenario with possible options: ssp119, ssp126, ssp245, ssp370, ssp460, ssp585, ssp534-over
     - start_year (default = 1850) - start year for calibration
