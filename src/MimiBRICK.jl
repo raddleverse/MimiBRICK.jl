@@ -86,7 +86,7 @@ function get_model(;ssprcp_scenario::String="ssp245", start_year::Int=1850, end_
     update_param!(brick, :antarctic_icesheet, :ais_μ, 11.0)
     update_param!(brick, :antarctic_icesheet, :ais_runoffline_snowheight₀, 1400.0)
     update_param!(brick, :antarctic_icesheet, :ais_c, 100.0)
-    update_param!(brick, :antarctic_icesheet, :ais_precipitation₀, 0.37)
+    update_param!(brick, :antarctic_icesheet, :ais_precipitation₀, log(0.37))
     update_param!(brick, :antarctic_icesheet, :ais_κ, 0.062)
     update_param!(brick, :antarctic_icesheet, :ais_ν, 0.0086)
     update_param!(brick, :antarctic_icesheet, :ais_iceflow₀, 1.2)
