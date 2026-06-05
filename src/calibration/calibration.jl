@@ -67,6 +67,7 @@ function run_calibration(;  output_dir::String,
     # NOTE that if `start_from_priors = true`, these will NOT be used, even if they are set appropriately.
     # Also, the `path_initial_parameters` does not need to be distinct from the `path_parameter_info`.
     # `path_parameter_info` is just to get the names of the parameters, whereas `path_initial_parameters` will provide the starting values for the model parameters as well.
+    # the 04Jun2026 file versions are based on updated priors and a long initial chain
     if ~start_from_priors
         path_initial_parameters = joinpath(calibration_data_dir, "calibration_initial_values_"*model_config*"_04Jun2026.csv")
         path_initial_covariance = joinpath(calibration_data_dir, "initial_proposal_covariance_matrix_"*model_config*"_04Jun2026.csv")
@@ -97,11 +98,6 @@ function run_calibration(;  output_dir::String,
         initial_parameters = DataFrame(load(path_initial_parameters)).parameter_values
         initial_covariance_matrix = Array(Hermitian(Matrix(DataFrame(load(path_initial_covariance)))))
     end
-    ### treat ais precip0 parameter differently
-    #idx_precip = findall(x->x==Symbol("antarctic_precip0"),parnames)[1]
-    #initial_parameters[idx_precip] = log.(initial_parameters[idx_precip])
-    #initial_covariance_matrix[idx_precip,:] ./= initial_parameters[idx_precip]
-    #initial_covariance_matrix[:,idx_precip] ./= initial_parameters[idx_precip]
     
     ##------------------------------------------------------------------------------
     ## Load functions for running and calibrating the model configuration
@@ -134,10 +130,7 @@ function run_calibration(;  output_dir::String,
     ## Burn-in removal and check convergence via Gelman and Rubin potential scale
     ## reduction factor (PSRF)
     ##------------------------------------------------------------------------------
-###
-using MCMCDiagnosticTools, Statistics, Plots
-chain_raw = x[1]; log_post = x[4]; num_parameters = size(chain_raw)[2]
-###
+
     # Remove the burn-in period
     chain_burned = chain_raw[(burnin_length+1):total_chain_length,:]
     log_post_burned = log_post[(burnin_length+1):total_chain_length]

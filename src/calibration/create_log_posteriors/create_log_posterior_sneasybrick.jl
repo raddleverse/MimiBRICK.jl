@@ -73,7 +73,7 @@ function construct_sneasybrick_log_prior(joint_antarctic_prior::Bool, uniform_EC
     antarctic_lower_bound = vec(minimum(antarctic_paleo_params, dims=1))
     antarctic_upper_bound = vec(maximum(antarctic_paleo_params, dims=1))
 
-    ### handle precip0 differently
+    # Handle precip0 differently, since now sampling from log(P0)
     antarctic_lower_bound[7] = log(antarctic_lower_bound[7])
     antarctic_upper_bound[7] = log(antarctic_upper_bound[7])
 
@@ -94,7 +94,6 @@ function construct_sneasybrick_log_prior(joint_antarctic_prior::Bool, uniform_EC
         prior_α              = truncated_kernel(antarctic_paleo_params[:,4],  antarctic_lower_bound[4],  antarctic_upper_bound[4])
         prior_μ              = truncated_kernel(antarctic_paleo_params[:,5],  antarctic_lower_bound[5],  antarctic_upper_bound[5])
         prior_ν              = truncated_kernel(antarctic_paleo_params[:,6],  antarctic_lower_bound[6],  antarctic_upper_bound[6])
-        ###prior_precip₀        = truncated_kernel(antarctic_paleo_params[:,7],  antarctic_lower_bound[7],  antarctic_upper_bound[7])
         prior_precip₀        = truncated_kernel(log.(antarctic_paleo_params[:,7]),  antarctic_lower_bound[7],  antarctic_upper_bound[7])
         prior_κ              = truncated_kernel(antarctic_paleo_params[:,8],  antarctic_lower_bound[8],  antarctic_upper_bound[8])
         prior_flow₀          = truncated_kernel(antarctic_paleo_params[:,9],  antarctic_lower_bound[9],  antarctic_upper_bound[9])
@@ -169,14 +168,12 @@ function construct_sneasybrick_log_prior(joint_antarctic_prior::Bool, uniform_EC
     # -----------------------------------------
     prior_Q10                = Uniform(1.0, 5)
     prior_CO₂_fertilization  = Uniform(0., 1)
-    ###prior_CO₂_diffusivity    = Uniform(0., 200)
     prior_CO₂_diffusivity    = LogNormal(3.4, 0.43)
 
     # -----------------------------------------
     # Climate & Radiative Forcing Priors.
     # -----------------------------------------
     prior_heat_diffusivity   = LogNormal(1.1, 0.3)
-    #prior_heat_diffusivity   = Uniform(0.1, 4) # from BRICK paper
     prior_rf_scale_aerosol   = TriangularDist(0., 3., 1.)
 
     # Decide whether to use a uniform or paleo-informed ECS prior.
