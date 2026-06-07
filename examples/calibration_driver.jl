@@ -10,13 +10,13 @@ using MimiBRICK
 ##------------------------------------------------------------------------------
 ##------------------------------------------------------------------------------
 
-output_dir = joinpath(@__DIR__, "..", "results")
+output_dir = joinpath(@__DIR__, "results")
 mkpath(output_dir)
 
 calibration_start_year = 1850
 calibration_end_year   = 2017
 total_chain_length     = 15_000_000
-burnin_length          = Int(0.2 * total_chain_length)
+burnin_length          = 5_000_000
 num_walkers            = 2
 size_subsample         = 10_000
 threshold_gr           = 1.1
