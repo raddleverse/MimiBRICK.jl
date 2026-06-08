@@ -7,11 +7,11 @@ using Dates
 ##==============================================================================
 ## Read output from SNEASY RCP projections
 
-dir_sneasybrick = joinpath(@__DIR__, "..", "results", "my_sneasybrick_results_20M_19-02-2022")
+dir_sneasybrick = joinpath(@__DIR__, "results", "projections_csv", "sneasybrick")
 
-for rcp_scenario = ["RCP26","RCP45","RCP60","RCP85"]
+for scenario in ["ssp119","ssp126","ssp245","ssp370","ssp460","ssp585","ssp534-over"]
 
-    filename_sneasy_map = joinpath(dir_sneasybrick,"projections_csv",rcp_scenario,"projections_MAP_sneasybrick.csv")
+    filename_sneasy_map = joinpath(dir_sneasybrick,scenario,"projections_MAP_$(scenario)_sneasybrick.csv")
     map_projections = DataFrame(load(filename_sneasy_map))
 
     ## Get temperature and ocean heat
@@ -26,10 +26,10 @@ for rcp_scenario = ["RCP26","RCP45","RCP60","RCP85"]
 
     ## Write CSV files
     # temperature
-    filename_temp = joinpath(@__DIR__, "..", "data", "model_data", "sneasy_temperature_$(rcp_scenario)_$(Int(years[1]))_$(Int(years[end]))_$(Dates.format(now(),"dd-mm-yyyy")).csv")
+    filename_temp = joinpath(@__DIR__, "data", "model_data", "sneasy_temperature_$(scenario)_$(Int(years[1]))_$(Int(years[end]))_$(Dates.format(now(),"dd-mm-yyyy")).csv")
     CSV.write(filename_temp, DataFrame([years,temperature_norm], ["Year","MAP Temperature"]))
     # ocean heat
-    filename_ocheat = joinpath(@__DIR__, "..", "data", "model_data", "sneasy_oceanheat_$(rcp_scenario)_$(Int(years[1]))_$(Int(years[end]))_$(Dates.format(now(),"dd-mm-yyyy")).csv")
+    filename_ocheat = joinpath(@__DIR__, "data", "model_data", "sneasy_oceanheat_$(scenario)_$(Int(years[1]))_$(Int(years[end]))_$(Dates.format(now(),"dd-mm-yyyy")).csv")
     CSV.write(filename_ocheat, DataFrame([years,ocean_heat], ["Year","MAP Ocean Heat"]))
 
 end

@@ -30,6 +30,7 @@ using StatsBase
                         num_walkers=2,
                         size_subsample=1000, 
                         start_from_priors=false,
+                        joint_ais_prior=false
                         calibration_data_dir::Union{String, Nothing} = nothing
                     )
                     
@@ -51,6 +52,7 @@ function run_calibration(;  output_dir::String,
                             num_walkers=2,
                             size_subsample=1000, 
                             start_from_priors=false,
+                            joint_ais_prior=false,
                             calibration_data_dir::Union{String, Nothing} = nothing
                         )
 
@@ -65,9 +67,10 @@ function run_calibration(;  output_dir::String,
     # NOTE that if `start_from_priors = true`, these will NOT be used, even if they are set appropriately.
     # Also, the `path_initial_parameters` does not need to be distinct from the `path_parameter_info`.
     # `path_parameter_info` is just to get the names of the parameters, whereas `path_initial_parameters` will provide the starting values for the model parameters as well.
+    # the 04Jun2026 file versions are based on updated priors and a long initial chain
     if ~start_from_priors
-        path_initial_parameters = joinpath(calibration_data_dir, "calibration_initial_values_"*model_config*".csv")
-        path_initial_covariance = joinpath(calibration_data_dir, "initial_proposal_covariance_matrix_"*model_config*".csv")
+        path_initial_parameters = joinpath(calibration_data_dir, "calibration_initial_values_"*model_config*"_04Jun2026.csv")
+        path_initial_covariance = joinpath(calibration_data_dir, "initial_proposal_covariance_matrix_"*model_config*"_04Jun2026.csv")
     end
 
     ##------------------------------------------------------------------------------
@@ -95,7 +98,7 @@ function run_calibration(;  output_dir::String,
         initial_parameters = DataFrame(load(path_initial_parameters)).parameter_values
         initial_covariance_matrix = Array(Hermitian(Matrix(DataFrame(load(path_initial_covariance)))))
     end
-
+    
     ##------------------------------------------------------------------------------
     ## Load functions for running and calibrating the model configuration
     ## --> New configurations will need new drivers and posterior distribution calculation 
@@ -108,13 +111,13 @@ function run_calibration(;  output_dir::String,
     # @eval and Symbols so this can be run as a function instead of a script.
     if model_config=="brick"
         run_mymodel! = MimiBRICK.construct_run_brick(calibration_start_year, calibration_end_year)
-        log_posterior_mymodel = MimiBRICK.construct_brick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=false)
+        log_posterior_mymodel = MimiBRICK.construct_brick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=joint_ais_prior)
     elseif model_config=="doeclimbrick"
         run_mymodel! = MimiBRICK.construct_run_doeclimbrick(calibration_start_year, calibration_end_year)
-        log_posterior_mymodel = MimiBRICK.construct_doeclimbrick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=false)
+        log_posterior_mymodel = MimiBRICK.construct_doeclimbrick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=joint_ais_prior)
     elseif model_config=="sneasybrick"
         run_mymodel! = MimiBRICK.construct_run_sneasybrick(calibration_start_year, calibration_end_year)
-        log_posterior_mymodel = MimiBRICK.construct_sneasybrick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=false)
+        log_posterior_mymodel = MimiBRICK.construct_sneasybrick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=joint_ais_prior)
     end
 
     println("Begin baseline calibration of "*model_config*" model.\n")
