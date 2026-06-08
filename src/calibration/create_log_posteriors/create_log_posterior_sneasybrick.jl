@@ -40,6 +40,31 @@ function construct_sneasybrick_log_prior(joint_antarctic_prior::Bool, uniform_EC
     antarctic_paleo_file   = joinpath(calibration_data_dir, "DAISfastdyn_calibratedParameters_gamma_29Jan2017.nc")
     antarctic_paleo_params = convert(Array{Float64,2}, ncread(antarctic_paleo_file, "DAIS_parameters"))'[:,1:15]
 
+    ###
+    if false
+        calib_file_url = "https://zenodo.org/records/6626335/files/parameters_subsample_sneasybrick.csv"
+        dfPrior = DataFrame(load(calib_file_url))
+        parnames_ais_prior = [ "anto_alpha"
+            "anto_beta"
+            "antarctic_gamma"
+            "antarctic_alpha"
+            "antarctic_mu"
+            "antarctic_nu"
+            "antarctic_precip0"
+            "antarctic_kappa"
+            "antarctic_flow0"
+            "antarctic_runoff_height0"
+            "antarctic_c"
+            "antarctic_bed_height0"
+            "antarctic_slope"
+            "antarctic_lambda"
+            "antarctic_temp_threshold"
+        ]
+        dfPrior_ais = dfPrior[!,parnames_ais_prior]
+        antarctic_paleo_params = Matrix(dfPrior_ais)
+    end
+    ###
+
     #---------------------------------------------
     # Antarctic ice sheet priors
     #---------------------------------------------
@@ -47,6 +72,10 @@ function construct_sneasybrick_log_prior(joint_antarctic_prior::Bool, uniform_EC
     # Calculate upper and lower bounds for Antarctic ice sheet parameters (min/max values from paleo calibration).
     antarctic_lower_bound = vec(minimum(antarctic_paleo_params, dims=1))
     antarctic_upper_bound = vec(maximum(antarctic_paleo_params, dims=1))
+
+    # Handle precip0 differently, since now sampling from log(P0)
+    antarctic_lower_bound[7] = log(antarctic_lower_bound[7])
+    antarctic_upper_bound[7] = log(antarctic_upper_bound[7])
 
     # Initialize a vector to store sampled Antarctic ice sheet parameters.
     antarctic_params = zeros(15)
@@ -65,7 +94,7 @@ function construct_sneasybrick_log_prior(joint_antarctic_prior::Bool, uniform_EC
         prior_α              = truncated_kernel(antarctic_paleo_params[:,4],  antarctic_lower_bound[4],  antarctic_upper_bound[4])
         prior_μ              = truncated_kernel(antarctic_paleo_params[:,5],  antarctic_lower_bound[5],  antarctic_upper_bound[5])
         prior_ν              = truncated_kernel(antarctic_paleo_params[:,6],  antarctic_lower_bound[6],  antarctic_upper_bound[6])
-        prior_precip₀        = truncated_kernel(antarctic_paleo_params[:,7],  antarctic_lower_bound[7],  antarctic_upper_bound[7])
+        prior_precip₀        = truncated_kernel(log.(antarctic_paleo_params[:,7]),  antarctic_lower_bound[7],  antarctic_upper_bound[7])
         prior_κ              = truncated_kernel(antarctic_paleo_params[:,8],  antarctic_lower_bound[8],  antarctic_upper_bound[8])
         prior_flow₀          = truncated_kernel(antarctic_paleo_params[:,9],  antarctic_lower_bound[9],  antarctic_upper_bound[9])
         prior_runoff_height₀ = truncated_kernel(antarctic_paleo_params[:,10], antarctic_lower_bound[10], antarctic_upper_bound[10])
@@ -139,13 +168,12 @@ function construct_sneasybrick_log_prior(joint_antarctic_prior::Bool, uniform_EC
     # -----------------------------------------
     prior_Q10                = Uniform(1.0, 5)
     prior_CO₂_fertilization  = Uniform(0., 1)
-    prior_CO₂_diffusivity    = Uniform(0., 200)
+    prior_CO₂_diffusivity    = LogNormal(3.4, 0.43)
 
     # -----------------------------------------
     # Climate & Radiative Forcing Priors.
     # -----------------------------------------
     prior_heat_diffusivity   = LogNormal(1.1, 0.3)
-    #prior_heat_diffusivity   = Uniform(0.1, 4) # from BRICK paper
     prior_rf_scale_aerosol   = TriangularDist(0., 3., 1.)
 
     # Decide whether to use a uniform or paleo-informed ECS prior.
