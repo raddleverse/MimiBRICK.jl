@@ -58,17 +58,17 @@ run(m)
 ```
 
 These are using the default arguments in the model constructor for the DOECLIM-BRICK model:
-* `rcp_scenario = "RCP85"` - using Representative Concentration Pathway 8.5 as a default; other options include `RCP26`, `RCP45`, and `RCP60`
+* `ssprcp_scenario = "ssp245"` - using SSP2-4.5 as a default; other options include `ssp119, ssp126, ssp245, ssp370, ssp460, ssp585, ssp534-over`
 * `start_year = 1850` - starting year of the model simulation
 * `end_year = 2020` - ending year of the model simulation
 
-So, if you wanted to instead run DOECLIM-BRICK using RCP 6.0 from 1800 to 2100, you could run:
+So, if you wanted to instead run DOECLIM-BRICK using SSP3-7.0 from 1800 to 2100, you could run:
 ```julia
-m = MimiBRICK.create_brick_doeclim(rcp_scenario="RCP60", start_year=1800, end_year=2100)
+m = MimiBRICK.create_brick_doeclim(ssprcp_scenario="ssp370", start_year=1800, end_year=2100)
 run(m)
 ```
 
-And of course, you can use `explore(m)` to check out the model outputs attached to the model object `m` to verify that we have in fact changed RCP scenario and time periods. (Reminder: you'll need to have loaded the `Mimi` package using `using Mimi` to access the `explore()` function.)
+And of course, you can use `explore(m)` to check out the model outputs attached to the model object `m` to verify that we have in fact changed SSP-RCP scenario and time periods. (Reminder: you'll need to have loaded the `Mimi` package using `using Mimi` to access the `explore()` function.)
 
 ### SNEASY-BRICK (with emissions forcing)
 
@@ -78,5 +78,5 @@ m = MimiBRICK.create_sneasy_brick()
 run(m)
 ```
 
-The `create_sneasy_brick()` constructor has the same arguments as the DOECLIM-BRICK constructor, so you can change the RCP scenario and the time period.
+The `create_sneasy_brick()` constructor has the same arguments as the DOECLIM-BRICK constructor, so you can change the SSP-RCP scenario and the time period.
 
