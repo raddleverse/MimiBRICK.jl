@@ -11,24 +11,23 @@
         calibration_end_year    = 2017
         total_chain_length      = 250
         size_subsample          = 10
-        threshold_gr            = 1.1
 
         for model_config in ["brick", "sneasybrick", "doeclimbrick"]
             
             # run calibration
             MimiBRICK.run_calibration(output_dir=tmp_dir, model_config=model_config, calibration_start_year=1850, calibration_end_year=2017,
-                                total_chain_length=total_chain_length, burnin_length=0, threshold_gr=threshold_gr, check_gr=false, num_walkers=2,
+                                total_chain_length=total_chain_length, burnin_length=0, check_gr=false,
                                 size_subsample=size_subsample, start_from_priors=false)
 
-    # run hindcast and projections 
-    MimiBRICK.run_projections(output_dir=tmp_dir, model_config=model_config, ssprcp_scenario="ssp245")
+            # run hindcast and projections 
+            MimiBRICK.run_projections(output_dir=tmp_dir, model_config=model_config, ssprcp_scenario="ssp245")
 
-    # Lat and Lon for New York City
-    lat=40.7128 # deg N
-    lon=360-74.0060 # 74.0060 deg W
+            # Lat and Lon for New York City
+            lat=40.7128 # deg N
+            lon=360-74.0060 # 74.0060 deg W
 
             # testing projections ensemble
-            years, lsl_proj_ens=MimiBRICK.downscale_brick(lon=lon, lat=lat, results_dir=tmp_dir, proj_or_hind="proj", ensemble_or_map="ensemble", model_config=model_config, ssprcp_scenario="ssp245")
+            years, lsl_proj_ens=MimiBRICK.downscale_brick(lon=lon, lat=lat, results_dir=tmp_dir, ensemble_or_map="ensemble", model_config=model_config, ssprcp_scenario="ssp245")
             @test size(lsl_proj_ens)[1]==451
             @test size(lsl_proj_ens)[2]==10
             @test length(years)==451
@@ -36,7 +35,7 @@
             @test all([isa(years[i],Number) for i=1:length(years)])
 
             # testing projections with MAP
-            years, lsl_map=MimiBRICK.downscale_brick(lon=lon, lat=lat, results_dir=tmp_dir, proj_or_hind="proj", ensemble_or_map="map", model_config=model_config, ssprcp_scenario="ssp245")
+            years, lsl_map=MimiBRICK.downscale_brick(lon=lon, lat=lat, results_dir=tmp_dir, ensemble_or_map="map", model_config=model_config, ssprcp_scenario="ssp245")
             @test ndims(lsl_map)==1
             @test length(lsl_map)==451
             @test length(years)==451

@@ -197,10 +197,10 @@ function load_calibration_data(model_start_year::Int, last_calibration_year::Int
     norm_annual_imbie_obs = annual_imbie_obs .- mean(annual_imbie_obs[greenland_imbie_norm_indices])
 
     # Merge into a dataframe and combine with other data.
+    # Removing this to use the Frederikse et al 2020 data (below) instead
   #  annual_greenland_imbie_df = DataFrame(year=annual_imbie_years, greenland_imbie_obs=norm_annual_imbie_obs, greenland_imbie_sigma=annual_imbie_sigma)
   #  df = join(df, annual_greenland_imbie_df, on=:year, kind=:outer)
 
-###TW working here now
     #---------------------------------------------------------------------------------
     # Load Frederikse et al 2020 sea level contributor data (for Greenland in particular)
     #---------------------------------------------------------------------------------
@@ -221,7 +221,6 @@ function load_calibration_data(model_start_year::Int, last_calibration_year::Int
     # Normalize observations to 1992-2001 mean.
     greenland_frederikse_norm_indices = findall((in)(1961:last_sea_level_norm_year), annual_frederikse_years)
     norm_annual_frederikse_obs = annual_frederikse_obs .- mean(annual_frederikse_obs[greenland_frederikse_norm_indices])
-###TW end working here now
 
     #-------------------------------------------------------------------------------------------
     # Combine Two Greenland Sets of Observations (for convenience) and normalize to common year.
@@ -242,10 +241,8 @@ function load_calibration_data(model_start_year::Int, last_calibration_year::Int
     norm_greenland_merged_obs     = merged_greenland_obs .- mean(merged_greenland_obs[greenland_merged_norm_indices])
 
     # Create dataframe of merged data and combine with other calibration data.
-    ###TW testing Frederikse data
-    ###merged_greenland_df = DataFrame(year=merged_years, merged_greenland_obs=norm_greenland_merged_obs, merged_greenland_sigma=merged_greenland_sigma)
+    # using the Frederikse et al data instead of IMBIE
     merged_greenland_df = DataFrame(year=annual_frederikse_years, merged_greenland_obs=norm_annual_frederikse_obs, merged_greenland_sigma=annual_frederikse_sigma)
-    #df = join(df, merged_greenland_df, on=:year, kind=:outer)
     df = outerjoin(df, merged_greenland_df, on=:year)
 
     #---------------------------------------------------------------------------------
@@ -401,7 +398,6 @@ function load_calibration_data(model_start_year::Int, last_calibration_year::Int
 
         # Assign trends to dataframe and add column names.
         ais_trend_df = DataFrame(ais_trends, :auto)
-        #names!(ais_trend_df, Symbol.(["Trend", "Lower_90_Percent", "Upper_90_Percent", "Start_Year", "End_Year", "Start_Model_Index", "End_Model_Index"]))
         rename!(ais_trend_df, Symbol.(["Trend", "Lower_90_Percent", "Upper_90_Percent", "Start_Year", "End_Year", "Start_Model_Index", "End_Model_Index"]))
 
     else
