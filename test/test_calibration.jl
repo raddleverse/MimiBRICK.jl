@@ -14,12 +14,11 @@ calibration_start_year = 1850
 calibration_end_year   = 2017
 total_chain_length     = 1000
 size_subsample         = 100
-threshold_gr           = 1.1
 
 # BRICK calibration
 nparameters_brick = 35
 x1 = MimiBRICK.run_calibration(output_dir=tmp_dir, model_config="brick", calibration_start_year=1850, calibration_end_year=2017,
-                     total_chain_length=total_chain_length, burnin_length=0, threshold_gr=threshold_gr, num_walkers=2,
+                     total_chain_length=total_chain_length, burnin_length=0, check_gr=false,
                      size_subsample=size_subsample, start_from_priors=false)
 @test size(x1[1])[1]==1000
 @test size(x1[1])[2]==nparameters_brick
@@ -31,7 +30,7 @@ x1 = MimiBRICK.run_calibration(output_dir=tmp_dir, model_config="brick", calibra
 # DOECLIM-BRICK calibration
 nparameters_doeclimbrick = 44
 x2 = MimiBRICK.run_calibration(output_dir=tmp_dir, model_config="doeclimbrick", calibration_start_year=1850, calibration_end_year=2017,
-                     total_chain_length=total_chain_length, burnin_length=0, threshold_gr=threshold_gr, num_walkers=2,
+                     total_chain_length=total_chain_length, burnin_length=0, check_gr=false,
                      size_subsample=size_subsample, start_from_priors=false)
 @test size(x2[1])[1]==1000
 @test size(x2[1])[2]==nparameters_doeclimbrick
@@ -43,7 +42,7 @@ x2 = MimiBRICK.run_calibration(output_dir=tmp_dir, model_config="doeclimbrick", 
 # SNEASY-BRICK calibration
 nparameters_sneasybrick = 51
 x3 = MimiBRICK.run_calibration(output_dir=tmp_dir, model_config="sneasybrick", calibration_start_year=1850, calibration_end_year=2017,
-                     total_chain_length=total_chain_length, burnin_length=0, threshold_gr=threshold_gr, num_walkers=2,
+                     total_chain_length=total_chain_length, burnin_length=0, check_gr=false,
                      size_subsample=size_subsample, start_from_priors=false)
 @test size(x3[1])[1]==1000
 @test size(x3[1])[2]==nparameters_sneasybrick
