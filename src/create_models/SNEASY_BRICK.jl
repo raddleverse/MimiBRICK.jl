@@ -1,6 +1,7 @@
 using CSVFiles
 using DataFrames
 using Distributions
+using Interpolations
 using Mimi
 using MimiSNEASY
 
@@ -8,7 +9,7 @@ using MimiSNEASY
 # Function to run SNEASY-BRICK climate model over historic period.
 # ------------------------------------------------------------------------------
 """
-    create_sneasy_brick(;rcp_scenario::String = "RCP85", start_year::Int=1850, end_year::Int=2020)
+    create_sneasy_brick(;ssprcp_scenario::String = "ssp245", start_year::Int=1850, end_year::Int=2020)
 
 Return a Mimi model instance with MimiBRICK and MimiSNEASY coupled together.
 
@@ -17,11 +18,11 @@ makes the model component variable connections.
 
 Function Arguments:
 
-        rcp_scenario = RCP scenario for exogenous forcing
-        start_year   = initial year of the simulation period
-        end_year     = ending year of the simulation period
+        ssprcp_scenario = SSP-RCP scenario for exogenous forcing
+        start_year      = initial year of the simulation period
+        end_year        = ending year of the simulation period
 """
-function create_sneasy_brick(; rcp_scenario::String="RCP85", start_year::Int=1850, end_year::Int=2020)
+function create_sneasy_brick(; ssprcp_scenario::String="ssp245", start_year::Int=1850, end_year::Int=2020)
 
  	# ---------------------------------------------
     # Load and clean up necessary data.
@@ -29,24 +30,35 @@ function create_sneasy_brick(; rcp_scenario::String="RCP85", start_year::Int=185
 
 	# Set model years.
 	model_years = collect(start_year:end_year)
+    all_years = collect(1750:2500) # all years of the SSP-RCP data
 
-    # Find indices for RCP data (1765-2500) corresponding to DICE years.
-    rcp_indices = findall((in)(model_years), 1765:2500)
-
-	# Load emissions and forcing data (index into appropriate years).
-  	rcp_emissions      = DataFrame(load(joinpath(@__DIR__, "..", "..", "data", "model_data", rcp_scenario*"_emissions.csv"), skiplines_begin=36))
-    rcp_concentrations = DataFrame(load(joinpath(@__DIR__, "..", "..", "data", "model_data", rcp_scenario*"_concentrations.csv"), skiplines_begin=37))
-    rcp_forcing        = DataFrame(load(joinpath(@__DIR__, "..", "..", "data", "model_data", rcp_scenario*"_midyear_radforcings.csv"), skiplines_begin=58))
+    # Load SSP-RCP radiative forcing, emissions, concentrations data for SNEASY (index into appropriate years).
+    ssprcp_forcing_data = DataFrame(load(joinpath(@__DIR__, "..", "..", "data", "model_data", "rcmip-radiative-forcing-annual-means-v5-1-0.csv"), skiplines_begin=0))
+    ssprcp_emissions_data = DataFrame(load(joinpath(@__DIR__, "..", "..", "data", "model_data", "rcmip-emissions-annual-means-v5-1-0.csv"), skiplines_begin=0))
+    ssprcp_concentrations_data = DataFrame(load(joinpath(@__DIR__, "..", "..", "data", "model_data", "rcmip-concentrations-annual-means-v5-1-0.csv"), skiplines_begin=0))
 
     # Calculate CO₂ emissions.
-    rcp_co2_emissions = (rcp_emissions.FossilCO2 .+ rcp_emissions.OtherCO2)[rcp_indices]
+    filtered_df = filter(row -> row.Scenario==ssprcp_scenario && row.Variable=="Emissions|CO2" && row.Region=="World", ssprcp_emissions_data)
+    
+    # get full data through interpolation (projection is every 10y)
+    all_co2 = [filtered_df[1,string(c)] for c in all_years]./1000 # data in MtC, model expects GtC
+    co2 = all_co2[findall(!ismissing, all_co2)]                   # co2 in not-missing years
+    years_co2 = all_years[findall(!ismissing, all_co2)]           # years with not-missing co2
+    interp_co2 = linear_interpolation(years_co2, co2);            # create linear interpolant
+    ssprcp_co2_emissions = interp_co2(model_years)                # interpolant matches data for all present values, linear interpolation between
+    ssprcp_co2_emissions = ssprcp_co2_emissions * 12/44           # RCMIP data are GtCO2, but SNEASY needs GtC; convert using ratio of molecular weights
 
-    # Get RCP N₂O concentrations (used for CO₂ radiative forcing calculations).
-    rcp_n2o_concentration = rcp_concentrations.N2O[rcp_indices]
+    # Get N₂O concentrations (used for CO₂ radiative forcing calculations).
+    filtered_df = filter(row -> row.Scenario==ssprcp_scenario && row.Variable=="Atmospheric Concentrations|N2O" && row.Region=="World", ssprcp_concentrations_data)
+    ssprcp_n2o_concentration = [filtered_df[1,string(c)] for c in model_years]
 
     # Calculate exogenous radiative forcings.
-    rcp_aerosol_forcing    = (rcp_forcing.TOTAER_DIR_RF .+ rcp_forcing.CLOUD_TOT_RF)[rcp_indices]
-    rcp_other_forcing      = (rcp_forcing.TOTAL_INCLVOLCANIC_RF .- rcp_forcing.CO2_RF .- rcp_forcing.TOTAER_DIR_RF .- rcp_forcing.CLOUD_TOT_RF)[rcp_indices]
+    filtered_df = filter(row -> row.Scenario == ssprcp_scenario && row.Variable == "Effective Radiative Forcing|Anthropogenic|CO2", ssprcp_forcing_data)
+    forcing_CO₂ = [filtered_df[1,string(c)] for c in model_years]
+    filtered_df = filter(row -> row.Scenario == ssprcp_scenario && row.Variable == "Effective Radiative Forcing|Anthropogenic|Aerosols", ssprcp_forcing_data)
+    ssprcp_aerosol_forcing = [filtered_df[1,string(c)] for c in model_years]
+    filtered_df = filter(row -> row.Scenario == ssprcp_scenario && row.Variable == "Effective Radiative Forcing", ssprcp_forcing_data)
+    ssprcp_other_forcing = [filtered_df[1,string(c)] for c in model_years] .- forcing_CO₂ .- ssprcp_aerosol_forcing
 
   	# Get an instance of Mimi-BRICK sea level rise model and set time dimension.
 	m = MimiSNEASY.get_model(start_year=start_year, end_year=end_year)
@@ -83,7 +95,7 @@ function create_sneasy_brick(; rcp_scenario::String="RCP85", start_year::Int=185
     update_param!(m, :antarctic_icesheet, :ais_μ, 11.0)
     update_param!(m, :antarctic_icesheet, :ais_runoffline_snowheight₀, 1400.0)
     update_param!(m, :antarctic_icesheet, :ais_c, 100.0)
-    update_param!(m, :antarctic_icesheet, :ais_precipitation₀, 0.37)
+    update_param!(m, :antarctic_icesheet, :ais_precipitation₀, log(0.37))
     update_param!(m, :antarctic_icesheet, :ais_κ, 0.062)
     update_param!(m, :antarctic_icesheet, :ais_ν, 0.0086)
     update_param!(m, :antarctic_icesheet, :ais_iceflow₀, 1.2)
@@ -135,10 +147,10 @@ function create_sneasy_brick(; rcp_scenario::String="RCP85", start_year::Int=185
 
     # ----- SNEASY RCP Scenario Specific Parameters ----- #
 
-	update_param!(m, :ccm, :CO2_emissions, rcp_co2_emissions)
-	update_param!(m, :rfco2, :N₂O, rcp_n2o_concentration)
- 	update_param!(m, :radiativeforcing, :rf_aerosol, rcp_aerosol_forcing)
- 	update_param!(m, :radiativeforcing, :rf_other, rcp_other_forcing)
+	update_param!(m, :ccm, :CO2_emissions, ssprcp_co2_emissions)
+	update_param!(m, :rfco2, :N₂O, ssprcp_n2o_concentration)
+ 	update_param!(m, :radiativeforcing, :rf_aerosol, ssprcp_aerosol_forcing)
+ 	update_param!(m, :radiativeforcing, :rf_other, ssprcp_other_forcing)
 
     #-----------------------------------------#
     #----- Create Component Connections ----- #

@@ -5,6 +5,7 @@ using NetCDF
 using KernelDensity
 using CSVFiles
 using Statistics
+using XLSX
 
 #-------------------------------------------------------------------------------
 # This file contains functions that are used for the model calibrations.
@@ -196,8 +197,30 @@ function load_calibration_data(model_start_year::Int, last_calibration_year::Int
     norm_annual_imbie_obs = annual_imbie_obs .- mean(annual_imbie_obs[greenland_imbie_norm_indices])
 
     # Merge into a dataframe and combine with other data.
+    # Removing this to use the Frederikse et al 2020 data (below) instead
   #  annual_greenland_imbie_df = DataFrame(year=annual_imbie_years, greenland_imbie_obs=norm_annual_imbie_obs, greenland_imbie_sigma=annual_imbie_sigma)
   #  df = join(df, annual_greenland_imbie_df, on=:year, kind=:outer)
+
+    #---------------------------------------------------------------------------------
+    # Load Frederikse et al 2020 sea level contributor data (for Greenland in particular)
+    #---------------------------------------------------------------------------------
+
+    # Load raw Frederikse data for all GMSL contributors.
+    raw_frederikse_data_xlsx = XLSX.readxlsx(joinpath(calibration_data_dir, "global_basin_timeseries.xlsx"))
+    raw_frederikse_data = raw_frederikse_data_xlsx["Global"][:]
+    column_names = raw_frederikse_data[1,:]
+    column_names[1] = "Year"
+    raw_frederikse_data = DataFrame(raw_frederikse_data[2:end,:], column_names)
+    
+    # Assign vectors to hold annual values.
+    # /1000 to convert from mm to m
+    annual_frederikse_years = raw_frederikse_data.Year
+    annual_frederikse_obs   = raw_frederikse_data[!, Symbol("Greenland Ice Sheet [mean]")]/1000
+    annual_frederikse_sigma = (raw_frederikse_data[!, "Greenland Ice Sheet [upper]"] - raw_frederikse_data[!, "Greenland Ice Sheet [lower]"])/4/1000
+
+    # Normalize observations to 1992-2001 mean.
+    greenland_frederikse_norm_indices = findall((in)(1961:last_sea_level_norm_year), annual_frederikse_years)
+    norm_annual_frederikse_obs = annual_frederikse_obs .- mean(annual_frederikse_obs[greenland_frederikse_norm_indices])
 
     #-------------------------------------------------------------------------------------------
     # Combine Two Greenland Sets of Observations (for convenience) and normalize to common year.
@@ -218,8 +241,8 @@ function load_calibration_data(model_start_year::Int, last_calibration_year::Int
     norm_greenland_merged_obs     = merged_greenland_obs .- mean(merged_greenland_obs[greenland_merged_norm_indices])
 
     # Create dataframe of merged data and combine with other calibration data.
-    merged_greenland_df = DataFrame(year=merged_years, merged_greenland_obs=norm_greenland_merged_obs, merged_greenland_sigma=merged_greenland_sigma)
-    #df = join(df, merged_greenland_df, on=:year, kind=:outer)
+    # using the Frederikse et al data instead of IMBIE
+    merged_greenland_df = DataFrame(year=annual_frederikse_years, merged_greenland_obs=norm_annual_frederikse_obs, merged_greenland_sigma=annual_frederikse_sigma)
     df = outerjoin(df, merged_greenland_df, on=:year)
 
     #---------------------------------------------------------------------------------
@@ -375,7 +398,6 @@ function load_calibration_data(model_start_year::Int, last_calibration_year::Int
 
         # Assign trends to dataframe and add column names.
         ais_trend_df = DataFrame(ais_trends, :auto)
-        #names!(ais_trend_df, Symbol.(["Trend", "Lower_90_Percent", "Upper_90_Percent", "Start_Year", "End_Year", "Start_Model_Index", "End_Model_Index"]))
         rename!(ais_trend_df, Symbol.(["Trend", "Lower_90_Percent", "Upper_90_Percent", "Start_Year", "End_Year", "Start_Model_Index", "End_Model_Index"]))
 
     else

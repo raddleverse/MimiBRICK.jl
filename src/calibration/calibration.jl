@@ -6,7 +6,7 @@ using LinearAlgebra
 using Mimi
 using NetCDF
 using RobustAdaptiveMetropolisSampler
-using MCMCDiagnostics
+using MCMCDiagnosticTools
 using Random
 using StatsBase
 
@@ -25,10 +25,12 @@ using StatsBase
                         calibration_end_year=2005,
                         total_chain_length=1000, 
                         burnin_length=0, 
-                        threshold_gr=1.1, 
+                        threshold_gr=1.1,
+                        check_gr=true,
                         num_walkers=2,
                         size_subsample=1000, 
                         start_from_priors=false,
+                        joint_ais_prior=false
                         calibration_data_dir::Union{String, Nothing} = nothing
                     )
                     
@@ -45,10 +47,12 @@ function run_calibration(;  output_dir::String,
                             calibration_end_year=2005,
                             total_chain_length=1000, 
                             burnin_length=0, 
-                            threshold_gr=1.1, 
+                            threshold_gr=1.1,
+                            check_gr=true,
                             num_walkers=2,
                             size_subsample=1000, 
                             start_from_priors=false,
+                            joint_ais_prior=false,
                             calibration_data_dir::Union{String, Nothing} = nothing
                         )
 
@@ -63,9 +67,10 @@ function run_calibration(;  output_dir::String,
     # NOTE that if `start_from_priors = true`, these will NOT be used, even if they are set appropriately.
     # Also, the `path_initial_parameters` does not need to be distinct from the `path_parameter_info`.
     # `path_parameter_info` is just to get the names of the parameters, whereas `path_initial_parameters` will provide the starting values for the model parameters as well.
+    # the 04Jun2026 file versions are based on updated priors and a long initial chain
     if ~start_from_priors
-        path_initial_parameters = joinpath(calibration_data_dir, "calibration_initial_values_"*model_config*".csv")
-        path_initial_covariance = joinpath(calibration_data_dir, "initial_proposal_covariance_matrix_"*model_config*".csv")
+        path_initial_parameters = joinpath(calibration_data_dir, "calibration_initial_values_"*model_config*"_04Jun2026.csv")
+        path_initial_covariance = joinpath(calibration_data_dir, "initial_proposal_covariance_matrix_"*model_config*"_04Jun2026.csv")
     end
 
     ##------------------------------------------------------------------------------
@@ -93,7 +98,7 @@ function run_calibration(;  output_dir::String,
         initial_parameters = DataFrame(load(path_initial_parameters)).parameter_values
         initial_covariance_matrix = Array(Hermitian(Matrix(DataFrame(load(path_initial_covariance)))))
     end
-
+    
     ##------------------------------------------------------------------------------
     ## Load functions for running and calibrating the model configuration
     ## --> New configurations will need new drivers and posterior distribution calculation 
@@ -106,13 +111,13 @@ function run_calibration(;  output_dir::String,
     # @eval and Symbols so this can be run as a function instead of a script.
     if model_config=="brick"
         run_mymodel! = MimiBRICK.construct_run_brick(calibration_start_year, calibration_end_year)
-        log_posterior_mymodel = MimiBRICK.construct_brick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=false)
+        log_posterior_mymodel = MimiBRICK.construct_brick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=joint_ais_prior)
     elseif model_config=="doeclimbrick"
         run_mymodel! = MimiBRICK.construct_run_doeclimbrick(calibration_start_year, calibration_end_year)
-        log_posterior_mymodel = MimiBRICK.construct_doeclimbrick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=false)
+        log_posterior_mymodel = MimiBRICK.construct_doeclimbrick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=joint_ais_prior)
     elseif model_config=="sneasybrick"
         run_mymodel! = MimiBRICK.construct_run_sneasybrick(calibration_start_year, calibration_end_year)
-        log_posterior_mymodel = MimiBRICK.construct_sneasybrick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=false)
+        log_posterior_mymodel = MimiBRICK.construct_sneasybrick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=joint_ais_prior)
     end
 
     println("Begin baseline calibration of "*model_config*" model.\n")
@@ -130,24 +135,26 @@ function run_calibration(;  output_dir::String,
     chain_burned = chain_raw[(burnin_length+1):total_chain_length,:]
     log_post_burned = log_post[(burnin_length+1):total_chain_length]
 
-    # Check convergence by computing Gelman and Rubin diagnostic for each parameter (potential scale reduction factor)
-    psrf = Array{Float64,1}(undef , num_parameters)
-    for p in 1:num_parameters
-        chains = reshape(chain_burned[:,p], Int(size(chain_burned)[1]/num_walkers), num_walkers)
-        chains = [chains[:,k] for k in 1:num_walkers]
-        psrf[p] = potential_scale_reduction(chains...)
-    end
-
-    # Check if psrf < threshold_gr for each parameters
-    if all(x -> x < threshold_gr, psrf)
-        println("All parameter chains have Gelman and Rubin PSRF < ",threshold_gr)
-    else
-        println("WARNING: some parameter chains have Gelman and Rubin PSRF > ",threshold_gr)
+    if check_gr
+        # Using multivariate GR diagnostic (checking single variate PSRF like before)
+        chains3 = zeros(Int(size(chain_burned)[1]/num_walkers), num_walkers, size(chain_burned)[2])
         for p in 1:num_parameters
-            println(parnames[p],"  ",round(psrf[p],digits=4))
+            chains3[:,:,p] = reshape(chain_burned[:,p], Int(size(chain_burned)[1]/num_walkers), num_walkers)
+        end
+        # Gelman and Rubin (1992) potential scale reduction factor
+        psrf = gelmandiag_multivariate(chains3).psrf
+    
+        # Check if psrf < threshold_gr for each parameters
+        if all(x -> x < threshold_gr, psrf)
+            println("All parameter chains have Gelman and Rubin PSRF < ",threshold_gr)
+        else
+            println("WARNING: some parameter chains have Gelman and Rubin PSRF > ",threshold_gr)
+            println("You may want to check other convergence diagnostics.")
+            for p in 1:num_parameters
+                println(parnames[p],"  ",round(psrf[p],digits=4))
+            end
         end
     end
-
 
     ##------------------------------------------------------------------------------
     ## Subsampling the final chains

@@ -11,7 +11,7 @@ This repository will have the latest "standard" BRICK version and codes demonstr
 
 MimiBRICK.jl is an implementation of the [Building Blocks for Relevant Ice and Climate Knowledge (BRICK) semi-empirical model for sea-level change](https://doi.org/10.5194/gmd-10-2741-2017) in the Mimi integrated modeling framework (https://www.mimiframework.org/). The Mimi modeling framework is a coding platform that facilitates coupling models and running coupled modeling experiments. MimiBRICK.jl is flexible, efficient, and modular, to facilitate incorporating BRICK into coupled models and integrated assessments of climate impacts in a modular fashion to provide global average as well as local sea-level projections. This focus on tight model coupling and integrated modeling is a key feature of MimiBRICK.jl and broader Mimi modeling framework.
 
-This implementation includes examples for using observational data to calibrate the model, as well as various configurations in which MimiBRICK.jl is coupled to other climate model components. For users who do not wish to re-run computationally intensive model calibration algorithms, this implementation also includes scripts for using existing calibration output for standard future climate change scenarios, and examples downscaling these global projections for assessments of local impacts. Pre-run model calibration and simulation output can be found in the [accompanying Zenodo repository](https://zenodo.org/record/6626335).
+This implementation includes examples for using observational data to calibrate the model, as well as various configurations in which MimiBRICK.jl is coupled to other climate model components. For users who do not wish to re-run computationally intensive model calibration algorithms, this implementation also includes scripts for using existing calibration output for standard future climate change scenarios, and examples downscaling these global projections for assessments of local impacts. Pre-run model calibration and simulation output can be found in the [accompanying Zenodo repository](https://zenodo.org/record/20592337).
 
 <br>
 
@@ -36,10 +36,11 @@ Below is a summary of the changes that would be needed to modify a component sub
     * Connect parameters across components using `connect_param!` and `connect_param!` near the bottom of the `brick` module, as needed
 * In `/src/calibration/run_historic_models/run_brick_historic_climate.jl`…
     * Add/modify the parameter names and `update_param!` calls to match what is in the source code for your modified component and in `/src/MimiBRICK.jl`
-* In `/src/calibration/run_hindcast.jl` and `/src/calibration/run_projections.jl`…
+* In `/src/calibration/run_projections.jl`…
     * Modify the `ar1_noise_xxx` and `obs_error_xxx` variables, as needed, depending on whether the modified component uses a similar or new residual model. Might also require modifying at “Statistical noise models” if a new residual model is used
     * Modify `update_param!` calls associated with the modified component (similarly to in `/src/MimiBRICK.jl`)
     * If your modification create new output that you would like to write to files, you may want to modify at “Save output” as well to include any new fields that you want to write
+    * For a hindcast (and comparison with calibration data), set the start and end years to span the desired period
 * If your altered the model components and the naming conventions for the model output CSV files, then you may also need to modify the `/src/downscale.jl` file to generate estimates of local sea-level change.
 * If you would like to modify the calibration data used, then you should modify…
     * the function `load_calibration_data` within `/src/calibration/calibration_helper_functions.jl`
@@ -90,7 +91,7 @@ end
 
 ### Recommended Use
 
-* If you would like to use previously published BRICK results as part of a new analysis, but do not necessarily want to re-run the model, then we recommend to go to the [accompanying Zenodo repository](https://zenodo.org/record/6626335). In the near future, we will compile a library of other previously published studies using BRICK, including any other relevant outputs. 
+* If you would like to use previously published BRICK results as part of a new analysis, but do not necessarily want to re-run the model, then we recommend to go to the [accompanying Zenodo repository](https://zenodo.org/record/20592337). In the near future, we will compile a library of other previously published studies using BRICK, including any other relevant outputs. 
 * If you would like to run the model yourself, then you are in the right place!
   * It is assumed that users will not clone/download this Git repository. Instead, you can add and use the package as described below. Those commands and the commands to set up and run the model can be executed from the directories that contain the rest of your project codes.
   * Load the MimiBRICK package (or if you wish to edit the package either fork the master branch from this repository or download the zipped file of codes)
@@ -99,7 +100,7 @@ end
 
 ### Installation and Examples
 
-This code was created using Julia v1.6 and requires several Julia packages. It is recommended that you use Julia v1.6 (or later). Julia may be downloaded from http://julialang.org/downloads/.
+This code was created using Julia v1.12 and requires several Julia packages. It is recommended that you use Julia v1.12 (or later). Julia may be downloaded from http://julialang.org/downloads/.
 
 (1) Run the following line to install the Mimi implementation of BRICK:
 

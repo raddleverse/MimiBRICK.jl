@@ -9,7 +9,7 @@ using MimiSNEASY
 # -------------------------------------------------------------------------------------------
 
 """
-    create_brick_doeclim(;rcp_scenario::String = "RCP85", start_year::Int=1850, end_year::Int=2020)
+    create_brick_doeclim(;ssprcp_scenario::String = "ssp245", start_year::Int=1850, end_year::Int=2020)
 
 Return a Mimi model instance with MimiBRICK and DOECLIM coupled together.
 
@@ -18,11 +18,11 @@ makes the model component variable connections.
 
 Function Arguments:
 
-        rcp_scenario = RCP scenario for exogenous forcing
-        start_year   = initial year of the simulation period
-        end_year     = ending year of the simulation period
+        ssprcp_scenario = SSP-RCP scenario for exogenous forcing
+        start_year      = initial year of the simulation period
+        end_year        = ending year of the simulation period
 """
-function create_brick_doeclim(;rcp_scenario::String = "RCP85", start_year::Int=1850, end_year::Int=2020)
+function create_brick_doeclim(;ssprcp_scenario::String = "ssp245", start_year::Int=1850, end_year::Int=2020)
 
     #-----------------------#
     # ----- Load Data ----- #
@@ -31,16 +31,16 @@ function create_brick_doeclim(;rcp_scenario::String = "RCP85", start_year::Int=1
     # Set model years.
 	model_years = collect(start_year:end_year)
 
-    # Find indices for BRICK start and end years relative to RCP time range of 1765-2500.
-    index_start, index_end = findall((in)([start_year, end_year]), (1765:2500))
-
-    # Load and clean up RCP radiative forcing data for DOEclim (options include "RCP26", "RCP45", "RCP60", and "RCP85").
-    rcp_forcing_data = DataFrame(load(joinpath(@__DIR__, "..", "..", "data", "model_data", rcp_scenario*"_midyear_radforcings.csv"), skiplines_begin=58))[index_start:index_end, :]
+    # Load SSP-RCP radiative forcing data for DOECLIM (index into appropriate years).
+    ssprcp_forcing_data = DataFrame(load(joinpath(@__DIR__, "..", "..", "data", "model_data", "rcmip-radiative-forcing-annual-means-v5-1-0.csv"), skiplines_begin=0))
 
     # Isolate radiative forcing from CO₂, aerosols, and all other sources.
-    forcing_CO₂           = rcp_forcing_data.CO2_RF
-    forcing_aerosols      = rcp_forcing_data.TOTAER_DIR_RF .+ rcp_forcing_data.CLOUD_TOT_RF
-    forcing_other_sources = rcp_forcing_data.TOTAL_INCLVOLCANIC_RF .- forcing_CO₂ .- forcing_aerosols
+    filtered_df = filter(row -> row.Scenario == ssprcp_scenario && row.Variable == "Effective Radiative Forcing|Anthropogenic|CO2", ssprcp_forcing_data)
+    forcing_CO₂ = [filtered_df[1,string(c)] for c in model_years]
+    filtered_df = filter(row -> row.Scenario == ssprcp_scenario && row.Variable == "Effective Radiative Forcing|Anthropogenic|Aerosols", ssprcp_forcing_data)
+    forcing_aerosols = [filtered_df[1,string(c)] for c in model_years]
+    filtered_df = filter(row -> row.Scenario == ssprcp_scenario && row.Variable == "Effective Radiative Forcing", ssprcp_forcing_data)
+    forcing_other_sources = [filtered_df[1,string(c)] for c in model_years] .- forcing_CO₂ .- forcing_aerosols
 
     #-------------------------#
     # ----- Build BRICK ----- #
@@ -107,7 +107,7 @@ function create_brick_doeclim(;rcp_scenario::String = "RCP85", start_year::Int=1
     update_param!(brick_doeclim, :antarctic_icesheet, :ais_μ, 11.0)
     update_param!(brick_doeclim, :antarctic_icesheet, :ais_runoffline_snowheight₀, 1400.0)
     update_param!(brick_doeclim, :antarctic_icesheet, :ais_c, 100.0)
-    update_param!(brick_doeclim, :antarctic_icesheet, :ais_precipitation₀, 0.37)
+    update_param!(brick_doeclim, :antarctic_icesheet, :ais_precipitation₀, log(0.37))
     update_param!(brick_doeclim, :antarctic_icesheet, :ais_κ, 0.062)
     update_param!(brick_doeclim, :antarctic_icesheet, :ais_ν, 0.0086)
     update_param!(brick_doeclim, :antarctic_icesheet, :ais_iceflow₀, 1.2)

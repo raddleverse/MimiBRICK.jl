@@ -1,27 +1,25 @@
-using Mimi
-
 # function to create 'Building blocks for Relevant Ice and Climate Knowledge' (BRICK) model.
 """
-    get_model(;rcp_scenario::String="RCP85", start_year::Int=1850, end_year::Int=2020)
+    get_model(;ssprcp_scenario::String="RCP85", start_year::Int=1850, end_year::Int=2020)
 
 Return a MimiBRICK model instance that can be modified and run.
 
 Function Arguments:
 
-      rcp_scenario = RCP scenario for exogenous forcing
-      start_year   = initial year of the simulation period
-      end_year     = ending year of the simulation period
+      ssprcp_scenario = (SSP-)RCP scenario for exogenous forcing; 
+                        valid values: RCP26, RCP45, RCP60, RCP85, ssp119, ssp126, ssp245, ssp370, ssp460, ssp585, ssp534-over
+      start_year      = initial year of the simulation period
+      end_year        = ending year of the simulation period
 """
-function get_model(;rcp_scenario::String="RCP85", start_year::Int=1850, end_year::Int=2020)
+function get_model(;ssprcp_scenario::String="ssp245", start_year::Int=1850, end_year::Int=2020)
 
     #-----------------------#
     # ----- Load Data ----- #
     #-----------------------#
 
     # Load exogenous time-series for global surface temperature and ocean heat content (output from SNEASY under RCP8.5).
-    # NOTE: for now, only `rcp_scenario = "RCP85"` is supported
-    temperature_scenario = DataFrame(load(joinpath(@__DIR__, "..", "data", "model_data", "sneasy_temperature_"*rcp_scenario*"_1850_2300.csv")))
-    oceanheat_scenario   = DataFrame(load(joinpath(@__DIR__, "..", "data", "model_data", "sneasy_oceanheat_"*rcp_scenario*"_1850_2300.csv")))
+    temperature_scenario = DataFrame(load(joinpath(@__DIR__, "..", "data", "model_data", "sneasy_temperature_"*ssprcp_scenario*"_1850_2300_07-06-2026.csv")))
+    oceanheat_scenario   = DataFrame(load(joinpath(@__DIR__, "..", "data", "model_data", "sneasy_oceanheat_"*ssprcp_scenario*"_1850_2300_07-06-2026.csv")))
 
     #-------------------------#
     # ----- Build BRICK ----- #
@@ -64,7 +62,7 @@ function get_model(;rcp_scenario::String="RCP85", start_year::Int=1850, end_year
     update_param!(brick, :antarctic_icesheet, :ais_μ, 11.0)
     update_param!(brick, :antarctic_icesheet, :ais_runoffline_snowheight₀, 1400.0)
     update_param!(brick, :antarctic_icesheet, :ais_c, 100.0)
-    update_param!(brick, :antarctic_icesheet, :ais_precipitation₀, 0.37)
+    update_param!(brick, :antarctic_icesheet, :ais_precipitation₀, log(0.37))
     update_param!(brick, :antarctic_icesheet, :ais_κ, 0.062)
     update_param!(brick, :antarctic_icesheet, :ais_ν, 0.0086)
     update_param!(brick, :antarctic_icesheet, :ais_iceflow₀, 1.2)
