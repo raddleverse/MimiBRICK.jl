@@ -16,6 +16,7 @@ using Mimi
     # --------------------
     # Model Variables
     # --------------------
+    
     τ_inv               = Variable(index=[time]) # E-folding timescale of Greenland ice sheet volume changes due to changes in global temperature (yr⁻¹).
     eq_volume           = Variable(index=[time]) # Equilibrium ice sheet volume where sea level contribution is 0 (mSLE).
     greenland_volume    = Variable(index=[time]) # Volume of Greenland ice sheet (mSLE)

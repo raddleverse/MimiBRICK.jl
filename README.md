@@ -32,13 +32,13 @@ Below is a summary of the changes that would be needed to modify a component sub
 * Create/modify the source code for the new/modified component in `/src/components`. See the Design Pattern section below for a stencil. Pattern-matching with the existing component sub-models is encouraged!
 * In `/src/MimiBRICK.jl`…
     * Add an `include` statement if you have created a new file for your model component
-    * Add/modify `update_param` calls, component name, and parameter names/default values
-    * Connect parameters across components using `connect_param` and `add_shared_param` near the bottom of the `brick` module, as needed
+    * Add/modify `update_param!` calls, component name, and parameter names/default values
+    * Connect parameters across components using `connect_param!` and `connect_param!` near the bottom of the `brick` module, as needed
 * In `/src/calibration/run_historic_models/run_brick_historic_climate.jl`…
-    * Add/modify the parameter names and `update_param` calls to match what is in the source code for your modified component and in `/src/MimiBRICK.jl`
+    * Add/modify the parameter names and `update_param!` calls to match what is in the source code for your modified component and in `/src/MimiBRICK.jl`
 * In `/src/calibration/run_hindcast.jl` and `/src/calibration/run_projections.jl`…
     * Modify the `ar1_noise_xxx` and `obs_error_xxx` variables, as needed, depending on whether the modified component uses a similar or new residual model. Might also require modifying at “Statistical noise models” if a new residual model is used
-    * Modify `update_param` calls associated with the modified component (similarly to in `/src/MimiBRICK.jl`)
+    * Modify `update_param!` calls associated with the modified component (similarly to in `/src/MimiBRICK.jl`)
     * If your modification create new output that you would like to write to files, you may want to modify at “Save output” as well to include any new fields that you want to write
 * If your altered the model components and the naming conventions for the model output CSV files, then you may also need to modify the `/src/downscale.jl` file to generate estimates of local sea-level change.
 * If you would like to modify the calibration data used, then you should modify…
