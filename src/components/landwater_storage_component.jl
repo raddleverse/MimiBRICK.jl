@@ -33,9 +33,10 @@ using Mimi
             v.lws_sea_level[t] = p.lws₀
 
         else
+            
             # Add landwater storage values for projection period.
             v.lws_sea_level[t] = v.lws_sea_level[t-1] + p.lws_random_sample[t]
-            #v.lws_sea_level[t] = v.lws_sea_level[t-1] + rand(p.lws_random_sample)
+
         end
     end
 end
