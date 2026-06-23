@@ -25,4 +25,9 @@ include(joinpath("calibration/main_calibration.jl"))
 # Load get_model function
 include("get_model.jl")
 
+# Define random seeds
+const SEED_1 = 2021
+const SEED_2 = 2022
+const SEED_3 = 2026
+
 end # Module

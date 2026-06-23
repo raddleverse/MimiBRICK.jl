@@ -123,7 +123,7 @@ function run_calibration(;  output_dir::String,
     println("Begin baseline calibration of "*model_config*" model.\n")
 
     # Carry out Bayesian calibration using robust adaptive metropolis MCMC algorithm.
-    Random.seed!(2021) # for reproducibility
+    Random.seed!(SEED_1) # for reproducibility
     @time chain_raw, accept_rate, cov_matrix, log_post = RAM_sample(log_posterior_mymodel, initial_parameters, initial_covariance_matrix, Int(total_chain_length), opt_α=0.234, output_log_probability_x=true)
 
     ##------------------------------------------------------------------------------
@@ -160,7 +160,7 @@ function run_calibration(;  output_dir::String,
     ## Subsampling the final chains
     ##------------------------------------------------------------------------------
 
-    Random.seed!(2022) # for reproducibility
+    Random.seed!(SEED_2) # for reproducibility
     idx_subsample = sample(1:size(chain_burned)[1], size_subsample, replace=false)
     final_sample = chain_burned[idx_subsample,:]
     log_post_final_sample = log_post_burned[idx_subsample]

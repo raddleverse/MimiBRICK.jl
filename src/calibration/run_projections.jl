@@ -43,7 +43,7 @@ function run_projections(; output_dir::String,
     ## Initial set-up
     model_years  = collect(start_year:end_year)
     num_years = length(model_years)
-    Random.seed!(2026)
+    Random.seed!(SEED_3)
 
     ##==============================================================================
     ## Read subsample of parameters
