@@ -9,7 +9,7 @@ using MimiSNEASY
 # -------------------------------------------------------------------------------------------
 
 """
-    create_brick_doeclim(;ssprcp_scenario::String = "ssp245", start_year::Int=1850, end_year::Int=2020)
+    create_brick_doeclim(;ssprcp_scenario::String = "ssp245", start_year::Int=1850, end_year::Int=2020, glacier_model::Symbol = :gsic)
 
 Return a Mimi model instance with MimiBRICK and DOECLIM coupled together.
 
@@ -21,8 +21,14 @@ Function Arguments:
         ssprcp_scenario = SSP-RCP scenario for exogenous forcing
         start_year      = initial year of the simulation period
         end_year        = ending year of the simulation period
+        glacier_model   = glaciers & small ice caps model; `:gsic` (default) = the
+                          original single-reservoir Wigley-Raper-Bakker component,
+                          `:mengel` = the optional temperature-dependent-equilibrium
+                          Mengel-2016 emulator (same glaciers + small-ice-cap inventory)
 """
-function create_brick_doeclim(;ssprcp_scenario::String = "ssp245", start_year::Int=1850, end_year::Int=2020)
+function create_brick_doeclim(;ssprcp_scenario::String = "ssp245", start_year::Int=1850, end_year::Int=2020, glacier_model::Symbol = :gsic)
+
+    glacier_model in (:gsic, :mengel) || error("create_brick_doeclim: glacier_model must be :gsic or :mengel (got :$glacier_model)")
 
     #-----------------------#
     # ----- Load Data ----- #
@@ -180,6 +186,24 @@ function create_brick_doeclim(;ssprcp_scenario::String = "ssp245", start_year::I
 
     connect_param!(brick_doeclim, :antarctic_icesheet => :antarctic_ocean_temperature, :antarctic_ocean  => :anto_temperature)
     connect_param!(brick_doeclim, :antarctic_icesheet => :global_sea_level,            :global_sea_level => :sea_level_rise)
+
+    # ----- Optional: swap in the Mengel-2016 glacier emulator -----
+    # Replace the default single-reservoir glaciers & small ice caps component with
+    # the temperature-dependent-equilibrium Mengel-2016 emulator. Both represent the
+    # SAME inventory (glaciers AND small ice caps); Mimi.replace! keeps the
+    # :glaciers_small_icecaps slot name and reconnects the name-matched temperature
+    # input and gsic_sea_level output, so no other wiring changes. The default :gsic
+    # path is left untouched.
+    if glacier_model == :mengel
+        Mimi.replace!(brick_doeclim, :glaciers_small_icecaps => glaciers_mengel)
+        update_param!(brick_doeclim, :glaciers_small_icecaps, :gic_a,        MENGEL_GLACIER_DEFAULTS.a)
+        update_param!(brick_doeclim, :glaciers_small_icecaps, :gic_b,        MENGEL_GLACIER_DEFAULTS.b)
+        update_param!(brick_doeclim, :glaciers_small_icecaps, :gic_T_lia,    MENGEL_GLACIER_DEFAULTS.T_lia)
+        update_param!(brick_doeclim, :glaciers_small_icecaps, :gic_f,        MENGEL_GLACIER_DEFAULTS.f)
+        update_param!(brick_doeclim, :glaciers_small_icecaps, :gic_tau_fast, MENGEL_GLACIER_DEFAULTS.tau_fast)
+        update_param!(brick_doeclim, :glaciers_small_icecaps, :gic_tau_slow, MENGEL_GLACIER_DEFAULTS.tau_slow)
+        update_param!(brick_doeclim, :glaciers_small_icecaps, :gic_sl0,      MENGEL_GLACIER_DEFAULTS.sl0)
+    end
 
     # Return BRICK + DOEclim model.
     return brick_doeclim

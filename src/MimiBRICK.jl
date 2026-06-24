@@ -7,6 +7,7 @@ using CSVFiles, DataFrames, Distributions, Mimi
 include(joinpath("components", "antarctic_icesheet_component.jl"))
 include(joinpath("components", "antarctic_ocean_component.jl"))
 include(joinpath("components", "glaciers_small_icecaps_component.jl"))
+include(joinpath("components", "glaciers_mengel_component.jl"))
 include(joinpath("components", "global_sea_level_component.jl"))
 include(joinpath("components", "greenland_icesheet_component.jl"))
 include(joinpath("components", "landwater_storage_component.jl"))
@@ -35,7 +36,9 @@ Function Arguments:
       start_year      = initial year of the simulation period
       end_year        = ending year of the simulation period
 """
-function get_model(;ssprcp_scenario::String="ssp245", start_year::Int=1850, end_year::Int=2020)
+function get_model(;ssprcp_scenario::String="ssp245", start_year::Int=1850, end_year::Int=2020, glacier_model::Symbol = :gsic)
+
+    glacier_model in (:gsic, :mengel) || error("get_model: glacier_model must be :gsic or :mengel (got :$glacier_model)")
 
     #-----------------------#
     # ----- Load Data ----- #
@@ -160,6 +163,22 @@ function get_model(;ssprcp_scenario::String="ssp245", start_year::Int=1850, end_
 
     connect_param!(brick, :antarctic_icesheet => :antarctic_ocean_temperature, :antarctic_ocean  => :anto_temperature)
     connect_param!(brick, :antarctic_icesheet => :global_sea_level,            :global_sea_level => :sea_level_rise)
+
+    # ----- Optional: swap in the Mengel-2016 glacier emulator -----
+    # See create_brick_doeclim for details. Both glacier models cover the SAME
+    # inventory (glaciers AND small ice caps); Mimi.replace! preserves the
+    # :glaciers_small_icecaps slot name and the name-matched I/O wiring. The default
+    # :gsic path is left untouched.
+    if glacier_model == :mengel
+        Mimi.replace!(brick, :glaciers_small_icecaps => glaciers_mengel)
+        update_param!(brick, :glaciers_small_icecaps, :gic_a,        MENGEL_GLACIER_DEFAULTS.a)
+        update_param!(brick, :glaciers_small_icecaps, :gic_b,        MENGEL_GLACIER_DEFAULTS.b)
+        update_param!(brick, :glaciers_small_icecaps, :gic_T_lia,    MENGEL_GLACIER_DEFAULTS.T_lia)
+        update_param!(brick, :glaciers_small_icecaps, :gic_f,        MENGEL_GLACIER_DEFAULTS.f)
+        update_param!(brick, :glaciers_small_icecaps, :gic_tau_fast, MENGEL_GLACIER_DEFAULTS.tau_fast)
+        update_param!(brick, :glaciers_small_icecaps, :gic_tau_slow, MENGEL_GLACIER_DEFAULTS.tau_slow)
+        update_param!(brick, :glaciers_small_icecaps, :gic_sl0,      MENGEL_GLACIER_DEFAULTS.sl0)
+    end
 
     # Return BRICK model.
     return brick
