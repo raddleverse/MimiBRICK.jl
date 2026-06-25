@@ -9,27 +9,22 @@ using Mimi
 # replaces -- mountain glaciers AND small/peripheral ice caps (the ice sheets are
 # handled separately by the Greenland and Antarctic components) -- so swapping it in
 # does not drop any mass. It is an optional drop-in alternative to BRICK's default
-# single-reservoir Wigley-Raper-Bakker `glaciers_small_icecaps` component, fixing its
-# commit-everything pathology (any sustained T > teq melts the WHOLE reservoir).
+# single-reservoir Wigley-Raper-Bakker `glaciers_small_icecaps` component: a key 
+# improvement is that sustained T > teq no longer melts all GIC ice.
 #
 #   equilibrium:  S_eq(T) = a * (1 - exp(-b*(T - T_lia)))   (0 at T = T_lia; -> a)
-#   TWO-TIMESCALE transient (a single tau cannot be fast-early + slow-modern):
-#     dS_fast/dt = (f*S_eq - S_fast)/tau_fast      (committed early melt, short tau)
-#     dS_slow/dt = ((1-f)*S_eq - S_slow)/tau_slow  (modern tracking, long tau)
+#   TWO-TIMESCALE transient:
+#     dS_fast/dt = (f*S_eq - S_fast)/tau_fast      (small responsive glaciers, short tau)
+#     dS_slow/dt = ((1-f)*S_eq - S_slow)/tau_slow  (larger ice caps/high altitude glaciers, long tau)
 #     S = S_fast + S_slow
 #
 # T = BRICK's global_surface_temperature (GMT anomaly rel 1850-1900, K = degC).
-# The emulator is driven by TOTAL temperature (anthropogenic + natural forcing
-# -- they are NOT, and cannot be, disentangled, since the model sees one
-# temperature).
 #
 # `gic_T_lia` = the glacier EQUILIBRIUM temperature ~ the Little-Ice-Age climate
 # (negative, rel 1850-1900). It makes glaciers OUT of equilibrium at the
 # 1850-1900 baseline (S_eq(0) = a(1 - exp(b*T_lia)) > 0), so they are COMMITTED
-# to melt by post-LIA warming that predates the forcing window -- this SIMULATES
-# the committed/disequilibrium early-20th-c melt directly (no external "natural"
-# budget, no forcing split). It is the physical generalization of the
-# single-reservoir `gsic_teq`.
+# to melt by post-LIA warming that predates the forcing window -- this simulates
+# the committed/disequilibrium early-20th-c melt directly. 
 #
 # A sustained warming T* commits only S_eq(T*) < a -- a temperature-appropriate
 # remnant survives (NO full depletion). The output variable `gsic_sea_level` is
@@ -67,8 +62,8 @@ end
     gic_b        = Parameter()             # Temperature sensitivity (1/K).
     gic_T_lia    = Parameter()             # Glacier equilibrium (LIA) temperature, rel 1850-1900 (°C, <0).
     gic_f        = Parameter()             # Fast-mode fraction of the equilibrium (0-1).
-    gic_tau_fast = Parameter()             # Fast (committed) response timescale (yr).
-    gic_tau_slow = Parameter()             # Slow (modern) response timescale (yr).
+    gic_tau_fast = Parameter()             # Fast-response timescale (small, responsive glaciers) (yr).
+    gic_tau_slow = Parameter()             # Slow-response timescale (larger ice caps, high-altitude glaciers) (yr).
     gic_sl0      = Parameter()             # Initial cumulative sea level contribution at the start year (m).
     global_surface_temperature = Parameter(index=[time]) # Global mean surface temperature anomaly relative to pre-industrial (°C).
 
@@ -76,8 +71,8 @@ end
     # Model Variables
     # --------------------
 
-    gsic_fast      = Variable(index=[time])   # Fast-mode (committed) sea level contribution (m).
-    gsic_slow      = Variable(index=[time])   # Slow-mode (modern-tracking) sea level contribution (m).
+    gsic_fast      = Variable(index=[time])   # Fast-mode sea level contribution (small, responsive glaciers) (m).
+    gsic_slow      = Variable(index=[time])   # Slow-mode sea level contribution (larger/high-altitude glaciers) (m).
     gsic_sea_level = Variable(index=[time])   # Cumulative sea level rise from glaciers and small ice caps (m).
 
     # --------------------
