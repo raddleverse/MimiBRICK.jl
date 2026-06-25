@@ -196,13 +196,7 @@ function create_brick_doeclim(;ssprcp_scenario::String = "ssp245", start_year::I
     # path is left untouched.
     if glacier_model == :mengel
         Mimi.replace!(brick_doeclim, :glaciers_small_icecaps => glaciers_mengel)
-        update_param!(brick_doeclim, :glaciers_small_icecaps, :gic_a,        MENGEL_GLACIER_DEFAULTS.a)
-        update_param!(brick_doeclim, :glaciers_small_icecaps, :gic_b,        MENGEL_GLACIER_DEFAULTS.b)
-        update_param!(brick_doeclim, :glaciers_small_icecaps, :gic_T_lia,    MENGEL_GLACIER_DEFAULTS.T_lia)
-        update_param!(brick_doeclim, :glaciers_small_icecaps, :gic_f,        MENGEL_GLACIER_DEFAULTS.f)
-        update_param!(brick_doeclim, :glaciers_small_icecaps, :gic_tau_fast, MENGEL_GLACIER_DEFAULTS.tau_fast)
-        update_param!(brick_doeclim, :glaciers_small_icecaps, :gic_tau_slow, MENGEL_GLACIER_DEFAULTS.tau_slow)
-        update_param!(brick_doeclim, :glaciers_small_icecaps, :gic_sl0,      MENGEL_GLACIER_DEFAULTS.sl0)
+        _apply_mengel_defaults!(brick_doeclim)
     end
 
     # Return BRICK + DOEclim model.

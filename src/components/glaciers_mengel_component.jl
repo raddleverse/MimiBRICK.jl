@@ -45,6 +45,18 @@ using Mimi
 # update_param! for calibrated runs rather than relying on these as a tuned central.
 const MENGEL_GLACIER_DEFAULTS = (a=0.45, b=0.52, T_lia=-0.45, f=0.5, tau_fast=40.0, tau_slow=250.0, sl0=0.0)
 
+# Internal helper: set all Mengel glacier parameters on model `m` (post-replace!).
+# Called by every constructor that supports glacier_model=:mengel to avoid triplication.
+function _apply_mengel_defaults!(m)
+    update_param!(m, :glaciers_small_icecaps, :gic_a,        MENGEL_GLACIER_DEFAULTS.a)
+    update_param!(m, :glaciers_small_icecaps, :gic_b,        MENGEL_GLACIER_DEFAULTS.b)
+    update_param!(m, :glaciers_small_icecaps, :gic_T_lia,    MENGEL_GLACIER_DEFAULTS.T_lia)
+    update_param!(m, :glaciers_small_icecaps, :gic_f,        MENGEL_GLACIER_DEFAULTS.f)
+    update_param!(m, :glaciers_small_icecaps, :gic_tau_fast, MENGEL_GLACIER_DEFAULTS.tau_fast)
+    update_param!(m, :glaciers_small_icecaps, :gic_tau_slow, MENGEL_GLACIER_DEFAULTS.tau_slow)
+    update_param!(m, :glaciers_small_icecaps, :gic_sl0,      MENGEL_GLACIER_DEFAULTS.sl0)
+end
+
 @defcomp glaciers_mengel begin
 
     # --------------------
