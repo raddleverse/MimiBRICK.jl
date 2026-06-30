@@ -9,7 +9,7 @@ using MimiSNEASY
 # Function to run SNEASY-BRICK climate model over historic period.
 # ------------------------------------------------------------------------------
 """
-    create_sneasy_brick(;ssprcp_scenario::String = "ssp245", start_year::Int=1850, end_year::Int=2020)
+    create_sneasy_brick(;ssprcp_scenario::String = "ssp245", start_year::Int=1850, end_year::Int=2020, glacier_model::Symbol = :gsic)
 
 Return a Mimi model instance with MimiBRICK and MimiSNEASY coupled together.
 
@@ -21,8 +21,14 @@ Function Arguments:
         ssprcp_scenario = SSP-RCP scenario for exogenous forcing
         start_year      = initial year of the simulation period
         end_year        = ending year of the simulation period
+        glacier_model   = glaciers & small ice caps model; `:gsic` (default) = the
+                          original single-reservoir Wigley-Raper-Bakker component,
+                          `:mengel` = the optional temperature-dependent-equilibrium
+                          Mengel-2016 emulator (same glaciers + small-ice-cap inventory)
 """
-function create_sneasy_brick(; ssprcp_scenario::String="ssp245", start_year::Int=1850, end_year::Int=2020)
+function create_sneasy_brick(; ssprcp_scenario::String="ssp245", start_year::Int=1850, end_year::Int=2020, glacier_model::Symbol = :gsic)
+
+    glacier_model in (:gsic, :mengel) || error("create_sneasy_brick: glacier_model must be :gsic or :mengel (got :$glacier_model)")
 
  	# ---------------------------------------------
     # Load and clean up necessary data.
@@ -178,6 +184,16 @@ function create_sneasy_brick(; ssprcp_scenario::String="ssp245", start_year::Int
 
     connect_param!(m, :antarctic_icesheet => :antarctic_ocean_temperature, :antarctic_ocean  => :anto_temperature)
     connect_param!(m, :antarctic_icesheet => :global_sea_level,            :global_sea_level => :sea_level_rise)
+
+    # ----- Optional: swap in the Mengel-2016 glacier emulator -----
+    # See create_brick_doeclim for details. Both glacier models cover the SAME
+    # inventory (glaciers AND small ice caps); Mimi.replace! preserves the
+    # :glaciers_small_icecaps slot name and the name-matched I/O wiring, so only the
+    # glacier component itself changes. The default :gsic path is left untouched.
+    if glacier_model == :mengel
+        Mimi.replace!(m, :glaciers_small_icecaps => glaciers_mengel)
+        _apply_mengel_defaults!(m)
+    end
 
     # Return SNEASY-BRICK model.
     return m
