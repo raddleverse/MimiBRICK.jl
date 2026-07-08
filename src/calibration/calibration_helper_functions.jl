@@ -460,10 +460,30 @@ Function Arguments:
       ρ         = AR(1) autocorrelation term.
       ϵ         = A vector of time-varying observation error estimates (from calibration data sets).
 """
-function hetero_logl_ar1(residuals::Array{Float64,1}, σ::Float64, ρ::Float64, ϵ::Array{Union{Float64, Missings.Missing},1})
+function hetero_logl_ar1(residuals::AbstractVector{<:Real}, σ::Real, ρ::Real, ϵ::AbstractVector)
 
-    # Calculate length of residuals.
-    n=length(residuals)
+    # Calculate residual covariance matrix (sum of AR(1) process variance and observation error variances).
+    cov_matrix = ar1_covariance_matrix(length(residuals), σ, ρ, ϵ)
+
+    # Return the log-likelihood.
+    return logpdf(MvNormal(cov_matrix), residuals)
+end
+
+"""
+    ar1_covariance_matrix(n::Int, σ::Float64, ρ::Float64, ϵ::Array{Union{Float64, Missings.Missing},1})
+
+Calculate the AR(1) residual covariance matrix (sum of AR(1) process variance and observation error variances)
+used by `hetero_logl_ar1`. Factored out so callers (e.g. a joint multivariate normal likelihood spanning
+multiple data sets) can assemble a block-diagonal covariance matrix from the individual data set blocks.
+
+Function Arguments:
+
+      n = Number of residuals.
+      σ = AR(1) innovation standard deviation.
+      ρ = AR(1) autocorrelation term.
+      ϵ = A vector of time-varying observation error estimates (from calibration data sets).
+"""
+function ar1_covariance_matrix(n::Int, σ::Real, ρ::Real, ϵ::AbstractVector)
 
     # Define AR(1) stationary process variance.
     σ_process = σ^2/(1-ρ^2)
@@ -471,12 +491,8 @@ function hetero_logl_ar1(residuals::Array{Float64,1}, σ::Float64, ρ::Float64, 
     # Initialize AR(1) covariance matrix (just for convenience).
     H = abs.(collect(1:n)' .- collect(1:n))
 
-    # Calculate residual covariance matrix (sum of AR(1) process variance and observation error variances).
     # Note: This follows Supplementary Information Equation (10) in Ruckert et al. (2017).
-    cov_matrix = σ_process * ρ .^ H + Diagonal(ϵ.^2)
-
-    # Return the log-likelihood.
-    return logpdf(MvNormal(cov_matrix), residuals)
+    return σ_process * ρ .^ H + Diagonal(ϵ.^2)
 end
 
 """
@@ -500,10 +516,30 @@ Function Arguments:
       α₀             = Parameter describing correlation memory of CAR(1) process.
       ϵ              = A vector of time-varying observation error estimates (from calibration data sets).
 """
-function hetero_logl_car1(residuals::Array{Float64,1}, indices::Array{Int64,1}, σ²_white_noise::Float64, α₀::Float64, ϵ::Array{Union{Float64, Missings.Missing},1})
+function hetero_logl_car1(residuals::AbstractVector{<:Real}, indices::Array{Int64,1}, σ²_white_noise::Real, α₀::Real, ϵ::AbstractVector)
 
-    # Calculate length of residuals.
-    n=length(residuals)
+    # Calculate residual covariance matrix (sum of CAR(1) process variance and observation error variances).
+    cov_matrix = car1_covariance_matrix(indices, σ²_white_noise, α₀, ϵ)
+
+    # Return the log-likelihood.
+    return logpdf(MvNormal(cov_matrix), residuals)
+end
+
+"""
+    car1_covariance_matrix(indices::Array{Int64,1}, σ²_white_noise::Float64, α₀::Float64, ϵ::Array{Union{Float64, Missings.Missing},1})
+
+Calculate the CAR(1) residual covariance matrix (sum of CAR(1) process variance and observation error variances)
+used by `hetero_logl_car1`. Factored out so callers (e.g. a joint multivariate normal likelihood spanning
+multiple data sets) can assemble a block-diagonal covariance matrix from the individual data set blocks.
+
+Function Arguments:
+
+      indices        = Index positions of observations relative to model time horizon (i.e. the first model time period = 1, the second = 2, etc.).
+      σ²_white_noise = Variance of the continuous white noise process.
+      α₀             = Parameter describing correlation memory of CAR(1) process.
+      ϵ              = A vector of time-varying observation error estimates (from calibration data sets).
+"""
+function car1_covariance_matrix(indices::Array{Int64,1}, σ²_white_noise::Real, α₀::Real, ϵ::AbstractVector)
 
     # Initialize covariance matrix for irregularly spaced data with relationships decaying exponentially.
     H = exp.(-α₀ .* abs.(indices' .- indices))
@@ -512,10 +548,7 @@ function hetero_logl_car1(residuals::Array{Float64,1}, indices::Array{Int64,1}, 
     σ² = σ²_white_noise / (2*α₀)
 
     # Calculate residual covariance matrix (sum of CAR(1) process variance and observation error variances).
-    cov_matrix = σ² .* H + Diagonal(ϵ.^2)
-
-    # Return the log-likelihood.
-    return logpdf(MvNormal(cov_matrix), residuals)
+    return σ² .* H + Diagonal(ϵ.^2)
 end
 
 """
@@ -533,10 +566,10 @@ Function Arguments:
       start_year   = First year of the model run.
       end_year     = Last year of the model run.
 """
-function calculate_trends(model_output::Array{Float64,1}, obs_trends::DataFrame, start_year::Int, end_year::Int)
+function calculate_trends(model_output::AbstractVector{<:Real}, obs_trends::DataFrame, start_year::Int, end_year::Int)
 
     # Get number of trends to calculate.
-    modeled_trends = zeros(size(obs_trends,1))
+    modeled_trends = zeros(eltype(model_output), size(obs_trends,1))
 
     # Loop through data for each different time period's trend.
     for i = 1:length(modeled_trends)

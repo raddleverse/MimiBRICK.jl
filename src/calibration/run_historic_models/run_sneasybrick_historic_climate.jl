@@ -24,16 +24,16 @@ function construct_run_sneasybrick(calibration_start_year::Int, calibration_end_
 
     # Given user settings, create a function to run SNEASY+BRICK and return model output used for calibration.
     function run_sneasybrick!(
-        param::Array{Float64,1},
-        modeled_CO₂::Vector{Float64},
-        modeled_oceanCO₂_flux::Vector{Float64},
-        modeled_temperature::Vector{Float64},
-        modeled_ocean_heat::Vector{Float64},
-        modeled_glaciers::Vector{Float64},
-        modeled_greenland::Vector{Float64},
-        modeled_antarctic::Vector{Float64},
-        modeled_thermal_expansion::Vector{Float64},
-        modeled_gmsl::Vector{Float64})
+        param::AbstractVector{<:Real},
+        modeled_CO₂::AbstractVector{<:Real},
+        modeled_oceanCO₂_flux::AbstractVector{<:Real},
+        modeled_temperature::AbstractVector{<:Real},
+        modeled_ocean_heat::AbstractVector{<:Real},
+        modeled_glaciers::AbstractVector{<:Real},
+        modeled_greenland::AbstractVector{<:Real},
+        modeled_antarctic::AbstractVector{<:Real},
+        modeled_thermal_expansion::AbstractVector{<:Real},
+        modeled_gmsl::AbstractVector{<:Real})
 
         # Assign names to uncertain model and initial condition parameters for convenience.
         # Note: This assumes "param" is the full vector of uncertain parameters with the same ordering as in "create_log_posterior_sneasy_brick.jl".

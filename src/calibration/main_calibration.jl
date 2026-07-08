@@ -11,6 +11,8 @@ include("run_historic_models/run_sneasybrick_historic_climate.jl")
 include("create_log_posteriors/create_log_posterior_brick.jl")
 include("create_log_posteriors/create_log_posterior_doeclimbrick.jl")
 include("create_log_posteriors/create_log_posterior_sneasybrick.jl")
+include("create_log_posteriors/create_turing_model_sneasybrick.jl")
+include("turing_ram_calibration.jl")
 
 include("calibration.jl")
 include("run_projections.jl")
