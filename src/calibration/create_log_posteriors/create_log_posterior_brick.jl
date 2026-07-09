@@ -8,7 +8,7 @@ using NetCDF
 #-------------------------------------------------------------------------------
 
 """
-    construct_brick_log_prior(joint_antarctic_prior::Bool; calibration_data_dir::Union{String, Nothing} = nothing)
+    construct_brick_log_prior(joint_antarctic_prior::Bool; calibration_data_dir::Union{String, Nothing} = nothing, glacier_model=:mengel)
 
 Calculate total (log) prior probability for brick.
 
@@ -25,8 +25,9 @@ Function Arguments:
                               above) or fitted marginal kernel density estimates (FLASE = option 2 described above).
       calibration_data_dir    = Data directory for calibration data. Defaults to package calibration data directory, 
                                 changing this is not recommended.
+      glacier_model           = :mengel (Mengel 2016 version) or :gsic (original Wigley and Raper version)
 """
-function construct_brick_log_prior(joint_antarctic_prior::Bool; calibration_data_dir::Union{String, Nothing} = nothing)
+function construct_brick_log_prior(joint_antarctic_prior::Bool; calibration_data_dir::Union{String, Nothing} = nothing, glacier_model=:mengel)
 
     # set calibration data directory if one was not provided ie. it is set as nothing
     if isnothing(calibration_data_dir)
@@ -124,7 +125,8 @@ function construct_brick_log_prior(joint_antarctic_prior::Bool; calibration_data
     prior_thermal_s₀         = Uniform(-0.0484, 0.0484) # BRICK defaults. # Initial sea level rise due to thermal expansion designated in 1850 (m SLE).
     prior_greenland_v₀       = Uniform(7.16, 7.56)
     prior_glaciers_v₀        = Uniform(0.31, 0.53)
-    prior_glaciers_s₀        = Uniform(-0.0536, 0.0791)
+    prior_glaciers_s₀        = Uniform(-0.0536, 0.0791) # wigley-raper
+    prior_glaciers_sl0       = Uniform(-0.0536, 0.0791) # mengel
     prior_antarctic_s₀       = Uniform(-0.04755, 0.05585) # Informed by prior BRICK runs.
 
     # ---------------------------------------------
@@ -146,6 +148,14 @@ function construct_brick_log_prior(joint_antarctic_prior::Bool; calibration_data
     prior_glaciers_β₀        = Uniform(0.0, 0.041)
     prior_glaciers_n         = Uniform(0.55, 1.0)
 
+    # mengel GSIC component
+    prior_glaciers_a         = truncated(Normal(0.45, 0.08), 0.32, 0.55)
+    prior_glaciers_b         = truncated(Normal(0.52, 0.25), 0.25, 1.00)
+    prior_glaciers_T_lia     = truncated(Normal(-0.45, 0.30), -1.00, -0.10)
+    prior_glaciers_f         = truncated(Normal(0.50, 0.30), 0.02, 0.98)
+    prior_glaciers_tau_fast  = truncated(Normal(40., 30.), 5., 80.)
+    prior_glaciers_tau_slow  = truncated(Normal(300., 200.), 80., 800.)
+    
     #------------------------------------------------------------------------------------
     # Create function that returns the log-prior of all uncertain model parameters.
     #------------------------------------------------------------------------------------
@@ -153,35 +163,75 @@ function construct_brick_log_prior(joint_antarctic_prior::Bool; calibration_data
     function total_log_prior(p::Array{Float64,1})
 
         # Assign parameter values names for convenience/tractability.
-        σ_glaciers               = p[1]
-        σ_greenland              = p[2]
-        σ_antarctic              = p[3]
-        σ_gmsl                   = p[4]
-        ρ_glaciers               = p[5]
-        ρ_greenland              = p[6]
-        ρ_antarctic              = p[7]
-        ρ_gmsl                   = p[8]
-        thermal_s₀               = p[9]
-        greenland_v₀             = p[10]
-        glaciers_v₀              = p[11]
-        glaciers_s₀              = p[12]
-        antarctic_s₀             = p[13]
-        thermal_α                = p[14]
-        greenland_a              = p[15]
-        greenland_b              = p[16]
-        greenland_α              = p[17]
-        greenland_β              = p[18]
-        glaciers_β₀              = p[19]
-        glaciers_n               = p[20]
-        antarctic_params[:]      = p[21:35]
+        if glacier_model==:gsic
+            σ_glaciers               = p[1]
+            σ_greenland              = p[2]
+            σ_antarctic              = p[3]
+            σ_gmsl                   = p[4]
+            ρ_glaciers               = p[5]
+            ρ_greenland              = p[6]
+            ρ_antarctic              = p[7]
+            ρ_gmsl                   = p[8]
+            thermal_s₀               = p[9]
+            greenland_v₀             = p[10]
+            glaciers_v₀              = p[11]
+            glaciers_s₀              = p[12]
+            antarctic_s₀             = p[13]
+            thermal_α                = p[14]
+            greenland_a              = p[15]
+            greenland_b              = p[16]
+            greenland_α              = p[17]
+            greenland_β              = p[18]
+            glaciers_β₀              = p[19]
+            glaciers_n               = p[20]
+            antarctic_params[:]      = p[21:35]
+        
+            log_prior = logpdf(prior_σ_glaciers, σ_glaciers) + logpdf(prior_σ_greenland, σ_greenland) + logpdf(prior_σ_antarctic, σ_antarctic) + logpdf(prior_σ_gmsl, σ_gmsl) +
+                        logpdf(prior_ρ_glaciers, ρ_glaciers) + logpdf(prior_ρ_greenland, ρ_greenland) + logpdf(prior_ρ_antarctic, ρ_antarctic) + logpdf(prior_ρ_gmsl, ρ_gmsl) +
+                        logpdf(prior_thermal_s₀, thermal_s₀) + logpdf(prior_greenland_v₀, greenland_v₀) + logpdf(prior_glaciers_v₀, glaciers_v₀) + logpdf(prior_glaciers_s₀, glaciers_s₀) + logpdf(prior_antarctic_s₀, antarctic_s₀) +
+                        logpdf(prior_thermal_α, thermal_α) +
+                        logpdf(prior_greenland_a, greenland_a) + logpdf(prior_greenland_b, greenland_b) + logpdf(prior_greenland_α, greenland_α) + logpdf(prior_greenland_β, greenland_β) +
+                        logpdf(prior_glaciers_β₀, glaciers_β₀) + logpdf(prior_glaciers_n, glaciers_n) +
+                        antarctic_total_prior(antarctic_params)
 
-        log_prior = logpdf(prior_σ_glaciers, σ_glaciers) + logpdf(prior_σ_greenland, σ_greenland) + logpdf(prior_σ_antarctic, σ_antarctic) + logpdf(prior_σ_gmsl, σ_gmsl) +
-                    logpdf(prior_ρ_glaciers, ρ_glaciers) + logpdf(prior_ρ_greenland, ρ_greenland) + logpdf(prior_ρ_antarctic, ρ_antarctic) + logpdf(prior_ρ_gmsl, ρ_gmsl) +
-                    logpdf(prior_thermal_s₀, thermal_s₀) + logpdf(prior_greenland_v₀, greenland_v₀) + logpdf(prior_glaciers_v₀, glaciers_v₀) + logpdf(prior_glaciers_s₀, glaciers_s₀) + logpdf(prior_antarctic_s₀, antarctic_s₀) +
-                    logpdf(prior_thermal_α, thermal_α) +
-                    logpdf(prior_greenland_a, greenland_a) + logpdf(prior_greenland_b, greenland_b) + logpdf(prior_greenland_α, greenland_α) + logpdf(prior_greenland_β, greenland_β) +
-                    logpdf(prior_glaciers_β₀, glaciers_β₀) + logpdf(prior_glaciers_n, glaciers_n) +
-                    antarctic_total_prior(antarctic_params)
+        elseif glacier_model==:mengel
+            # TODO update these for mengel model
+            σ_glaciers               = p[1]
+            σ_greenland              = p[2]
+            σ_antarctic              = p[3]
+            σ_gmsl                   = p[4]
+            ρ_glaciers               = p[5]
+            ρ_greenland              = p[6]
+            ρ_antarctic              = p[7]
+            ρ_gmsl                   = p[8]
+            thermal_s₀               = p[9]
+            greenland_v₀             = p[10]
+            glaciers_sl0             = p[11]
+            antarctic_s₀             = p[12]
+            thermal_α                = p[13]
+            greenland_a              = p[14]
+            greenland_b              = p[15]
+            greenland_α              = p[16]
+            greenland_β              = p[17]
+            glaciers_a               = p[18] # update
+            glaciers_b               = p[19]
+            glaciers_T_lia           = p[20]
+            glaciers_f               = p[21]
+            glaciers_tau_fast        = p[22]
+            glaciers_tau_slow        = p[23]
+            antarctic_params[:]      = p[24:38]
+
+            log_prior = logpdf(prior_σ_glaciers, σ_glaciers) + logpdf(prior_σ_greenland, σ_greenland) + logpdf(prior_σ_antarctic, σ_antarctic) + logpdf(prior_σ_gmsl, σ_gmsl) +
+                        logpdf(prior_ρ_glaciers, ρ_glaciers) + logpdf(prior_ρ_greenland, ρ_greenland) + logpdf(prior_ρ_antarctic, ρ_antarctic) + logpdf(prior_ρ_gmsl, ρ_gmsl) +
+                        logpdf(prior_thermal_s₀, thermal_s₀) + logpdf(prior_greenland_v₀, greenland_v₀) + logpdf(prior_glaciers_sl0, glaciers_sl0) + logpdf(prior_antarctic_s₀, antarctic_s₀) +
+                        logpdf(prior_thermal_α, thermal_α) +
+                        logpdf(prior_greenland_a, greenland_a) + logpdf(prior_greenland_b, greenland_b) + logpdf(prior_greenland_α, greenland_α) + logpdf(prior_greenland_β, greenland_β) +
+                        logpdf(prior_glaciers_a, glaciers_a) + logpdf(prior_glaciers_b, glaciers_b) + logpdf(prior_glaciers_T_lia, glaciers_T_lia) + logpdf(prior_glaciers_f, glaciers_f) +
+                        logpdf(prior_glaciers_tau_fast, glaciers_tau_fast) + logpdf(prior_glaciers_tau_slow, glaciers_tau_slow) + 
+                        antarctic_total_prior(antarctic_params)
+        else
+            error("unrecognized glacier_model argument")
+        end    
 
         return log_prior
     end
@@ -205,15 +255,16 @@ Function Arguments:
     end_year              = The final year to run the model calibration (defaults to 2017).
     joint_antarctic_prior = TRUE/FALSE check for whether to use a joint normal prior distribution (TRUE = option 1 described
                             above) or fitted marginal kernel density estimates (FLASE = option 2 described above).
+    glacier_model         = :mengel (Mengel 2016 version) or :gsic (original Wigley and Raper version)
 """
-function construct_brick_log_posterior(f_run_model!; model_start_year::Int=1850, calibration_end_year::Int=2017, joint_antarctic_prior::Bool=false)
+function construct_brick_log_posterior(f_run_model!; model_start_year::Int=1850, calibration_end_year::Int=2017, joint_antarctic_prior::Bool=false, glacier_model=:mengel)
 
    # Create a vector of calibration years and calculate total number of years to run model.
     calibration_years = collect(model_start_year:calibration_end_year)
     n = length(calibration_years)
 
     # Get log-prior function.
-    brick_log_prior = construct_brick_log_prior(joint_antarctic_prior)
+    brick_log_prior = construct_brick_log_prior(joint_antarctic_prior, glacier_model=glacier_model)
 
     # Load calibration data/observations.
     calibration_data, obs_antarctic_trends, obs_thermal_trends = MimiBRICK.load_calibration_data(model_start_year, calibration_end_year, last_sea_level_norm_year=1990)

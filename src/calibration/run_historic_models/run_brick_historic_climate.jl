@@ -5,15 +5,15 @@ using Mimi
 #-------------------------------------------------------------------------------
 
 """
-    construct_run_brick(calibration_start_year::Int, calibration_end_year::Int)
+    construct_run_brick(calibration_start_year::Int, calibration_end_year::Int, glacier_model::Symbol)
 
 Create a function to run the BRICK model over the historic period.
 """
-function construct_run_brick(calibration_start_year::Int, calibration_end_year::Int)
+function construct_run_brick(calibration_start_year::Int, calibration_end_year::Int; glacier_model::Symbol=:mengel)
 
-    # Load an instance of DOECLIM+BRICK model.
+    # Load an instance of BRICK(+_) model.
     # WARNING: for general use, use `m = get_model!(...[arguments here]...)`  instead
-    m = Mimi.build(get_model(ssprcp_scenario="ssp245", start_year=calibration_start_year, end_year=calibration_end_year))
+    m = Mimi.build(get_model(ssprcp_scenario="ssp245", start_year=calibration_start_year, end_year=calibration_end_year, glacier_model=glacier_model))
 
     # Get indices needed to normalize temperature anomalies relative to 1861-1880 mean (DOECLIM+BRICK starts in 1850 by default).
     temperature_norm_indices = findall((in)(1861:1880), 1850:calibration_end_year)
@@ -33,34 +33,68 @@ function construct_run_brick(calibration_start_year::Int, calibration_end_year::
 
         # Assign names to uncertain model and initial condition parameters for convenience.
         # Note: This assumes "param" is the full vector of uncertain parameters with the same ordering as in "create_log_posterior_brick.jl".
-        thermal_s₀               = param[9]
-        greenland_v₀             = param[10]
-        glaciers_v₀              = param[11]
-        glaciers_s₀              = param[12]
-        antarctic_s₀             = param[13]
-        thermal_α                = param[14]
-        greenland_a              = param[15]
-        greenland_b              = param[16]
-        greenland_α              = param[17]
-        greenland_β              = param[18]
-        glaciers_β₀              = param[19]
-        glaciers_n               = param[20]
-        anto_α                   = param[21]
-        anto_β                   = param[22]
-        antarctic_γ              = param[23]
-        antarctic_α              = param[24]
-        antarctic_μ              = param[25]
-        antarctic_ν              = param[26]
-        antarctic_precip₀        = param[27]
-        antarctic_κ              = param[28]
-        antarctic_flow₀          = param[29]
-        antarctic_runoff_height₀ = param[30]
-        antarctic_c              = param[31]
-        antarctic_bedheight₀     = param[32]
-        antarctic_slope          = param[33]
-        antarctic_λ              = param[34]
-        antarctic_temp_threshold = param[35]
-
+        if glacier_model==:gsic
+            thermal_s₀               = param[9]
+            greenland_v₀             = param[10]
+            glaciers_v₀              = param[11]
+            glaciers_s₀              = param[12]
+            antarctic_s₀             = param[13]
+            thermal_α                = param[14]
+            greenland_a              = param[15]
+            greenland_b              = param[16]
+            greenland_α              = param[17]
+            greenland_β              = param[18]
+            glaciers_β₀              = param[19]
+            glaciers_n               = param[20]
+            anto_α                   = param[21]
+            anto_β                   = param[22]
+            antarctic_γ              = param[23]
+            antarctic_α              = param[24]
+            antarctic_μ              = param[25]
+            antarctic_ν              = param[26]
+            antarctic_precip₀        = param[27]
+            antarctic_κ              = param[28]
+            antarctic_flow₀          = param[29]
+            antarctic_runoff_height₀ = param[30]
+            antarctic_c              = param[31]
+            antarctic_bedheight₀     = param[32]
+            antarctic_slope          = param[33]
+            antarctic_λ              = param[34]
+            antarctic_temp_threshold = param[35]
+        elseif glacier_model==:mengel
+            thermal_s₀               = param[9]
+            greenland_v₀             = param[10]
+            glaciers_sl0             = param[11]
+            antarctic_s₀             = param[12]
+            thermal_α                = param[13]
+            greenland_a              = param[14]
+            greenland_b              = param[15]
+            greenland_α              = param[16]
+            greenland_β              = param[17]
+            glaciers_a               = param[18] # update
+            glaciers_b               = param[19]
+            glaciers_T_lia           = param[20]
+            glaciers_f               = param[21]
+            glaciers_tau_fast        = param[22]
+            glaciers_tau_slow        = param[23]
+            anto_α                   = param[24]
+            anto_β                   = param[25]
+            antarctic_γ              = param[26]
+            antarctic_α              = param[27]
+            antarctic_μ              = param[28]
+            antarctic_ν              = param[29]
+            antarctic_precip₀        = param[30]
+            antarctic_κ              = param[31]
+            antarctic_flow₀          = param[32]
+            antarctic_runoff_height₀ = param[33]
+            antarctic_c              = param[34]
+            antarctic_bedheight₀     = param[35]
+            antarctic_slope          = param[36]
+            antarctic_λ              = param[37]
+            antarctic_temp_threshold = param[38]
+        else
+            error("unsupported glacier_model argument")
+        end
         #----------------------------------------------------------
         # Set BRICK to use sampled parameter values.
         #----------------------------------------------------------
@@ -86,10 +120,20 @@ function construct_run_brick(calibration_start_year::Int, calibration_end_year::
         update_param!(m, :antarctic_icesheet, :λ,                          antarctic_λ)
 
         # ----- Glaciers & Small Ice Caps ----- #
-        update_param!(m, :glaciers_small_icecaps, :gsic_β₀, glaciers_β₀)
-        update_param!(m, :glaciers_small_icecaps, :gsic_v₀, glaciers_v₀)
-        update_param!(m, :glaciers_small_icecaps, :gsic_s₀, glaciers_s₀)
-        update_param!(m, :glaciers_small_icecaps, :gsic_n,  glaciers_n)
+        if glacier_model==:gsic
+            update_param!(m, :glaciers_small_icecaps, :gsic_β₀, glaciers_β₀)
+            update_param!(m, :glaciers_small_icecaps, :gsic_v₀, glaciers_v₀)
+            update_param!(m, :glaciers_small_icecaps, :gsic_s₀, glaciers_s₀)
+            update_param!(m, :glaciers_small_icecaps, :gsic_n,  glaciers_n)
+        elseif glacier_model==:mengel
+            update_param!(m, :glaciers_small_icecaps, :gic_a, glaciers_a)
+            update_param!(m, :glaciers_small_icecaps, :gic_b, glaciers_b)
+            update_param!(m, :glaciers_small_icecaps, :gic_T_lia, glaciers_T_lia)
+            update_param!(m, :glaciers_small_icecaps, :gic_f, glaciers_f)
+            update_param!(m, :glaciers_small_icecaps, :gic_tau_fast, glaciers_tau_fast)
+            update_param!(m, :glaciers_small_icecaps, :gic_tau_slow, glaciers_tau_slow)
+            update_param!(m, :glaciers_small_icecaps, :gic_sl0, glaciers_sl0)
+s        end
 
         # ----- Greenland Ice Sheet ----- #
         update_param!(m, :greenland_icesheet, :greenland_a,  greenland_a)

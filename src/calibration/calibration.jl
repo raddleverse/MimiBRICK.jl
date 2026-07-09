@@ -30,8 +30,9 @@ using StatsBase
                         num_walkers=2,
                         size_subsample=1000, 
                         start_from_priors=false,
-                        joint_ais_prior=false
-                        calibration_data_dir::Union{String, Nothing} = nothing
+                        joint_ais_prior=false,
+                        calibration_data_dir::Union{String, Nothing} = nothing,
+                        glacier_model::Symbol=:mengel
                     )
                     
 This function carries out a Markov chain Monte Carlo calibration of BRICK.
@@ -53,7 +54,8 @@ function run_calibration(;  output_dir::String,
                             size_subsample=1000, 
                             start_from_priors=false,
                             joint_ais_prior=false,
-                            calibration_data_dir::Union{String, Nothing} = nothing
+                            calibration_data_dir::Union{String, Nothing} = nothing,
+                            glacier_model::Symbol = :mengel
                         )
 
     # set calibration data directory if one was not provided ie. it is set as nothing
@@ -69,8 +71,15 @@ function run_calibration(;  output_dir::String,
     # `path_parameter_info` is just to get the names of the parameters, whereas `path_initial_parameters` will provide the starting values for the model parameters as well.
     # the 04Jun2026 file versions are based on updated priors and a long initial chain
     if ~start_from_priors
-        path_initial_parameters = joinpath(calibration_data_dir, "calibration_initial_values_"*model_config*"_04Jun2026.csv")
-        path_initial_covariance = joinpath(calibration_data_dir, "initial_proposal_covariance_matrix_"*model_config*"_04Jun2026.csv")
+        if glacier_model==:mengel
+            path_initial_parameters = joinpath(calibration_data_dir, "calibration_initial_values_"*model_config*"_mm.csv")
+            path_initial_covariance = joinpath(calibration_data_dir, "initial_proposal_covariance_matrix_"*model_config*"_mm.csv")
+            # override until mengel component becomes standard
+            path_parameter_info = path_initial_parameters
+        else
+            path_initial_parameters = joinpath(calibration_data_dir, "calibration_initial_values_"*model_config*"_04Jun2026.csv")
+            path_initial_covariance = joinpath(calibration_data_dir, "initial_proposal_covariance_matrix_"*model_config*"_04Jun2026.csv")
+        end
     end
 
     ##------------------------------------------------------------------------------
@@ -110,8 +119,8 @@ function run_calibration(;  output_dir::String,
     # functions in the helper scripts included above. Using this instead of the
     # @eval and Symbols so this can be run as a function instead of a script.
     if model_config=="brick"
-        run_mymodel! = MimiBRICK.construct_run_brick(calibration_start_year, calibration_end_year)
-        log_posterior_mymodel = MimiBRICK.construct_brick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=joint_ais_prior)
+        run_mymodel! = MimiBRICK.construct_run_brick(calibration_start_year, calibration_end_year, glacier_model=glacier_model)
+        log_posterior_mymodel = MimiBRICK.construct_brick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=joint_ais_prior, glacier_model=glacier_model)
     elseif model_config=="doeclimbrick"
         run_mymodel! = MimiBRICK.construct_run_doeclimbrick(calibration_start_year, calibration_end_year)
         log_posterior_mymodel = MimiBRICK.construct_doeclimbrick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=joint_ais_prior)
