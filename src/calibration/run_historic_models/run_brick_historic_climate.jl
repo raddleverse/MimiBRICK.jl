@@ -133,7 +133,7 @@ function construct_run_brick(calibration_start_year::Int, calibration_end_year::
             update_param!(m, :glaciers_small_icecaps, :gic_tau_fast, glaciers_tau_fast)
             update_param!(m, :glaciers_small_icecaps, :gic_tau_slow, glaciers_tau_slow)
             update_param!(m, :glaciers_small_icecaps, :gic_sl0, glaciers_sl0)
-s        end
+        end
 
         # ----- Greenland Ice Sheet ----- #
         update_param!(m, :greenland_icesheet, :greenland_a,  greenland_a)
