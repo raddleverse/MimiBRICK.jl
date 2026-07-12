@@ -1,5 +1,6 @@
 import Pkg
 Pkg.activate(dirname(@__DIR__))
+Pkg.resolve()
 Pkg.instantiate()
 
 using Distributed
