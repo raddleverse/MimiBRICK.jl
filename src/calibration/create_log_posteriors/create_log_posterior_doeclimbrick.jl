@@ -8,7 +8,7 @@ using NetCDF
 #-------------------------------------------------------------------------------
 
 """
-    construct_doeclimbrick_log_prior(joint_antarctic_prior::Bool, uniform_ECS::Bool; calibration_data_dir::Union{String, Nothing} = nothing)
+    construct_doeclimbrick_log_prior(joint_antarctic_prior::Bool, uniform_ECS::Bool; calibration_data_dir::Union{String, Nothing} = nothing, glacier_model=:mengel)
 
 Calculate total (log) prior probability for doeclimbrick.
 
@@ -26,8 +26,9 @@ Function Arguments:
       uniform_ECS             = TRUE/FALSE check for whether or not to use a uniform prior distribution for the equilibrium
                               climate sensitivity (true = use uniform).
       calibration_data_dir    = Data directory for calibration data. Defaults to package calibration data directory, changing this is not recommended.
+      glacier_model           = :mengel (Mengel 2016 version) or :gsic (original Wigley and Raper version)
 """
-function construct_doeclimbrick_log_prior(joint_antarctic_prior::Bool, uniform_ECS::Bool; calibration_data_dir::Union{String, Nothing} = nothing)
+function construct_doeclimbrick_log_prior(joint_antarctic_prior::Bool, uniform_ECS::Bool; calibration_data_dir::Union{String, Nothing} = nothing, glacier_model=:mengel)
     
     # set calibration data directory if one was not provided ie. it is set as nothing
     if isnothing(calibration_data_dir)
@@ -130,7 +131,8 @@ function construct_doeclimbrick_log_prior(joint_antarctic_prior::Bool, uniform_E
     prior_thermal_s₀         = Uniform(-0.0484, 0.0484) # BRICK defaults. # Initial sea level rise due to thermal expansion designated in 1850 (m SLE).
     prior_greenland_v₀       = Uniform(7.16, 7.56)
     prior_glaciers_v₀        = Uniform(0.31, 0.53)
-    prior_glaciers_s₀        = Uniform(-0.0536, 0.0791)
+    prior_glaciers_s₀        = Uniform(-0.0536, 0.0791) # wigley-raper
+    prior_glaciers_sl0       = Uniform(-0.0536, 0.0791) # mengel
     prior_antarctic_s₀       = Uniform(-0.04755, 0.05585) # Informed by prior BRICK runs.
 
     # -----------------------------------------
@@ -165,6 +167,14 @@ function construct_doeclimbrick_log_prior(joint_antarctic_prior::Bool, uniform_E
     prior_glaciers_β₀        = Uniform(0.0, 0.041)
     prior_glaciers_n         = Uniform(0.55, 1.0)
 
+    # mengel GSIC component
+    prior_glaciers_a         = truncated(Normal(0.45, 0.08), 0.32, 0.55)
+    prior_glaciers_b         = truncated(Normal(0.52, 0.25), 0.25, 1.00)
+    prior_glaciers_T_lia     = truncated(Normal(-0.45, 0.30), -1.00, -0.10)
+    prior_glaciers_f         = truncated(Normal(0.50, 0.30), 0.02, 0.98)
+    prior_glaciers_tau_fast  = truncated(Normal(40., 30.), 5., 80.)
+    prior_glaciers_tau_slow  = truncated(Normal(300., 200.), 80., 800.)
+
     #------------------------------------------------------------------------------------
     # Create function that returns the log-prior of all uncertain model parameters.
     #------------------------------------------------------------------------------------
@@ -172,45 +182,94 @@ function construct_doeclimbrick_log_prior(joint_antarctic_prior::Bool, uniform_E
     function total_log_prior(p::Array{Float64,1})
 
         # Assign parameter values names for convenience/tractability.
-        σ_temperature            = p[1]
-        σ_ocean_heat             = p[2]
-        σ_glaciers               = p[3]
-        σ_greenland              = p[4]
-        σ_antarctic              = p[5]
-        σ_gmsl                   = p[6]
-        ρ_temperature            = p[7]
-        ρ_ocean_heat             = p[8]
-        ρ_glaciers               = p[9]
-        ρ_greenland              = p[10]
-        ρ_antarctic              = p[11]
-        ρ_gmsl                   = p[12]
-        temperature_0            = p[13]
-        ocean_heat_0             = p[14]
-        thermal_s₀               = p[15]
-        greenland_v₀             = p[16]
-        glaciers_v₀              = p[17]
-        glaciers_s₀              = p[18]
-        antarctic_s₀             = p[19]
-        heat_diffusivity         = p[20]
-        rf_scale_aerosol         = p[21]
-        ECS                      = p[22]
-        thermal_α                = p[23]
-        greenland_a              = p[24]
-        greenland_b              = p[25]
-        greenland_α              = p[26]
-        greenland_β              = p[27]
-        glaciers_β₀              = p[28]
-        glaciers_n               = p[29]
-        antarctic_params[:]      = p[30:44]
+        if glacier_model==:gsic
+            σ_temperature            = p[1]
+            σ_ocean_heat             = p[2]
+            σ_glaciers               = p[3]
+            σ_greenland              = p[4]
+            σ_antarctic              = p[5]
+            σ_gmsl                   = p[6]
+            ρ_temperature            = p[7]
+            ρ_ocean_heat             = p[8]
+            ρ_glaciers               = p[9]
+            ρ_greenland              = p[10]
+            ρ_antarctic              = p[11]
+            ρ_gmsl                   = p[12]
+            temperature_0            = p[13]
+            ocean_heat_0             = p[14]
+            thermal_s₀               = p[15]
+            greenland_v₀             = p[16]
+            glaciers_v₀              = p[17]
+            glaciers_s₀              = p[18]
+            antarctic_s₀             = p[19]
+            heat_diffusivity         = p[20]
+            rf_scale_aerosol         = p[21]
+            ECS                      = p[22]
+            thermal_α                = p[23]
+            greenland_a              = p[24]
+            greenland_b              = p[25]
+            greenland_α              = p[26]
+            greenland_β              = p[27]
+            glaciers_β₀              = p[28]
+            glaciers_n               = p[29]
+            antarctic_params[:]      = p[30:44]
 
-        log_prior = logpdf(prior_σ_temperature, σ_temperature) + logpdf(prior_σ_ocean_heat, σ_ocean_heat) + logpdf(prior_σ_glaciers, σ_glaciers) + logpdf(prior_σ_greenland, σ_greenland) + logpdf(prior_σ_antarctic, σ_antarctic) + logpdf(prior_σ_gmsl, σ_gmsl) +
-                    logpdf(prior_ρ_temperature, ρ_temperature) + logpdf(prior_ρ_ocean_heat, ρ_ocean_heat) + logpdf(prior_ρ_glaciers, ρ_glaciers) + logpdf(prior_ρ_greenland, ρ_greenland) + logpdf(prior_ρ_antarctic, ρ_antarctic) + logpdf(prior_ρ_gmsl, ρ_gmsl) +
-                    logpdf(prior_temperature_0, temperature_0) + logpdf(prior_ocean_heat_0, ocean_heat_0) + logpdf(prior_thermal_s₀, thermal_s₀) + logpdf(prior_greenland_v₀, greenland_v₀) + logpdf(prior_glaciers_v₀, glaciers_v₀) + logpdf(prior_glaciers_s₀, glaciers_s₀) + logpdf(prior_antarctic_s₀, antarctic_s₀) +
-                    logpdf(prior_heat_diffusivity, heat_diffusivity) + logpdf(prior_rf_scale_aerosol, rf_scale_aerosol) + logpdf(prior_ECS, ECS) +
-                    logpdf(prior_thermal_α, thermal_α) +
-                    logpdf(prior_greenland_a, greenland_a) + logpdf(prior_greenland_b, greenland_b) + logpdf(prior_greenland_α, greenland_α) + logpdf(prior_greenland_β, greenland_β) +
-                    logpdf(prior_glaciers_β₀, glaciers_β₀) + logpdf(prior_glaciers_n, glaciers_n) +
-                    antarctic_total_prior(antarctic_params)
+            log_prior = logpdf(prior_σ_temperature, σ_temperature) + logpdf(prior_σ_ocean_heat, σ_ocean_heat) + logpdf(prior_σ_glaciers, σ_glaciers) + logpdf(prior_σ_greenland, σ_greenland) + logpdf(prior_σ_antarctic, σ_antarctic) + logpdf(prior_σ_gmsl, σ_gmsl) +
+                        logpdf(prior_ρ_temperature, ρ_temperature) + logpdf(prior_ρ_ocean_heat, ρ_ocean_heat) + logpdf(prior_ρ_glaciers, ρ_glaciers) + logpdf(prior_ρ_greenland, ρ_greenland) + logpdf(prior_ρ_antarctic, ρ_antarctic) + logpdf(prior_ρ_gmsl, ρ_gmsl) +
+                        logpdf(prior_temperature_0, temperature_0) + logpdf(prior_ocean_heat_0, ocean_heat_0) + logpdf(prior_thermal_s₀, thermal_s₀) + logpdf(prior_greenland_v₀, greenland_v₀) + logpdf(prior_glaciers_v₀, glaciers_v₀) + logpdf(prior_glaciers_s₀, glaciers_s₀) + logpdf(prior_antarctic_s₀, antarctic_s₀) +
+                        logpdf(prior_heat_diffusivity, heat_diffusivity) + logpdf(prior_rf_scale_aerosol, rf_scale_aerosol) + logpdf(prior_ECS, ECS) +
+                        logpdf(prior_thermal_α, thermal_α) +
+                        logpdf(prior_greenland_a, greenland_a) + logpdf(prior_greenland_b, greenland_b) + logpdf(prior_greenland_α, greenland_α) + logpdf(prior_greenland_β, greenland_β) +
+                        logpdf(prior_glaciers_β₀, glaciers_β₀) + logpdf(prior_glaciers_n, glaciers_n) +
+                        antarctic_total_prior(antarctic_params)
+                        
+        elseif glacier_model==:mengel
+            σ_temperature            = p[1]
+            σ_ocean_heat             = p[2]
+            σ_glaciers               = p[3]
+            σ_greenland              = p[4]
+            σ_antarctic              = p[5]
+            σ_gmsl                   = p[6]
+            ρ_temperature            = p[7]
+            ρ_ocean_heat             = p[8]
+            ρ_glaciers               = p[9]
+            ρ_greenland              = p[10]
+            ρ_antarctic              = p[11]
+            ρ_gmsl                   = p[12]
+            temperature_0            = p[13]
+            ocean_heat_0             = p[14]
+            thermal_s₀               = p[15]
+            greenland_v₀             = p[16]
+            glaciers_sl0             = p[17] # update
+            antarctic_s₀             = p[18]
+            heat_diffusivity         = p[19]
+            rf_scale_aerosol         = p[20]
+            ECS                      = p[21]
+            thermal_α                = p[22]
+            greenland_a              = p[23]
+            greenland_b              = p[24]
+            greenland_α              = p[25]
+            greenland_β              = p[26]
+            glaciers_a               = p[27] # update
+            glaciers_b               = p[28]
+            glaciers_T_lia           = p[29]
+            glaciers_f               = p[30]
+            glaciers_tau_fast        = p[31]
+            glaciers_tau_slow        = p[32]
+            antarctic_params[:]      = p[33:47]
+
+            log_prior = logpdf(prior_σ_temperature, σ_temperature) + logpdf(prior_σ_ocean_heat, σ_ocean_heat) + logpdf(prior_σ_glaciers, σ_glaciers) + logpdf(prior_σ_greenland, σ_greenland) + logpdf(prior_σ_antarctic, σ_antarctic) + logpdf(prior_σ_gmsl, σ_gmsl) +
+                        logpdf(prior_ρ_temperature, ρ_temperature) + logpdf(prior_ρ_ocean_heat, ρ_ocean_heat) + logpdf(prior_ρ_glaciers, ρ_glaciers) + logpdf(prior_ρ_greenland, ρ_greenland) + logpdf(prior_ρ_antarctic, ρ_antarctic) + logpdf(prior_ρ_gmsl, ρ_gmsl) +
+                        logpdf(prior_temperature_0, temperature_0) + logpdf(prior_ocean_heat_0, ocean_heat_0) + logpdf(prior_thermal_s₀, thermal_s₀) + logpdf(prior_greenland_v₀, greenland_v₀) + logpdf(prior_glaciers_sl0, glaciers_sl0) + logpdf(prior_antarctic_s₀, antarctic_s₀) +
+                        logpdf(prior_heat_diffusivity, heat_diffusivity) + logpdf(prior_rf_scale_aerosol, rf_scale_aerosol) + logpdf(prior_ECS, ECS) +
+                        logpdf(prior_thermal_α, thermal_α) +
+                        logpdf(prior_greenland_a, greenland_a) + logpdf(prior_greenland_b, greenland_b) + logpdf(prior_greenland_α, greenland_α) + logpdf(prior_greenland_β, greenland_β) +
+                        logpdf(prior_glaciers_a, glaciers_a) + logpdf(prior_glaciers_b, glaciers_b) + logpdf(prior_glaciers_T_lia, glaciers_T_lia) + logpdf(prior_glaciers_f, glaciers_f) +
+                        logpdf(prior_glaciers_tau_fast, glaciers_tau_fast) + logpdf(prior_glaciers_tau_slow, glaciers_tau_slow) + 
+                        antarctic_total_prior(antarctic_params)
+        else
+            error("unrecognized glacier_model argument")
+        end    
 
         return log_prior
     end

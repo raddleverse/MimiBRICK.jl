@@ -195,7 +195,6 @@ function construct_brick_log_prior(joint_antarctic_prior::Bool; calibration_data
                         antarctic_total_prior(antarctic_params)
 
         elseif glacier_model==:mengel
-            # TODO update these for mengel model
             σ_glaciers               = p[1]
             σ_greenland              = p[2]
             σ_antarctic              = p[3]
