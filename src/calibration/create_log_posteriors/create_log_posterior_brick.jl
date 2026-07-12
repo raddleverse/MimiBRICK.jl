@@ -240,7 +240,7 @@ function construct_brick_log_prior(joint_antarctic_prior::Bool; calibration_data
 end
 
 """
-    construct_brick_log_posterior(f_run_model!; model_start_year::Int=1850, calibration_end_year::Int=2017, joint_antarctic_prior::Bool=false)
+    construct_brick_log_posterior(f_run_model!; model_start_year::Int=1850, calibration_end_year::Int=2017, joint_antarctic_prior::Bool=false, glacier_model=:mengel)
 
 Calculate log posterior for brick.
 
