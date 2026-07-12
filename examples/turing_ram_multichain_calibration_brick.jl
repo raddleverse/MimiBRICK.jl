@@ -1,3 +1,7 @@
+import Pkg
+Pkg.activate(dirname(@__DIR__))
+Pkg.instantiate()
+
 using Distributed
 using CSV
 using CSVFiles
