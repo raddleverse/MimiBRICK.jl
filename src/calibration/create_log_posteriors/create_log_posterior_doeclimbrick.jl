@@ -222,7 +222,7 @@ function construct_doeclimbrick_log_prior(joint_antarctic_prior::Bool, uniform_E
                         logpdf(prior_greenland_a, greenland_a) + logpdf(prior_greenland_b, greenland_b) + logpdf(prior_greenland_α, greenland_α) + logpdf(prior_greenland_β, greenland_β) +
                         logpdf(prior_glaciers_β₀, glaciers_β₀) + logpdf(prior_glaciers_n, glaciers_n) +
                         antarctic_total_prior(antarctic_params)
-                        
+
         elseif glacier_model==:mengel
             σ_temperature            = p[1]
             σ_ocean_heat             = p[2]
@@ -279,7 +279,7 @@ function construct_doeclimbrick_log_prior(joint_antarctic_prior::Bool, uniform_E
 end
 
 """
-    construct_doeclimbrick_log_posterior(f_run_model!; model_start_year::Int=1850, calibration_end_year::Int=2017, joint_antarctic_prior::Bool=false, uniform_ECS::Bool=false)
+    construct_doeclimbrick_log_posterior(f_run_model!; model_start_year::Int=1850, calibration_end_year::Int=2017, joint_antarctic_prior::Bool=false, uniform_ECS::Bool=false, glacier_model=:mengel)
 
 Calculate log posterior for doeclimbrick.
 
@@ -295,15 +295,16 @@ Function Arguments:
                             above) or fitted marginal kernel density estimates (FLASE = option 2 described above).
     uniform_ECS           = TRUE/FALSE check for whether or not to use a uniform prior distribution for the equilibrium
                             climate sensitivity (true = use uniform).
+    glacier_model         = :mengel (Mengel 2016 version) or :gsic (original Wigley and Raper version)
 """
-function construct_doeclimbrick_log_posterior(f_run_model!; model_start_year::Int=1850, calibration_end_year::Int=2017, joint_antarctic_prior::Bool=false, uniform_ECS::Bool=false)
+function construct_doeclimbrick_log_posterior(f_run_model!; model_start_year::Int=1850, calibration_end_year::Int=2017, joint_antarctic_prior::Bool=false, uniform_ECS::Bool=false, glacier_model=:mengel)
 
    # Create a vector of calibration years and calculate total number of years to run model.
     calibration_years = collect(model_start_year:calibration_end_year)
     n = length(calibration_years)
 
     # Get log-prior function.
-    doeclimbrick_log_prior = construct_doeclimbrick_log_prior(joint_antarctic_prior, uniform_ECS)
+    doeclimbrick_log_prior = construct_doeclimbrick_log_prior(joint_antarctic_prior, uniform_ECS, glacier_model=glacier_model)
 
     # Load calibration data/observations.
     calibration_data, obs_antarctic_trends, obs_thermal_trends = MimiBRICK.load_calibration_data(model_start_year, calibration_end_year, last_sea_level_norm_year=1990)
