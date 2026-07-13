@@ -1,4 +1,4 @@
-data/calibration_data/*initial*_brick_mm0.csv
+data/calibration_data/*initial*_*brick_mm0.csv
 *results*.zip
 tmp_dir
 MAGICC_AR7_ScenarioMIP_CMIP7*.csv
