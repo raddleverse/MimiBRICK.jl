@@ -12,7 +12,8 @@ using Random
                         start_year::Int = 1850,
                         end_year = 2300,
                         magicc_sampling = false,
-                        magicc_resample = false
+                        magicc_resample = false,
+                        glacier_model::Symbol = :mengel
                     )
 
 Function to run BRICK (standalone, or with DOECLIM or SNEASY) over the projections
@@ -29,6 +30,7 @@ Function Arguments:
     - magicc_resample (default = false) - true:  use whatever num_ens is and sample from MAGICC ensemble with replacement
                                           false: run 1 BRICK simulation for each MAGICC ensemble member
                                           NB: currently only false works
+    - glacier_model         = :mengel (Mengel 2016 version) or :gsic (original Wigley and Raper version)
 """
 function run_projections(; output_dir::String,
                         model_config::String = "brick",
@@ -37,6 +39,7 @@ function run_projections(; output_dir::String,
                         end_year = 2300,
                         magicc_sampling = false,
                         magicc_resample = false,
+                        glacier_model::Symbol = :mengel,
                     )
     
     ##==============================================================================
@@ -48,8 +51,13 @@ function run_projections(; output_dir::String,
     ##==============================================================================
     ## Read subsample of parameters
 
-    filename_parameters = joinpath(output_dir, "parameters_subsample_$(model_config).csv")
-    filename_logpost    = joinpath(output_dir, "log_post_subsample_$(model_config).csv")
+    if glacier_model==:gsic
+        filename_parameters = joinpath(output_dir, "wigley-raper-glac", "parameters_subsample_$(model_config).csv")
+        filename_logpost    = joinpath(output_dir, "wigley-raper-glac", "log_post_subsample_$(model_config).csv")
+    elseif glacier_model==:mengel
+        filename_parameters = joinpath(output_dir, "mengel", "parameters_subsample_$(model_config).csv")
+        filename_logpost    = joinpath(output_dir, "mengel", "log_post_subsample_$(model_config).csv")
+    end
     parameters = DataFrame(load(filename_parameters))
     logpost = DataFrame(load(filename_logpost))[!,:log_post]
     num_ens = size(parameters)[1]
@@ -83,11 +91,11 @@ function run_projections(; output_dir::String,
 
     # Get model instance
     if model_config=="brick"
-        m = get_model(ssprcp_scenario=ssprcp_scenario, start_year=start_year, end_year=end_year)
+        m = get_model(ssprcp_scenario=ssprcp_scenario, start_year=start_year, end_year=end_year, glacier_model=glacier_model)
     elseif model_config=="doeclimbrick"
-        m = create_brick_doeclim(ssprcp_scenario=ssprcp_scenario, start_year=start_year, end_year=end_year)
+        m = create_brick_doeclim(ssprcp_scenario=ssprcp_scenario, start_year=start_year, end_year=end_year, glacier_model=glacier_model)
     elseif model_config=="sneasybrick"
-        m = create_sneasy_brick(ssprcp_scenario=ssprcp_scenario, start_year=start_year, end_year=end_year)
+        m = create_sneasy_brick(ssprcp_scenario=ssprcp_scenario, start_year=start_year, end_year=end_year, glacier_model=glacier_model)
     end
 
     # Load calibration data from 1765-2017 (measurement errors used in simulated noise).
@@ -171,11 +179,21 @@ function run_projections(; output_dir::String,
         update_param!(m, :antarctic_icesheet, :λ, parameters[i, findall(x->x=="antarctic_lambda",parnames)][1])
 
         # ----- Glaciers & Small Ice Caps ----- #
-        update_param!(m, :glaciers_small_icecaps, :gsic_β₀, parameters[i, findall(x->x=="glaciers_beta0",parnames)][1])
-        update_param!(m, :glaciers_small_icecaps, :gsic_v₀, parameters[i, findall(x->x=="glaciers_v0",parnames)][1])
-        update_param!(m, :glaciers_small_icecaps, :gsic_s₀, parameters[i, findall(x->x=="glaciers_s0",parnames)][1])
-        update_param!(m, :glaciers_small_icecaps, :gsic_n, parameters[i, findall(x->x=="glaciers_n",parnames)][1])
-        #update_param!(m, :glaciers_small_icecaps, :gsic_teq, parameters[i, findall(x->x=="anto_beta",parnames)][1])
+        if glacier_model==:gsic
+            update_param!(m, :glaciers_small_icecaps, :gsic_β₀, parameters[i, findall(x->x=="glaciers_beta0",parnames)][1])
+            update_param!(m, :glaciers_small_icecaps, :gsic_v₀, parameters[i, findall(x->x=="glaciers_v0",parnames)][1])
+            update_param!(m, :glaciers_small_icecaps, :gsic_s₀, parameters[i, findall(x->x=="glaciers_s0",parnames)][1])
+            update_param!(m, :glaciers_small_icecaps, :gsic_n, parameters[i, findall(x->x=="glaciers_n",parnames)][1])
+            #update_param!(m, :glaciers_small_icecaps, :gsic_teq, parameters[i, findall(x->x=="anto_beta",parnames)][1])
+        elseif glacier_model==:mengel
+            update_param!(m, :glaciers_small_icecaps, :gic_sl0, parameters[i, findall(x->x=="glaciers_sl0",parnames)][1])
+            update_param!(m, :glaciers_small_icecaps, :gic_a, parameters[i, findall(x->x=="glaciers_a",parnames)][1])
+            update_param!(m, :glaciers_small_icecaps, :gic_b, parameters[i, findall(x->x=="glaciers_b",parnames)][1])
+            update_param!(m, :glaciers_small_icecaps, :gic_T_lia, parameters[i, findall(x->x=="glaciers_T_lia",parnames)][1])
+            update_param!(m, :glaciers_small_icecaps, :gic_f, parameters[i, findall(x->x=="glaciers_f",parnames)][1])
+            update_param!(m, :glaciers_small_icecaps, :gic_tau_fast, parameters[i, findall(x->x=="glaciers_tau_fast",parnames)][1])
+            update_param!(m, :glaciers_small_icecaps, :gic_tau_slow, parameters[i, findall(x->x=="glaciers_tau_slow",parnames)][1])
+        end
 
         # ----- Greenland Ice Sheet ----- #
         update_param!(m, :greenland_icesheet, :greenland_a, parameters[i, findall(x->x=="greenland_a",parnames)][1])
@@ -286,10 +304,15 @@ function run_projections(; output_dir::String,
     ## Save output
 
     # make appropriate directory if needed
+    if glacier_model==:gsic
+        glacpath = "wigley-raper-glac"
+    elseif glacier_model==:mengel
+        glacpath = "mengel"
+    end
     if magicc_sampling
-        filepath_output = joinpath(output_dir, "projections_csv", "magicc-$(model_config)", ssprcp_scenario)
+        filepath_output = joinpath(output_dir, "projections_csv", glacpath, "magicc-$(model_config)", ssprcp_scenario)
     else
-        filepath_output = joinpath(output_dir, "projections_csv", model_config, ssprcp_scenario)
+        filepath_output = joinpath(output_dir, "projections_csv", glacpath, model_config, ssprcp_scenario)
     end
     mkpath(filepath_output)
 

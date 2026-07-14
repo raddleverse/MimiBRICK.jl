@@ -9,7 +9,7 @@ using MimiSNEASY
 # Function to run SNEASY-BRICK climate model over historic period.
 # ------------------------------------------------------------------------------
 """
-    create_sneasy_brick(;ssprcp_scenario::String = "ssp245", start_year::Int=1850, end_year::Int=2020, glacier_model::Symbol = :gsic)
+    create_sneasy_brick(;ssprcp_scenario::String = "ssp245", start_year::Int=1850, end_year::Int=2020, glacier_model::Symbol=:mengel)
 
 Return a Mimi model instance with MimiBRICK and MimiSNEASY coupled together.
 
@@ -21,12 +21,12 @@ Function Arguments:
         ssprcp_scenario = SSP-RCP scenario for exogenous forcing
         start_year      = initial year of the simulation period
         end_year        = ending year of the simulation period
-        glacier_model   = glaciers & small ice caps model; `:gsic` (default) = the
+        glacier_model   = glaciers & small ice caps model; `:gsic` = the
                           original single-reservoir Wigley-Raper-Bakker component,
                           `:mengel` = the optional temperature-dependent-equilibrium
                           Mengel-2016 emulator (same glaciers + small-ice-cap inventory)
 """
-function create_sneasy_brick(; ssprcp_scenario::String="ssp245", start_year::Int=1850, end_year::Int=2020, glacier_model::Symbol = :gsic)
+function create_sneasy_brick(; ssprcp_scenario::String="ssp245", start_year::Int=1850, end_year::Int=2020, glacier_model::Symbol=:mengel)
 
     glacier_model in (:gsic, :mengel) || error("create_sneasy_brick: glacier_model must be :gsic or :mengel (got :$glacier_model)")
 
