@@ -176,7 +176,7 @@ function create_brick_doeclim(;ssprcp_scenario::String = "ssp245", start_year::I
     connect_param!(brick_doeclim, :doeclim => :forcing, :radiativeforcing => :rf)
 
     connect_param!(brick_doeclim, :thermal_expansion => :ocean_heat_mixed,    :doeclim => :heat_mixed)
-    connect_param!(brick_doeclim, :thermal_expansion => :ocean_heat_interior, :doeclim => :heat_mixed)
+    connect_param!(brick_doeclim, :thermal_expansion => :ocean_heat_interior, :doeclim => :heat_interior)
 
     connect_param!(brick_doeclim, :global_sea_level => :slr_glaciers_small_ice_caps, :glaciers_small_icecaps => :gsic_sea_level)
     connect_param!(brick_doeclim, :global_sea_level => :slr_greeland_icesheet,       :greenland_icesheet     => :greenland_sea_level)
