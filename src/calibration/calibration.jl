@@ -122,11 +122,11 @@ function run_calibration(;  output_dir::String,
         run_mymodel! = MimiBRICK.construct_run_brick(calibration_start_year, calibration_end_year, glacier_model=glacier_model)
         log_posterior_mymodel = MimiBRICK.construct_brick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=joint_ais_prior, glacier_model=glacier_model)
     elseif model_config=="doeclimbrick"
-        run_mymodel! = MimiBRICK.construct_run_doeclimbrick(calibration_start_year, calibration_end_year)
-        log_posterior_mymodel = MimiBRICK.construct_doeclimbrick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=joint_ais_prior)
+        run_mymodel! = MimiBRICK.construct_run_doeclimbrick(calibration_start_year, calibration_end_year, glacier_model=glacier_model)
+        log_posterior_mymodel = MimiBRICK.construct_doeclimbrick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=joint_ais_prior, glacier_model=glacier_model)
     elseif model_config=="sneasybrick"
-        run_mymodel! = MimiBRICK.construct_run_sneasybrick(calibration_start_year, calibration_end_year)
-        log_posterior_mymodel = MimiBRICK.construct_sneasybrick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=joint_ais_prior)
+        run_mymodel! = MimiBRICK.construct_run_sneasybrick(calibration_start_year, calibration_end_year, glacier_model=glacier_model)
+        log_posterior_mymodel = MimiBRICK.construct_sneasybrick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=joint_ais_prior, glacier_model=glacier_model)
     end
 
     println("Begin baseline calibration of "*model_config*" model.\n")
