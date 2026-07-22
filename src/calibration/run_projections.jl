@@ -52,7 +52,7 @@ function run_projections(; output_dir::String,
         "\"sneasybrick\"; got \"$model_config\""
     ))
 
-    model_years  = collect(start_year:end_year)
+    model_years = collect(start_year:end_year)
     num_years = length(model_years)
     Random.seed!(2026)
 
@@ -252,7 +252,7 @@ function run_projections(; output_dir::String,
             # and modify the defaults from get_model
             # temperature
             temperature_idx = findall((in)(start_year:end_year), temperature_scenario[!,:Year])
-            update_param!(m, :model_global_surface_temperature,  temperature_scenario[temperature_idx,:"temperature"])
+            update_param!(m, :model_global_surface_temperature, temperature_scenario[temperature_idx,:"temperature"])
             # ocean heat uptake
             oceanheat_idx = findall((in)(start_year:end_year), ocheat_scenario[!,:Year])
             update_param!(m, :thermal_expansion, :ocean_heat_interior, ocheat_scenario[oceanheat_idx, :"ocheat"])

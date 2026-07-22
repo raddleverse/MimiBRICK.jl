@@ -52,7 +52,7 @@ function downscale_brick(;lon::Float64,
         throw(ArgumentError("glacier_model must be :gsic or :mengel; got :$glacier_model"))
     end
 
-    slr_dir = joinpath(results_dir, "projections_csv", glacpath, model_config, ssprcp_scenario)
+    slr_dir = joinpath(results_dir, glacpath, "projections_csv", model_config, ssprcp_scenario)
     MAP = DataFrame(load(joinpath(slr_dir,"projections_MAP_$(ssprcp_scenario)_$(model_config).csv")))
     years = MAP[:,:YEAR]
     if ensemble_or_map=="ensemble"

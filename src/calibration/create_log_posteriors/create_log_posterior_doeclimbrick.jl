@@ -22,7 +22,7 @@ Description: This creates a function that will calculate the total (log) prior p
 Function Arguments:
 
       joint_antarctic_prior   = TRUE/FALSE check for whether to use a joint normal prior distribution (TRUE = option 1 described
-                              above) or fitted marginal kernel density estimates (FLASE = option 2 described above).
+                              above) or fitted marginal kernel density estimates (FALSE = option 2 described above).
       uniform_ECS             = TRUE/FALSE check for whether or not to use a uniform prior distribution for the equilibrium
                               climate sensitivity (true = use uniform).
       calibration_data_dir    = Data directory for calibration data. Defaults to package calibration data directory, changing this is not recommended.
@@ -58,7 +58,7 @@ function construct_doeclimbrick_log_prior(joint_antarctic_prior::Bool, uniform_E
     # Create either the joint normal prior distribution for the Antarctic ice sheet model or the marginal kernel density estimates.
     if joint_antarctic_prior == true
 
-        # Fit a multivariate normal to the data (do not use variance estimate for paleo data, separately estimate AR(1) parameters for recent observations isntead).
+        # Fit a multivariate normal to the data (do not use variance estimate for paleo data, separately estimate AR(1) parameters for recent observations instead).
         antarctic_joint_prior = fit(MvNormal, antarctic_paleo_params')
 
     else
@@ -292,7 +292,7 @@ Function Arguments:
     model_start_year      = First year to run the model (not necessarily first year of the calibration if model initializes earlier).
     end_year              = The final year to run the model calibration (defaults to 2017).
     joint_antarctic_prior = TRUE/FALSE check for whether to use a joint normal prior distribution (TRUE = option 1 described
-                            above) or fitted marginal kernel density estimates (FLASE = option 2 described above).
+                            above) or fitted marginal kernel density estimates (FALSE = option 2 described above).
     uniform_ECS           = TRUE/FALSE check for whether or not to use a uniform prior distribution for the equilibrium
                             climate sensitivity (true = use uniform).
     glacier_model         = :mengel (Mengel 2016 version) or :gsic (original Wigley and Raper version)

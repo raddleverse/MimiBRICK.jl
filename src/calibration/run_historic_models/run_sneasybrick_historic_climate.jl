@@ -219,7 +219,7 @@ function construct_run_sneasybrick(calibration_start_year::Int, calibration_end_
         # Sea level contribution from thermal expansion (calibrating to observed trends, so do not need to normalize).
         modeled_thermal_expansion[:] = m[:thermal_expansion, :te_sea_level]
 
-		# Global mean sea level rise (normalize realtive to 1961-1990 mean).
+		# Global mean sea level rise (normalize relative to 1961-1990 mean).
 		modeled_gmsl[:] = m[:global_sea_level, :sea_level_rise] .- mean(m[:global_sea_level, :sea_level_rise][sealevel_norm_indices_1961_1990])
 
         # Return results.
