@@ -3,14 +3,14 @@
 
     mktempdir() do tmp_dir
         calibration_start_year = 1850
-        calibration_end_year   = 2017
+        calibration_end_year   = 2020
         total_chain_length     = 1000
         size_subsample         = 100
         threshold_gr           = 1.1
 
         # BRICK calibration
         nparameters_brick = 38
-        x1 = MimiBRICK.run_calibration(output_dir=tmp_dir, model_config="brick", calibration_start_year=1850, calibration_end_year=2017,
+        x1 = MimiBRICK.run_calibration(output_dir=tmp_dir, model_config="brick", calibration_start_year=calibration_start_year, calibration_end_year=calibration_end_year,
                             total_chain_length=total_chain_length, burnin_length=0, check_gr=false,
                             size_subsample=size_subsample, start_from_priors=false)
         @test size(x1[1])[1]==1000
@@ -23,7 +23,7 @@
 
         # DOECLIM-BRICK calibration
         nparameters_doeclimbrick = 47
-        x2 = MimiBRICK.run_calibration(output_dir=tmp_dir, model_config="doeclimbrick", calibration_start_year=1850, calibration_end_year=2017,
+        x2 = MimiBRICK.run_calibration(output_dir=tmp_dir, model_config="doeclimbrick", calibration_start_year=calibration_start_year, calibration_end_year=calibration_end_year,
                             total_chain_length=total_chain_length, burnin_length=0, check_gr=false,
                             size_subsample=size_subsample, start_from_priors=false)
         @test size(x2[1])[1]==1000
@@ -36,7 +36,7 @@
 
         # SNEASY-BRICK calibration
         nparameters_sneasybrick = 54
-        x3 = MimiBRICK.run_calibration(output_dir=tmp_dir, model_config="sneasybrick", calibration_start_year=1850, calibration_end_year=2017,
+        x3 = MimiBRICK.run_calibration(output_dir=tmp_dir, model_config="sneasybrick", calibration_start_year=calibration_start_year, calibration_end_year=calibration_end_year,
                             total_chain_length=total_chain_length, burnin_length=0, check_gr=false,
                             size_subsample=size_subsample, start_from_priors=false)
         @test size(x3[1])[1]==1000
