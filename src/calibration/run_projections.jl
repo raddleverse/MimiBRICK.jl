@@ -32,7 +32,7 @@ Function Arguments:
                                           false: run 1 BRICK simulation for each MAGICC ensemble member
                                           NB: currently only false works
     - glacier_model         = :mengel (Mengel 2016 version) or :gsic (original Wigley and Raper version)
-    - gmsl_data             = :wa (Wang et al. 2024) or :cw (Church & White 2011); currently used for BRICK calibrations
+    - gmsl_data             = :wa (Wang et al. 2024) or :cw (Church & White 2011)
 """
 function run_projections(; output_dir::String,
                         model_config::String = "brick",
@@ -71,7 +71,7 @@ function run_projections(; output_dir::String,
         throw(ArgumentError("glacier_model must be :gsic or :mengel; got :$glacier_model"))
     end
     
-    calibration_tag = model_config == "brick" ? "_gmsl-$(gmsl_data)" : ""
+    calibration_tag = "_gmsl-$(gmsl_data)"
     filename_parameters = joinpath(output_dir, glacpath, "parameters_subsample_$(model_config)$(calibration_tag).csv")
     filename_logpost    = joinpath(output_dir, glacpath, "log_post_subsample_$(model_config)$(calibration_tag).csv")
     parameters = DataFrame(load(filename_parameters))
@@ -117,7 +117,7 @@ function run_projections(; output_dir::String,
     calibration_data, obs_antarctic_trends, obs_thermal_trends = load_calibration_data(
         start_year,
         2017,
-        gmsl_data=model_config == "brick" ? gmsl_data : :cw,
+        gmsl_data=gmsl_data,
     )
 
     # Initialize arrays to save the model components

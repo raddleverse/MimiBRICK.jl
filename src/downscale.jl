@@ -34,7 +34,7 @@ Function Arguments:
     - model_config = "brick", "doeclimbrick", or "sneasybrick"
     - ssprcp_scenario (default = "ssp245") - SSP-RCP scenario with possible options: ssp119, ssp126, ssp245, ssp370, ssp460, ssp585, ssp534-over
     - glacier_model = :mengel (Mengel 2016 version) or :gsic (original Wigley and Raper version)
-    - gmsl_data = :wa (Wang et al. 2024) or :cw (Church & White 2011); currently used for BRICK calibrations
+    - gmsl_data = :wa (Wang et al. 2024) or :cw (Church & White 2011)
 """
 function downscale_brick(;lon::Float64, 
                             lat::Float64, 
@@ -57,7 +57,7 @@ function downscale_brick(;lon::Float64,
     gmsl_data in (:wa, :cw) || throw(ArgumentError("gmsl_data must be :wa or :cw; got :$gmsl_data"))
 
     slr_dir = joinpath(results_dir, glacpath, "projections_csv", model_config, ssprcp_scenario)
-    calibration_tag = model_config == "brick" ? "_gmsl-$(gmsl_data)" : ""
+    calibration_tag = "_gmsl-$(gmsl_data)"
     MAP = DataFrame(load(joinpath(slr_dir,"projections_MAP_$(ssprcp_scenario)_$(model_config)$(calibration_tag).csv")))
     years = MAP[:,:YEAR]
     if ensemble_or_map=="ensemble"

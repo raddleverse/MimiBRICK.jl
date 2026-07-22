@@ -60,7 +60,7 @@ function run_calibration(;  output_dir::String,
                             gmsl_data::Symbol = :wa
                         )
 
-    # check model_config and gmsl_data are valid
+    # check model_config is valid
     model_config in ("brick", "doeclimbrick", "sneasybrick") ||
     throw(ArgumentError(
         "model_config must be \"brick\", \"doeclimbrick\", or " *
@@ -130,13 +130,13 @@ function run_calibration(;  output_dir::String,
     # @eval and Symbols so this can be run as a function instead of a script.
     if model_config=="brick"
         run_mymodel! = MimiBRICK.construct_run_brick(calibration_start_year, calibration_end_year, glacier_model=glacier_model)
-        log_posterior_mymodel = MimiBRICK.construct_brick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=joint_ais_prior, glacier_model=glacier_model, gmsl_data=gmsl_data)
+        log_posterior_mymodel = MimiBRICK.construct_brick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=joint_ais_prior, calibration_data_dir=calibration_data_dir, glacier_model=glacier_model, gmsl_data=gmsl_data)
     elseif model_config=="doeclimbrick"
         run_mymodel! = MimiBRICK.construct_run_doeclimbrick(calibration_start_year, calibration_end_year, glacier_model=glacier_model)
-        log_posterior_mymodel = MimiBRICK.construct_doeclimbrick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=joint_ais_prior, glacier_model=glacier_model, gmsl_data=gmsl_data)
+        log_posterior_mymodel = MimiBRICK.construct_doeclimbrick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=joint_ais_prior, calibration_data_dir=calibration_data_dir, glacier_model=glacier_model, gmsl_data=gmsl_data)
     elseif model_config=="sneasybrick"
         run_mymodel! = MimiBRICK.construct_run_sneasybrick(calibration_start_year, calibration_end_year, glacier_model=glacier_model)
-        log_posterior_mymodel = MimiBRICK.construct_sneasybrick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=joint_ais_prior, glacier_model=glacier_model, gmsl_data=gmsl_data)
+        log_posterior_mymodel = MimiBRICK.construct_sneasybrick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=joint_ais_prior, calibration_data_dir=calibration_data_dir, glacier_model=glacier_model, gmsl_data=gmsl_data)
     end
 
     println("Begin baseline calibration of "*model_config*" model.\n")
@@ -201,7 +201,7 @@ function run_calibration(;  output_dir::String,
     calibration_output_dir = joinpath(output_dir, glacpath)
     mkpath(calibration_output_dir)
 
-    calibration_tag = model_config == "brick" ? "_gmsl-$(gmsl_data)" : ""
+    calibration_tag = "_gmsl-$(gmsl_data)"
 
     save(joinpath(calibration_output_dir, "mcmc_log_post_$(model_config)$(calibration_tag).csv"), DataFrame(log_post=log_post))
     save(joinpath(calibration_output_dir, "mcmc_acceptance_rate_$(model_config)$(calibration_tag).csv"), DataFrame(acceptance_rate=accept_rate))

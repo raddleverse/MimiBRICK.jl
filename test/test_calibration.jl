@@ -19,6 +19,7 @@
         @test size(x1[5])[2]==nparameters_brick
         @test all(isa.(Matrix(x1[1]), Number))
         @test !all(diff(x1[1][:,1]) .== 0)
+        @test isfile(joinpath(tmp_dir, "mengel", "parameters_subsample_brick_gmsl-wa.csv"))
 
         # DOECLIM-BRICK calibration
         nparameters_doeclimbrick = 47
@@ -31,6 +32,7 @@
         @test size(x2[5])[2]==nparameters_doeclimbrick
         @test all(isa.(Matrix(x2[1]), Number))
         @test !all(diff(x2[1][:,1]) .== 0)
+        @test isfile(joinpath(tmp_dir, "mengel", "parameters_subsample_doeclimbrick_gmsl-wa.csv"))
 
         # SNEASY-BRICK calibration
         nparameters_sneasybrick = 54
@@ -43,6 +45,7 @@
         @test size(x3[5])[2]==nparameters_sneasybrick
         @test all(isa.(Matrix(x3[1]), Number))
         @test !all(diff(x3[1][:,1]) .== 0)
+        @test isfile(joinpath(tmp_dir, "mengel", "parameters_subsample_sneasybrick_gmsl-wa.csv"))
     end
 end
 
