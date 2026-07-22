@@ -58,6 +58,13 @@ function run_calibration(;  output_dir::String,
                             glacier_model::Symbol = :mengel
                         )
 
+    # check model_config is valid
+    model_config in ("brick", "doeclimbrick", "sneasybrick") ||
+    throw(ArgumentError(
+        "model_config must be \"brick\", \"doeclimbrick\", or " *
+        "\"sneasybrick\"; got \"$model_config\""
+    ))
+
     # set calibration data directory if one was not provided ie. it is set as nothing
     if isnothing(calibration_data_dir)
         calibration_data_dir = joinpath(@__DIR__, "..", "..", "data", "calibration_data")
@@ -181,21 +188,25 @@ function run_calibration(;  output_dir::String,
     # Save calibrated parameter samples
     println("Saving calibrated parameters for "*model_config*".\n")
 
-    if glacier_model==:gsic
+    if glacier_model == :gsic
         glacpath = "wigley-raper-glac"
-    elseif glacier_model==:mengel
+    elseif glacier_model == :mengel
         glacpath = "mengel"
+    else
+        throw(ArgumentError("glacier_model must be :gsic or :mengel; got :$glacier_model"))
     end
+    calibration_output_dir = joinpath(output_dir, glacpath)
+    mkpath(calibration_output_dir)
 
-    save(joinpath(output_dir, glacpath, "mcmc_log_post_$(model_config).csv"), DataFrame(log_post=log_post))
-    save(joinpath(output_dir, glacpath, "mcmc_acceptance_rate_$(model_config).csv"), DataFrame(acceptance_rate=accept_rate))
-    save(joinpath(output_dir, glacpath, "proposal_covariance_matrix_$(model_config).csv"), DataFrame(cov_matrix, :auto))
-    save(joinpath(output_dir, glacpath, "parameters_full_chain_$(model_config).csv"), DataFrame(chain_raw,parnames))
-    save(joinpath(output_dir, glacpath, "parameters_subsample_$(model_config).csv"), DataFrame(final_sample,parnames))
-    save(joinpath(output_dir, glacpath, "log_post_subsample_$(model_config).csv"), DataFrame(log_post=log_post_final_sample))
+    save(joinpath(calibration_output_dir, "mcmc_log_post_$(model_config).csv"), DataFrame(log_post=log_post))
+    save(joinpath(calibration_output_dir, "mcmc_acceptance_rate_$(model_config).csv"), DataFrame(acceptance_rate=accept_rate))
+    save(joinpath(calibration_output_dir, "proposal_covariance_matrix_$(model_config).csv"), DataFrame(cov_matrix, :auto))
+    save(joinpath(calibration_output_dir, "parameters_full_chain_$(model_config).csv"), DataFrame(chain_raw,parnames))
+    save(joinpath(calibration_output_dir, "parameters_subsample_$(model_config).csv"), DataFrame(final_sample,parnames))
+    save(joinpath(calibration_output_dir, "log_post_subsample_$(model_config).csv"), DataFrame(log_post=log_post_final_sample))
 
     # Save initial conditions for future runs
-    path_new_initial_conditions = joinpath(output_dir, glacpath, "calibration_data", "from_calibration_chains")
+    path_new_initial_conditions = joinpath(calibration_output_dir, "calibration_data", "from_calibration_chains")
     mkpath(path_new_initial_conditions)
     filename_new_initial_parameters = "calibration_initial_values_"*model_config*".csv"
     new_initial_parameters = DataFrame(parameter_names = parnames, parameter_values = Vector(chain_burned[size(chain_burned)[1],:]))

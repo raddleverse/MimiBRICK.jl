@@ -44,6 +44,14 @@ function run_projections(; output_dir::String,
     
     ##==============================================================================
     ## Initial set-up
+
+    # check model_config is valid
+    model_config in ("brick", "doeclimbrick", "sneasybrick") ||
+    throw(ArgumentError(
+        "model_config must be \"brick\", \"doeclimbrick\", or " *
+        "\"sneasybrick\"; got \"$model_config\""
+    ))
+
     model_years  = collect(start_year:end_year)
     num_years = length(model_years)
     Random.seed!(2026)
@@ -52,12 +60,15 @@ function run_projections(; output_dir::String,
     ## Read subsample of parameters
 
     if glacier_model==:gsic
-        filename_parameters = joinpath(output_dir, "wigley-raper-glac", "parameters_subsample_$(model_config).csv")
-        filename_logpost    = joinpath(output_dir, "wigley-raper-glac", "log_post_subsample_$(model_config).csv")
+        glacpath = "wigley-raper-glac"
     elseif glacier_model==:mengel
-        filename_parameters = joinpath(output_dir, "mengel", "parameters_subsample_$(model_config).csv")
-        filename_logpost    = joinpath(output_dir, "mengel", "log_post_subsample_$(model_config).csv")
+        glacpath = "mengel"
+    else
+        throw(ArgumentError("glacier_model must be :gsic or :mengel; got :$glacier_model"))
     end
+    
+    filename_parameters = joinpath(output_dir, glacpath, "parameters_subsample_$(model_config).csv")
+    filename_logpost    = joinpath(output_dir, glacpath, "log_post_subsample_$(model_config).csv")
     parameters = DataFrame(load(filename_parameters))
     logpost = DataFrame(load(filename_logpost))[!,:log_post]
     num_ens = size(parameters)[1]
@@ -304,15 +315,10 @@ function run_projections(; output_dir::String,
     ## Save output
 
     # make appropriate directory if needed
-    if glacier_model==:gsic
-        glacpath = "wigley-raper-glac"
-    elseif glacier_model==:mengel
-        glacpath = "mengel"
-    end
     if magicc_sampling
-        filepath_output = joinpath(output_dir, "projections_csv", glacpath, "magicc-$(model_config)", ssprcp_scenario)
+        filepath_output = joinpath(output_dir, glacpath, "projections_csv", "magicc-$(model_config)", ssprcp_scenario)
     else
-        filepath_output = joinpath(output_dir, "projections_csv", glacpath, model_config, ssprcp_scenario)
+        filepath_output = joinpath(output_dir, glacpath, "projections_csv", model_config, ssprcp_scenario)
     end
     mkpath(filepath_output)
 
