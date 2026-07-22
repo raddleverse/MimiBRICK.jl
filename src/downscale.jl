@@ -16,7 +16,8 @@ using StatsBase
                                 results_dir::String, 
                                 ensemble_or_map::String, 
                                 model_config::String, 
-                                ssprcp_scenario::String="ssp245"
+                                ssprcp_scenario::String="ssp245",
+                                glacier_model::Symbol=:mengel,
                             )
                             
 Downscale BRICK projections to a single point, using either the whole ensemble
@@ -31,16 +32,27 @@ Function Arguments:
     - ensemble_or_map = "ensemble" for entire posterior ensemble, or "map" for the maximum a posteriori ensemble member (single simulation)
     - model_config = "brick", "doeclimbrick", or "sneasybrick"
     - ssprcp_scenario (default = "ssp245") - SSP-RCP scenario with possible options: ssp119, ssp126, ssp245, ssp370, ssp460, ssp585, ssp534-over
+    - glacier_model = :mengel (Mengel 2016 version) or :gsic (original Wigley and Raper version)
 """
 function downscale_brick(;lon::Float64, 
                             lat::Float64, 
                             results_dir::String, 
                             ensemble_or_map::String, 
                             model_config::String, 
-                            ssprcp_scenario::String="ssp245"
+                            ssprcp_scenario::String="ssp245",
+                            glacier_model::Symbol=:mengel,
                         )
 
-    slr_dir = joinpath(results_dir, "projections_csv", model_config, ssprcp_scenario)
+    # set glacier model path
+    if glacier_model==:gsic
+        glacpath = "wigley-raper-glac"
+    elseif glacier_model==:mengel
+        glacpath = "mengel"
+    else
+        throw(ArgumentError("glacier_model must be :gsic or :mengel; got :$glacier_model"))
+    end
+
+    slr_dir = joinpath(results_dir, glacpath, "projections_csv", model_config, ssprcp_scenario)
     MAP = DataFrame(load(joinpath(slr_dir,"projections_MAP_$(ssprcp_scenario)_$(model_config).csv")))
     years = MAP[:,:YEAR]
     if ensemble_or_map=="ensemble"

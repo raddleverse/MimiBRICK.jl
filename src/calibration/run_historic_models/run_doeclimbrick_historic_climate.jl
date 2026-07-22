@@ -5,15 +5,15 @@ using Mimi
 #-------------------------------------------------------------------------------
 
 """
-    construct_run_doeclimbrick(calibration_start_year::Int, calibration_end_year::Int)
+    construct_run_doeclimbrick(calibration_start_year::Int, calibration_end_year::Int, glacier_model::Symbol)
 
 Create a function to run the DOECLIM+BRICK model over the historic period.
 """
-function construct_run_doeclimbrick(calibration_start_year::Int, calibration_end_year::Int)
+function construct_run_doeclimbrick(calibration_start_year::Int, calibration_end_year::Int; glacier_model::Symbol=:mengel)
 
     # Load an instance of DOECLIM+BRICK model.
     # WARNING: for general use, use `m = create_brick_doeclim!(...[arguments here]...)`  instead
-    m = Mimi.build(create_brick_doeclim(ssprcp_scenario="ssp245", start_year=calibration_start_year, end_year=calibration_end_year))
+    m = Mimi.build(create_brick_doeclim(ssprcp_scenario="ssp245", start_year=calibration_start_year, end_year=calibration_end_year, glacier_model=glacier_model))
 
     # Get indices needed to normalize temperature anomalies relative to 1861-1880 mean (DOECLIM+BRICK starts in 1850 by default).
     temperature_norm_indices = findall((in)(1861:1880), 1850:calibration_end_year)
@@ -35,38 +35,76 @@ function construct_run_doeclimbrick(calibration_start_year::Int, calibration_end
 
         # Assign names to uncertain model and initial condition parameters for convenience.
         # Note: This assumes "param" is the full vector of uncertain parameters with the same ordering as in "create_log_posterior_doeclim_brick.jl".
-        temperature_0            = param[13]
-        ocean_heat_0             = param[14]
-        thermal_s₀               = param[15]
-        greenland_v₀             = param[16]
-        glaciers_v₀              = param[17]
-        glaciers_s₀              = param[18]
-        antarctic_s₀             = param[19]
-        heat_diffusivity         = param[20]
-        rf_scale_aerosol         = param[21]
-        ECS                      = param[22]
-        thermal_α                = param[23]
-        greenland_a              = param[24]
-        greenland_b              = param[25]
-        greenland_α              = param[26]
-        greenland_β              = param[27]
-        glaciers_β₀              = param[28]
-        glaciers_n               = param[29]
-        anto_α                   = param[30]
-        anto_β                   = param[31]
-        antarctic_γ              = param[32]
-        antarctic_α              = param[33]
-        antarctic_μ              = param[34]
-        antarctic_ν              = param[35]
-        antarctic_precip₀        = param[36]
-        antarctic_κ              = param[37]
-        antarctic_flow₀          = param[38]
-        antarctic_runoff_height₀ = param[39]
-        antarctic_c              = param[40]
-        antarctic_bedheight₀     = param[41]
-        antarctic_slope          = param[42]
-        antarctic_λ              = param[43]
-        antarctic_temp_threshold = param[44]
+        if glacier_model==:gsic
+            temperature_0            = param[13]
+            ocean_heat_0             = param[14]
+            thermal_s₀               = param[15]
+            greenland_v₀             = param[16]
+            glaciers_v₀              = param[17]
+            glaciers_s₀              = param[18]
+            antarctic_s₀             = param[19]
+            heat_diffusivity         = param[20]
+            rf_scale_aerosol         = param[21]
+            ECS                      = param[22]
+            thermal_α                = param[23]
+            greenland_a              = param[24]
+            greenland_b              = param[25]
+            greenland_α              = param[26]
+            greenland_β              = param[27]
+            glaciers_β₀              = param[28]
+            glaciers_n               = param[29]
+            anto_α                   = param[30]
+            anto_β                   = param[31]
+            antarctic_γ              = param[32]
+            antarctic_α              = param[33]
+            antarctic_μ              = param[34]
+            antarctic_ν              = param[35]
+            antarctic_precip₀        = param[36]
+            antarctic_κ              = param[37]
+            antarctic_flow₀          = param[38]
+            antarctic_runoff_height₀ = param[39]
+            antarctic_c              = param[40]
+            antarctic_bedheight₀     = param[41]
+            antarctic_slope          = param[42]
+            antarctic_λ              = param[43]
+            antarctic_temp_threshold = param[44]
+        elseif glacier_model==:mengel
+            temperature_0            = param[13]
+            ocean_heat_0             = param[14]
+            thermal_s₀               = param[15]
+            greenland_v₀             = param[16]
+            glaciers_sl0             = param[17]
+            antarctic_s₀             = param[18]
+            heat_diffusivity         = param[19]
+            rf_scale_aerosol         = param[20]
+            ECS                      = param[21]
+            thermal_α                = param[22]
+            greenland_a              = param[23]
+            greenland_b              = param[24]
+            greenland_α              = param[25]
+            greenland_β              = param[26]
+            glaciers_a               = param[27] # update
+            glaciers_b               = param[28]
+            glaciers_T_lia           = param[29]
+            glaciers_f               = param[30]
+            glaciers_tau_fast        = param[31]
+            glaciers_tau_slow        = param[32]
+            anto_α                   = param[33]
+            anto_β                   = param[34]
+            antarctic_γ              = param[35]
+            antarctic_α              = param[36]
+            antarctic_μ              = param[37]
+            antarctic_ν              = param[38]
+            antarctic_precip₀        = param[39]
+            antarctic_κ              = param[40]
+            antarctic_flow₀          = param[41]
+            antarctic_runoff_height₀ = param[42]
+            antarctic_c              = param[43]
+            antarctic_bedheight₀     = param[44]
+            antarctic_slope          = param[45]
+            antarctic_λ              = param[46]
+            antarctic_temp_threshold = param[47]
+        end
 
         #----------------------------------------------------------
         # Set DOECLIM+BRICK to use sampled parameter values.
@@ -100,10 +138,20 @@ function construct_run_doeclimbrick(calibration_start_year::Int, calibration_end
         update_param!(m, :antarctic_icesheet, :λ,                          antarctic_λ)
 
         # ----- Glaciers & Small Ice Caps ----- #
-        update_param!(m, :glaciers_small_icecaps, :gsic_β₀, glaciers_β₀)
-        update_param!(m, :glaciers_small_icecaps, :gsic_v₀, glaciers_v₀)
-        update_param!(m, :glaciers_small_icecaps, :gsic_s₀, glaciers_s₀)
-        update_param!(m, :glaciers_small_icecaps, :gsic_n,  glaciers_n)
+        if glacier_model==:gsic
+            update_param!(m, :glaciers_small_icecaps, :gsic_β₀, glaciers_β₀)
+            update_param!(m, :glaciers_small_icecaps, :gsic_v₀, glaciers_v₀)
+            update_param!(m, :glaciers_small_icecaps, :gsic_s₀, glaciers_s₀)
+            update_param!(m, :glaciers_small_icecaps, :gsic_n,  glaciers_n)
+        elseif glacier_model==:mengel
+            update_param!(m, :glaciers_small_icecaps, :gic_a, glaciers_a)
+            update_param!(m, :glaciers_small_icecaps, :gic_b, glaciers_b)
+            update_param!(m, :glaciers_small_icecaps, :gic_T_lia, glaciers_T_lia)
+            update_param!(m, :glaciers_small_icecaps, :gic_f, glaciers_f)
+            update_param!(m, :glaciers_small_icecaps, :gic_tau_fast, glaciers_tau_fast)
+            update_param!(m, :glaciers_small_icecaps, :gic_tau_slow, glaciers_tau_slow)
+            update_param!(m, :glaciers_small_icecaps, :gic_sl0, glaciers_sl0)
+        end
 
         # ----- Greenland Ice Sheet ----- #
         update_param!(m, :greenland_icesheet, :greenland_a,  greenland_a)
@@ -141,7 +189,7 @@ function construct_run_doeclimbrick(calibration_start_year::Int, calibration_end
         # Sea level contribution from thermal expansion (calibrating to observed trends, so do not need to normalize).
         modeled_thermal_expansion[:] = m[:thermal_expansion, :te_sea_level]
 
-		# Global mean sea level rise (normalize realtive to 1961-1990 mean).
+		# Global mean sea level rise (normalize relative to 1961-1990 mean).
 		modeled_gmsl[:] = m[:global_sea_level, :sea_level_rise] .- mean(m[:global_sea_level, :sea_level_rise][sealevel_norm_indices_1961_1990])
 
         # Return results.

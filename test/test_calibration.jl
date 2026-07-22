@@ -9,7 +9,7 @@
         threshold_gr           = 1.1
 
         # BRICK calibration
-        nparameters_brick = 35
+        nparameters_brick = 38
         x1 = MimiBRICK.run_calibration(output_dir=tmp_dir, model_config="brick", calibration_start_year=1850, calibration_end_year=2017,
                             total_chain_length=total_chain_length, burnin_length=0, check_gr=false,
                             size_subsample=size_subsample, start_from_priors=false)
@@ -21,7 +21,7 @@
         @test !all(diff(x1[1][:,1]) .== 0)
 
         # DOECLIM-BRICK calibration
-        nparameters_doeclimbrick = 44
+        nparameters_doeclimbrick = 47
         x2 = MimiBRICK.run_calibration(output_dir=tmp_dir, model_config="doeclimbrick", calibration_start_year=1850, calibration_end_year=2017,
                             total_chain_length=total_chain_length, burnin_length=0, check_gr=false,
                             size_subsample=size_subsample, start_from_priors=false)
@@ -33,7 +33,7 @@
         @test !all(diff(x2[1][:,1]) .== 0)
 
         # SNEASY-BRICK calibration
-        nparameters_sneasybrick = 51
+        nparameters_sneasybrick = 54
         x3 = MimiBRICK.run_calibration(output_dir=tmp_dir, model_config="sneasybrick", calibration_start_year=1850, calibration_end_year=2017,
                             total_chain_length=total_chain_length, burnin_length=0, check_gr=false,
                             size_subsample=size_subsample, start_from_priors=false)

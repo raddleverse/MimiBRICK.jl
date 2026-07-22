@@ -35,8 +35,9 @@ Function Arguments:
                         valid values: RCP26, RCP45, RCP60, RCP85, ssp119, ssp126, ssp245, ssp370, ssp460, ssp585, ssp534-over
       start_year      = initial year of the simulation period
       end_year        = ending year of the simulation period
+      glacier_model   = glaciers and ice caps model (:gsic or :mengel)
 """
-function get_model(;ssprcp_scenario::String="ssp245", start_year::Int=1850, end_year::Int=2020, glacier_model::Symbol = :gsic)
+function get_model(;ssprcp_scenario::String="ssp245", start_year::Int=1850, end_year::Int=2020, glacier_model::Symbol=:mengel)
 
     glacier_model in (:gsic, :mengel) || error("get_model: glacier_model must be :gsic or :mengel (got :$glacier_model)")
 
