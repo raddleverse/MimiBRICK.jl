@@ -14,7 +14,7 @@ output_dir = joinpath(@__DIR__, "results")
 mkpath(output_dir)
 
 calibration_start_year = 1850
-calibration_end_year   = 2017
+calibration_end_year   = 2020
 total_chain_length     = 15_000_000
 burnin_length          = 5_000_000
 num_walkers            = 2
@@ -25,16 +25,16 @@ threshold_gr           = 1.1
 x = MimiBRICK.run_calibration(output_dir = output_dir, model_config="brick", calibration_start_year=calibration_start_year,
                     calibration_end_year=calibration_end_year, total_chain_length=total_chain_length,
                     burnin_length=burnin_length, threshold_gr=threshold_gr, num_walkers=num_walkers,
-                    size_subsample=size_subsample, start_from_priors=false, joint_ais_prior=false, check_gr=true, glacier_model=:mengel)
+                    size_subsample=size_subsample, start_from_priors=false, joint_ais_prior=false, check_gr=true, glacier_model=:mengel, gmsl_data=:wa)
 
 # DOECLIM-BRICK calibration
 x = MimiBRICK.run_calibration(output_dir = output_dir, model_config="doeclimbrick", calibration_start_year=calibration_start_year,
                     calibration_end_year=calibration_end_year, total_chain_length=total_chain_length,
                     burnin_length=burnin_length, threshold_gr=threshold_gr, num_walkers=num_walkers,
-                    size_subsample=size_subsample, start_from_priors=false, joint_ais_prior=false, check_gr=true, glacier_model=:mengel)
+                    size_subsample=size_subsample, start_from_priors=false, joint_ais_prior=false, check_gr=true, glacier_model=:mengel, gmsl_data=:wa)
 
 # SNEASY-BRICK calibration
 x = MimiBRICK.run_calibration(output_dir = output_dir, model_config="sneasybrick", calibration_start_year=calibration_start_year,
                     calibration_end_year=calibration_end_year, total_chain_length=total_chain_length,
                     burnin_length=burnin_length, threshold_gr=threshold_gr, num_walkers=num_walkers,
-                    size_subsample=size_subsample, start_from_priors=false, joint_ais_prior=false, check_gr=true, glacier_model=:mengel)
+                    size_subsample=size_subsample, start_from_priors=false, joint_ais_prior=false, check_gr=true, glacier_model=:mengel, gmsl_data=:wa)
