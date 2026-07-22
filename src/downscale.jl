@@ -18,6 +18,7 @@ using StatsBase
                                 model_config::String, 
                                 ssprcp_scenario::String="ssp245",
                                 glacier_model::Symbol=:mengel,
+                                gmsl_data::Symbol=:wa,
                             )
                             
 Downscale BRICK projections to a single point, using either the whole ensemble
@@ -33,6 +34,7 @@ Function Arguments:
     - model_config = "brick", "doeclimbrick", or "sneasybrick"
     - ssprcp_scenario (default = "ssp245") - SSP-RCP scenario with possible options: ssp119, ssp126, ssp245, ssp370, ssp460, ssp585, ssp534-over
     - glacier_model = :mengel (Mengel 2016 version) or :gsic (original Wigley and Raper version)
+    - gmsl_data = :wa (Wang et al. 2024) or :cw (Church & White 2011); currently used for BRICK calibrations
 """
 function downscale_brick(;lon::Float64, 
                             lat::Float64, 
@@ -41,6 +43,7 @@ function downscale_brick(;lon::Float64,
                             model_config::String, 
                             ssprcp_scenario::String="ssp245",
                             glacier_model::Symbol=:mengel,
+                            gmsl_data::Symbol=:wa,
                         )
 
     # set glacier model path
@@ -51,16 +54,18 @@ function downscale_brick(;lon::Float64,
     else
         throw(ArgumentError("glacier_model must be :gsic or :mengel; got :$glacier_model"))
     end
+    gmsl_data in (:wa, :cw) || throw(ArgumentError("gmsl_data must be :wa or :cw; got :$gmsl_data"))
 
     slr_dir = joinpath(results_dir, glacpath, "projections_csv", model_config, ssprcp_scenario)
-    MAP = DataFrame(load(joinpath(slr_dir,"projections_MAP_$(ssprcp_scenario)_$(model_config).csv")))
+    calibration_tag = model_config == "brick" ? "_gmsl-$(gmsl_data)" : ""
+    MAP = DataFrame(load(joinpath(slr_dir,"projections_MAP_$(ssprcp_scenario)_$(model_config)$(calibration_tag).csv")))
     years = MAP[:,:YEAR]
     if ensemble_or_map=="ensemble"
-        AIS = CSV.read(joinpath(slr_dir,"projections_antarctic_$(ssprcp_scenario)_$(model_config).csv"), DataFrame)
-        GIS = CSV.read(joinpath(slr_dir,"projections_greenland_$(ssprcp_scenario)_$(model_config).csv"), DataFrame)
-        GSIC = CSV.read(joinpath(slr_dir,"projections_glaciers_$(ssprcp_scenario)_$(model_config).csv"), DataFrame)
-        TE = CSV.read(joinpath(slr_dir,"projections_thermal_$(ssprcp_scenario)_$(model_config).csv"), DataFrame)
-        LWS = CSV.read(joinpath(slr_dir,"projections_landwater_storage_sl_$(ssprcp_scenario)_$(model_config).csv"), DataFrame)
+        AIS = CSV.read(joinpath(slr_dir,"projections_antarctic_$(ssprcp_scenario)_$(model_config)$(calibration_tag).csv"), DataFrame)
+        GIS = CSV.read(joinpath(slr_dir,"projections_greenland_$(ssprcp_scenario)_$(model_config)$(calibration_tag).csv"), DataFrame)
+        GSIC = CSV.read(joinpath(slr_dir,"projections_glaciers_$(ssprcp_scenario)_$(model_config)$(calibration_tag).csv"), DataFrame)
+        TE = CSV.read(joinpath(slr_dir,"projections_thermal_$(ssprcp_scenario)_$(model_config)$(calibration_tag).csv"), DataFrame)
+        LWS = CSV.read(joinpath(slr_dir,"projections_landwater_storage_sl_$(ssprcp_scenario)_$(model_config)$(calibration_tag).csv"), DataFrame)
         num_ens = size(AIS)[2]
     elseif ensemble_or_map=="map"
         AIS = MAP[:,:AIS]
@@ -166,7 +171,7 @@ function downscale_brick(;lon::Float64,
 
     lat_rounded = round(lat, digits=2)
     lon_rounded = round(lon, digits=2)
-    filename_output = joinpath(filepath_output,"projections_lsl-lat$(lat_rounded)-lon$(lon_rounded)_$(model_config).csv")
+    filename_output = joinpath(filepath_output,"projections_lsl-lat$(lat_rounded)-lon$(lon_rounded)_$(model_config)$(calibration_tag).csv")
     CSV.write(filename_output, DataFrame(outputs, :auto))
 
     return years, lsl_out

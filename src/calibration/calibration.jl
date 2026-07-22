@@ -32,7 +32,8 @@ using StatsBase
                         start_from_priors=false,
                         joint_ais_prior=false,
                         calibration_data_dir::Union{String, Nothing} = nothing,
-                        glacier_model::Symbol=:mengel
+                        glacier_model::Symbol=:mengel,
+                        gmsl_data::Symbol=:wa
                     )
                     
 This function carries out a Markov chain Monte Carlo calibration of BRICK.
@@ -55,15 +56,17 @@ function run_calibration(;  output_dir::String,
                             start_from_priors=false,
                             joint_ais_prior=false,
                             calibration_data_dir::Union{String, Nothing} = nothing,
-                            glacier_model::Symbol = :mengel
+                            glacier_model::Symbol = :mengel,
+                            gmsl_data::Symbol = :wa
                         )
 
-    # check model_config is valid
+    # check model_config and gmsl_data are valid
     model_config in ("brick", "doeclimbrick", "sneasybrick") ||
     throw(ArgumentError(
         "model_config must be \"brick\", \"doeclimbrick\", or " *
         "\"sneasybrick\"; got \"$model_config\""
     ))
+    gmsl_data in (:wa, :cw) || throw(ArgumentError("gmsl_data must be :wa or :cw; got :$gmsl_data"))
 
     # set calibration data directory if one was not provided ie. it is set as nothing
     if isnothing(calibration_data_dir)
@@ -127,13 +130,13 @@ function run_calibration(;  output_dir::String,
     # @eval and Symbols so this can be run as a function instead of a script.
     if model_config=="brick"
         run_mymodel! = MimiBRICK.construct_run_brick(calibration_start_year, calibration_end_year, glacier_model=glacier_model)
-        log_posterior_mymodel = MimiBRICK.construct_brick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=joint_ais_prior, glacier_model=glacier_model)
+        log_posterior_mymodel = MimiBRICK.construct_brick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=joint_ais_prior, glacier_model=glacier_model, gmsl_data=gmsl_data)
     elseif model_config=="doeclimbrick"
         run_mymodel! = MimiBRICK.construct_run_doeclimbrick(calibration_start_year, calibration_end_year, glacier_model=glacier_model)
-        log_posterior_mymodel = MimiBRICK.construct_doeclimbrick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=joint_ais_prior, glacier_model=glacier_model)
+        log_posterior_mymodel = MimiBRICK.construct_doeclimbrick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=joint_ais_prior, glacier_model=glacier_model, gmsl_data=gmsl_data)
     elseif model_config=="sneasybrick"
         run_mymodel! = MimiBRICK.construct_run_sneasybrick(calibration_start_year, calibration_end_year, glacier_model=glacier_model)
-        log_posterior_mymodel = MimiBRICK.construct_sneasybrick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=joint_ais_prior, glacier_model=glacier_model)
+        log_posterior_mymodel = MimiBRICK.construct_sneasybrick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=joint_ais_prior, glacier_model=glacier_model, gmsl_data=gmsl_data)
     end
 
     println("Begin baseline calibration of "*model_config*" model.\n")
@@ -198,20 +201,22 @@ function run_calibration(;  output_dir::String,
     calibration_output_dir = joinpath(output_dir, glacpath)
     mkpath(calibration_output_dir)
 
-    save(joinpath(calibration_output_dir, "mcmc_log_post_$(model_config).csv"), DataFrame(log_post=log_post))
-    save(joinpath(calibration_output_dir, "mcmc_acceptance_rate_$(model_config).csv"), DataFrame(acceptance_rate=accept_rate))
-    save(joinpath(calibration_output_dir, "proposal_covariance_matrix_$(model_config).csv"), DataFrame(cov_matrix, :auto))
-    save(joinpath(calibration_output_dir, "parameters_full_chain_$(model_config).csv"), DataFrame(chain_raw,parnames))
-    save(joinpath(calibration_output_dir, "parameters_subsample_$(model_config).csv"), DataFrame(final_sample,parnames))
-    save(joinpath(calibration_output_dir, "log_post_subsample_$(model_config).csv"), DataFrame(log_post=log_post_final_sample))
+    calibration_tag = model_config == "brick" ? "_gmsl-$(gmsl_data)" : ""
+
+    save(joinpath(calibration_output_dir, "mcmc_log_post_$(model_config)$(calibration_tag).csv"), DataFrame(log_post=log_post))
+    save(joinpath(calibration_output_dir, "mcmc_acceptance_rate_$(model_config)$(calibration_tag).csv"), DataFrame(acceptance_rate=accept_rate))
+    save(joinpath(calibration_output_dir, "proposal_covariance_matrix_$(model_config)$(calibration_tag).csv"), DataFrame(cov_matrix, :auto))
+    save(joinpath(calibration_output_dir, "parameters_full_chain_$(model_config)$(calibration_tag).csv"), DataFrame(chain_raw,parnames))
+    save(joinpath(calibration_output_dir, "parameters_subsample_$(model_config)$(calibration_tag).csv"), DataFrame(final_sample,parnames))
+    save(joinpath(calibration_output_dir, "log_post_subsample_$(model_config)$(calibration_tag).csv"), DataFrame(log_post=log_post_final_sample))
 
     # Save initial conditions for future runs
     path_new_initial_conditions = joinpath(calibration_output_dir, "calibration_data", "from_calibration_chains")
     mkpath(path_new_initial_conditions)
-    filename_new_initial_parameters = "calibration_initial_values_"*model_config*".csv"
+    filename_new_initial_parameters = "calibration_initial_values_$(model_config)$(calibration_tag).csv"
     new_initial_parameters = DataFrame(parameter_names = parnames, parameter_values = Vector(chain_burned[size(chain_burned)[1],:]))
     save(joinpath(path_new_initial_conditions, filename_new_initial_parameters), new_initial_parameters)
-    filename_new_initial_covariance = "initial_proposal_covariance_matrix_"*model_config*".csv"
+    filename_new_initial_covariance = "initial_proposal_covariance_matrix_$(model_config)$(calibration_tag).csv"
     save(joinpath(path_new_initial_conditions, filename_new_initial_covariance), DataFrame(cov_matrix, :auto))
 
     return (DataFrame(chain_raw,parnames), accept_rate, cov_matrix, log_post, DataFrame(final_sample,parnames), log_post_final_sample)

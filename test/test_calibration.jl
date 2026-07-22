@@ -45,3 +45,23 @@
         @test !all(diff(x3[1][:,1]) .== 0)
     end
 end
+
+@testitem "GMSL calibration data options" begin
+    using Statistics
+
+    wang_data, _, _ = MimiBRICK.load_calibration_data(1900, 2019, gmsl_data=:wa)
+    church_white_data, _, _ = MimiBRICK.load_calibration_data(1900, 2019, gmsl_data=:cw)
+    wang_source_file = joinpath(dirname(pathof(MimiBRICK)), "..", "data", "calibration_data", "GMSL_yr.txt")
+
+    wang_indices = findall(x -> !ismissing(x), wang_data.gmsl_obs)
+    church_white_indices = findall(x -> !ismissing(x), church_white_data.gmsl_obs)
+
+    @test wang_data.year[wang_indices] == collect(1900:2019)
+    @test isfile(wang_source_file)
+    @test church_white_data.year[church_white_indices[end]] == 2013
+    norm_years = in.(wang_data.year, Ref(1961:1990))
+    @test isapprox(mean(skipmissing(wang_data[norm_years, :gmsl_obs])), 0.0; atol=1e-12)
+    @test isapprox(wang_data[wang_data.year .== 2019, :gmsl_sigma][1], 0.00965; atol=1e-12)
+    @test wang_data[wang_data.year .== 1900, :gmsl_obs][1] != church_white_data[church_white_data.year .== 1900, :gmsl_obs][1]
+    @test_throws ArgumentError MimiBRICK.load_calibration_data(1900, 2019, gmsl_data=:invalid)
+end
