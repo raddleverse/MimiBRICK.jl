@@ -72,7 +72,6 @@ function run_projections(; output_dir::String,
     parameters = DataFrame(load(filename_parameters))
     logpost = DataFrame(load(filename_logpost))[!,:log_post]
     num_ens = size(parameters)[1]
-    num_par = size(parameters)[2]
     parnames = names(parameters)
     
     # read MAGICC forcing data
@@ -86,7 +85,7 @@ function run_projections(; output_dir::String,
         magicc_years = [parse(Int,(nom[1:4])) for nom in names(df_magicc_temp)[8:end]]
         
         # TODO: need to add functionality for if magicc_resample=true
-        # --> get a sample of BRICK parameters of smae size as the MAGICC data set
+        # --> get a sample of BRICK parameters of same size as the MAGICC data set
         #     this can also be larger, and just resample the MAGICC data
         if ~magicc_resample
             num_ens = min(num_ens, num_magicc)
