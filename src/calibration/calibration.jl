@@ -73,8 +73,6 @@ function run_calibration(;  output_dir::String,
         calibration_data_dir = joinpath(@__DIR__, "..", "..", "data", "calibration_data")
     end   
 
-    # File name and path to obtain the parameter names (*in order*)
-    path_parameter_info = joinpath(calibration_data_dir, "calibration_initial_values_"*model_config*".csv")
     # If you want to read from a previous run, set these two file names/paths.
     # NOTE that if `start_from_priors = true`, these will NOT be used, even if they are set appropriately.
     # Also, the `path_initial_parameters` does not need to be distinct from the `path_parameter_info`.
@@ -82,15 +80,31 @@ function run_calibration(;  output_dir::String,
     # the 04Jun2026 file versions are based on updated priors and a long initial chain
     if ~start_from_priors
         if glacier_model==:mengel
-            path_initial_parameters = joinpath(calibration_data_dir, "calibration_initial_values_"*model_config*"_mm.csv")
-            path_initial_covariance = joinpath(calibration_data_dir, "initial_proposal_covariance_matrix_"*model_config*"_mm.csv")
-            # override until mengel component becomes standard
-            path_parameter_info = path_initial_parameters
+            glac_tag = "mengel"
+            if gmsl_data==:wa
+                gmsl_tag = "gmsl-wa"
+                path_initial_parameters = joinpath(calibration_data_dir, glac_tag, "calibration_initial_values_"*model_config*"_"*gmsl_tag*"_1.csv")
+                path_initial_covariance = joinpath(calibration_data_dir, glac_tag, "initial_proposal_covariance_matrix_"*model_config*"_"*gmsl_tag*"_1.csv")
+            else
+                gmsl_tag = "gmsl-cw"
+                path_initial_parameters = joinpath(calibration_data_dir, glac_tag, "calibration_initial_values_"*model_config*"_mm.csv")
+                path_initial_covariance = joinpath(calibration_data_dir, glac_tag, "initial_proposal_covariance_matrix_"*model_config*"_mm.csv")
+            end
         else
-            path_initial_parameters = joinpath(calibration_data_dir, "calibration_initial_values_"*model_config*"_04Jun2026.csv")
-            path_initial_covariance = joinpath(calibration_data_dir, "initial_proposal_covariance_matrix_"*model_config*"_04Jun2026.csv")
+            glac_tag = "wigley-raper"
+            if gmsl_data==:wa
+                gmsl_tag = "gmsl-wa"
+                path_initial_parameters = joinpath(calibration_data_dir, glac_tag, "calibration_initial_values_"*model_config*"_gmsl-wa_1.csv")
+                path_initial_covariance = joinpath(calibration_data_dir, glac_tag, "initial_proposal_covariance_matrix_"*model_config*"_gmsl-wa_1.csv")
+            else
+                gmsl_tag = "gmsl-cw"
+                path_initial_parameters = joinpath(calibration_data_dir, glac_tag, "calibration_initial_values_"*model_config*"_04Jun2026.csv")
+                path_initial_covariance = joinpath(calibration_data_dir, glac_tag, "initial_proposal_covariance_matrix_"*model_config*"_04Jun2026.csv")
+            end
         end
     end
+    # File name and path to obtain the parameter names (*in order*)
+    path_parameter_info = path_initial_parameters
 
     ##------------------------------------------------------------------------------
     ## Initial set up
@@ -164,13 +178,15 @@ function run_calibration(;  output_dir::String,
         psrf = gelmandiag_multivariate(chains3).psrf
     
         # Check if psrf < threshold_gr for each parameters
-        if all(x -> x < threshold_gr, psrf)
-            println("All parameter chains have Gelman and Rubin PSRF < ",threshold_gr)
+        if all(psrf .<= threshold_gr)
+            println("All parameter chains have Gelman and Rubin PSRF <= ", threshold_gr)
         else
-            println("WARNING: some parameter chains have Gelman and Rubin PSRF > ",threshold_gr)
-            println("You may want to check other convergence diagnostics.")
-            for p in 1:num_parameters
-                println(parnames[p],"  ",round(psrf[p],digits=4))
+            println("WARNING: some parameter chains have Gelman and Rubin PSRF > ", threshold_gr)
+            println("Parameter number, name, and PSRF:")
+            for p in eachindex(psrf)
+                if psrf[p] > threshold_gr
+                    println(p, "  ", parnames[p], "  ", round(psrf[p], digits=4))
+                end
             end
         end
     end
