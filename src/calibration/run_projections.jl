@@ -13,7 +13,8 @@ using Random
                         end_year = 2300,
                         magicc_sampling = false,
                         magicc_resample = false,
-                        glacier_model::Symbol = :mengel
+                        glacier_model::Symbol = :mengel,
+                        gmsl_data::Symbol = :wa
                     )
 
 Function to run BRICK (standalone, or with DOECLIM or SNEASY) over the projections
@@ -31,6 +32,7 @@ Function Arguments:
                                           false: run 1 BRICK simulation for each MAGICC ensemble member
                                           NB: currently only false works
     - glacier_model         = :mengel (Mengel 2016 version) or :gsic (original Wigley and Raper version)
+    - gmsl_data             = :wa (Wang et al. 2024) or :cw (Church & White 2011)
 """
 function run_projections(; output_dir::String,
                         model_config::String = "brick",
@@ -40,6 +42,7 @@ function run_projections(; output_dir::String,
                         magicc_sampling = false,
                         magicc_resample = false,
                         glacier_model::Symbol = :mengel,
+                        gmsl_data::Symbol = :wa,
                     )
     
     ##==============================================================================
@@ -51,6 +54,7 @@ function run_projections(; output_dir::String,
         "model_config must be \"brick\", \"doeclimbrick\", or " *
         "\"sneasybrick\"; got \"$model_config\""
     ))
+    gmsl_data in (:wa, :cw) || throw(ArgumentError("gmsl_data must be :wa or :cw; got :$gmsl_data"))
 
     model_years = collect(start_year:end_year)
     num_years = length(model_years)
@@ -67,8 +71,9 @@ function run_projections(; output_dir::String,
         throw(ArgumentError("glacier_model must be :gsic or :mengel; got :$glacier_model"))
     end
     
-    filename_parameters = joinpath(output_dir, glacpath, "parameters_subsample_$(model_config).csv")
-    filename_logpost    = joinpath(output_dir, glacpath, "log_post_subsample_$(model_config).csv")
+    calibration_tag = "_gmsl-$(gmsl_data)"
+    filename_parameters = joinpath(output_dir, glacpath, "parameters_subsample_$(model_config)$(calibration_tag).csv")
+    filename_logpost    = joinpath(output_dir, glacpath, "log_post_subsample_$(model_config)$(calibration_tag).csv")
     parameters = DataFrame(load(filename_parameters))
     logpost = DataFrame(load(filename_logpost))[!,:log_post]
     num_ens = size(parameters)[1]
@@ -109,7 +114,11 @@ function run_projections(; output_dir::String,
     end
 
     # Load calibration data from 1765-2017 (measurement errors used in simulated noise).
-    calibration_data, obs_antarctic_trends, obs_thermal_trends = load_calibration_data(start_year, 2017)
+    calibration_data, obs_antarctic_trends, obs_thermal_trends = load_calibration_data(
+        start_year,
+        2017,
+        gmsl_data=gmsl_data,
+    )
 
     # Initialize arrays to save the model components
 
@@ -324,9 +333,9 @@ function run_projections(; output_dir::String,
     # Transposing so each column is a different ensemble member, and each row is a different year
     function write_output_table(field_name, rcp, field_array, output_path, magicc_sampling)
         if magicc_sampling
-            filename_output = joinpath(output_path,"projections_$(field_name)_$(rcp)_magicc-$(model_config).csv")
+            filename_output = joinpath(output_path,"projections_$(field_name)_$(rcp)_magicc-$(model_config)$(calibration_tag).csv")
         else
-            filename_output = joinpath(output_path,"projections_$(field_name)_$(rcp)_$(model_config).csv")
+            filename_output = joinpath(output_path,"projections_$(field_name)_$(rcp)_$(model_config)$(calibration_tag).csv")
         end
         CSV.write(filename_output, DataFrame(field_array', :auto))
     end
@@ -375,9 +384,9 @@ function run_projections(; output_dir::String,
     end
     df_map_outputs = DataFrame(map_outputs', colnames_out)
     if magicc_sampling
-        filename_map_outputs = joinpath(filepath_output,"projections_MAP_$(ssprcp_scenario)_magicc-$(model_config).csv")
+        filename_map_outputs = joinpath(filepath_output,"projections_MAP_$(ssprcp_scenario)_magicc-$(model_config)$(calibration_tag).csv")
     else
-        filename_map_outputs = joinpath(filepath_output,"projections_MAP_$(ssprcp_scenario)_$(model_config).csv")
+        filename_map_outputs = joinpath(filepath_output,"projections_MAP_$(ssprcp_scenario)_$(model_config)$(calibration_tag).csv")
     end
     CSV.write(filename_map_outputs, df_map_outputs)
 end
