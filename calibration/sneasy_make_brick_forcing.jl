@@ -9,10 +9,12 @@ using Dates
 
 dir_sneasybrick = joinpath(@__DIR__, "results", "projections_csv", "sneasybrick")
 gmsl_data = :wa
+glacier_data = :dm
 
 for scenario in ["ssp119","ssp126","ssp245","ssp370","ssp460","ssp585","ssp534-over"]
 
-    filename_sneasy_map = joinpath(dir_sneasybrick,scenario,"projections_MAP_$(scenario)_sneasybrick_gmsl-$(gmsl_data).csv")
+    calibration_tag = "_gmsl-$(gmsl_data)_glac-$(glacier_data)"
+    filename_sneasy_map = joinpath(dir_sneasybrick,scenario,"projections_MAP_$(scenario)_sneasybrick$(calibration_tag).csv")
     map_projections = DataFrame(load(filename_sneasy_map))
 
     ## Get temperature and ocean heat

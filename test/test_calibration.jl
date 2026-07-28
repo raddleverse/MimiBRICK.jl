@@ -19,7 +19,7 @@
         @test size(x1[5])[2]==nparameters_brick
         @test all(isa.(Matrix(x1[1]), Number))
         @test !all(diff(x1[1][:,1]) .== 0)
-        @test isfile(joinpath(tmp_dir, "mengel", "parameters_subsample_brick_gmsl-wa.csv"))
+        @test isfile(joinpath(tmp_dir, "mengel", "parameters_subsample_brick_gmsl-wa_glac-dm.csv"))
 
         # DOECLIM-BRICK calibration
         nparameters_doeclimbrick = 47
@@ -32,7 +32,7 @@
         @test size(x2[5])[2]==nparameters_doeclimbrick
         @test all(isa.(Matrix(x2[1]), Number))
         @test !all(diff(x2[1][:,1]) .== 0)
-        @test isfile(joinpath(tmp_dir, "mengel", "parameters_subsample_doeclimbrick_gmsl-wa.csv"))
+        @test isfile(joinpath(tmp_dir, "mengel", "parameters_subsample_doeclimbrick_gmsl-wa_glac-dm.csv"))
 
         # SNEASY-BRICK calibration
         nparameters_sneasybrick = 54
@@ -45,8 +45,27 @@
         @test size(x3[5])[2]==nparameters_sneasybrick
         @test all(isa.(Matrix(x3[1]), Number))
         @test !all(diff(x3[1][:,1]) .== 0)
-        @test isfile(joinpath(tmp_dir, "mengel", "parameters_subsample_sneasybrick_gmsl-wa.csv"))
+        @test isfile(joinpath(tmp_dir, "mengel", "parameters_subsample_sneasybrick_gmsl-wa_glac-dm.csv"))
     end
+end
+
+@testitem "Glacier calibration data options" begin
+    using Statistics
+
+    dm_data, _, _ = MimiBRICK.load_calibration_data(1900, 2020, glacier_data=:dm)
+    frederikse_data, _, _ = MimiBRICK.load_calibration_data(1900, 2020, glacier_data=:fr)
+
+    dm_indices = findall(x -> !ismissing(x), dm_data.glaciers_obs)
+    frederikse_indices = findall(x -> !ismissing(x), frederikse_data.glaciers_obs)
+
+    @test dm_data.year[dm_indices] == collect(1961:2003)
+    @test frederikse_data.year[frederikse_indices] == collect(1900:2018)
+    norm_years = in.(frederikse_data.year, Ref(1961:1990))
+    @test isapprox(mean(skipmissing(frederikse_data[norm_years, :glaciers_obs])), 0.0; atol=1e-12)
+    @test all(skipmissing(frederikse_data.glaciers_sigma) .> 0)
+    @test frederikse_data[frederikse_data.year .== 2003, :glaciers_obs][1] !=
+          dm_data[dm_data.year .== 2003, :glaciers_obs][1]
+    @test_throws ArgumentError MimiBRICK.load_calibration_data(1900, 2020, glacier_data=:invalid)
 end
 
 @testitem "GMSL calibration data options" begin

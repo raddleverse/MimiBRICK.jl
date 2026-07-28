@@ -240,7 +240,7 @@ function construct_brick_log_prior(joint_antarctic_prior::Bool; calibration_data
 end
 
 """
-    construct_brick_log_posterior(f_run_model!; model_start_year::Int=1850, calibration_end_year::Int=2017, joint_antarctic_prior::Bool=false, calibration_data_dir::Union{String, Nothing}=nothing, glacier_model=:mengel, gmsl_data::Symbol=:wa)
+    construct_brick_log_posterior(f_run_model!; model_start_year::Int=1850, calibration_end_year::Int=2017, joint_antarctic_prior::Bool=false, calibration_data_dir::Union{String, Nothing}=nothing, glacier_model=:mengel, gmsl_data::Symbol=:wa, glacier_data::Symbol=:dm)
 
 Calculate log posterior for brick.
 
@@ -256,8 +256,9 @@ Function Arguments:
                             above) or fitted marginal kernel density estimates (FALSE = option 2 described above).
     glacier_model         = :mengel (Mengel 2016 version) or :gsic (original Wigley and Raper version)
     gmsl_data             = :wa (Wang et al. 2024) or :cw (Church & White 2011)
+    glacier_data          = :dm (Dyurgerov and Meier 2004) or :fr (Frederikse et al. 2020)
 """
-function construct_brick_log_posterior(f_run_model!; model_start_year::Int=1850, calibration_end_year::Int=2017, joint_antarctic_prior::Bool=false, calibration_data_dir::Union{String, Nothing}=nothing, glacier_model=:mengel, gmsl_data::Symbol=:wa)
+function construct_brick_log_posterior(f_run_model!; model_start_year::Int=1850, calibration_end_year::Int=2017, joint_antarctic_prior::Bool=false, calibration_data_dir::Union{String, Nothing}=nothing, glacier_model=:mengel, gmsl_data::Symbol=:wa, glacier_data::Symbol=:dm)
 
    # Create a vector of calibration years and calculate total number of years to run model.
     calibration_years = collect(model_start_year:calibration_end_year)
@@ -273,6 +274,7 @@ function construct_brick_log_posterior(f_run_model!; model_start_year::Int=1850,
         last_sea_level_norm_year=1990,
         calibration_data_dir=calibration_data_dir,
         gmsl_data=gmsl_data,
+        glacier_data=glacier_data,
     )
 
     # Calculate indices for each year that has an observation in calibration data sets.

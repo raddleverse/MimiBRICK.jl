@@ -17,14 +17,15 @@ This is all done by running the `examples/calibration_driver.jl` script. This sc
 * `threshold_gr` - if you do a short test calibration, it will yell at you that some of the parameters' potential scale reduction factors are not less than this threshold. You don't need to do anything about it, just letting you know so you don't worry about it.
 * `size_subsample` - this must be less than `total_chain_length - burnin_length`
 * `gmsl_data` - `:wa` (Wang et al. 2024, the default) or `:cw` (Church & White 2011). This option applies to all three model configurations.
+* `glacier_data` - `:dm` (Dyurgerov and Meier 2004, the default; 1961–2003) or `:fr` (Frederikse et al. 2020; 1900–2018). This selects the observational glacier series used in calibration and applies to all three model configurations.
 
 The `run_calibration` function will create a subfolder for the `model_config` in the user-defined `output_dir`. Within that results directory, you will find:
-* `parameters_full_chain_(model_config)_gmsl-(gmsl_data).csv` - the full Markov chain of parameter samples, including the burn-in period
-* `mcmc_log_post_(model_config)_gmsl-(gmsl_data).csv` - the log-posterior scores (numerator from Bayes' theorem) for the full chain of parameter samples
-* `parameters_subsample_(model_config)_gmsl-(gmsl_data).csv` - the parameter values in the sub-sample for analysis
-* `log_post_subsample_(model_config)_gmsl-(gmsl_data).csv` - the log-posterior scores for the sub-sample of parameters for analysis. This is used to determine the maximum _a posteriori_ simulation
-* `proposal_covariance_matrix_(model_config)_gmsl-(gmsl_data).csv` - the final proposal covariance matrix for the adaptive proposals. If you use this and the final sample of parameters from `parameters_full_chain_(model_config)_gmsl-(gmsl_data).csv`, you can restart the Markov chain calibration. This and the last iteration of the Markov chain are both saved under the `calibration_data/from_calibration_chains` subdirectory.
-* `mcmc_acceptance_rate_(model_config)_gmsl-(gmsl_data).csv` - the acceptance rate from the MCMC algorithm. Should be about 0.23 for the numbers of parameters (dimension) that we're dealing with here.
+* `parameters_full_chain_(model_config)_gmsl-(gmsl_data)_glac-(glacier_data).csv` - the full Markov chain of parameter samples, including the burn-in period
+* `mcmc_log_post_(model_config)_gmsl-(gmsl_data)_glac-(glacier_data).csv` - the log-posterior scores (numerator from Bayes' theorem) for the full chain of parameter samples
+* `parameters_subsample_(model_config)_gmsl-(gmsl_data)_glac-(glacier_data).csv` - the parameter values in the sub-sample for analysis
+* `log_post_subsample_(model_config)_gmsl-(gmsl_data)_glac-(glacier_data).csv` - the log-posterior scores for the sub-sample of parameters for analysis. This is used to determine the maximum _a posteriori_ simulation
+* `proposal_covariance_matrix_(model_config)_gmsl-(gmsl_data)_glac-(glacier_data).csv` - the final proposal covariance matrix for the adaptive proposals. If you use this and the final sample of parameters from `parameters_full_chain_(model_config)_gmsl-(gmsl_data)_glac-(glacier_data).csv`, you can restart the Markov chain calibration. This and the last iteration of the Markov chain are both saved under the `calibration_data/from_calibration_chains` subdirectory.
+* `mcmc_acceptance_rate_(model_config)_gmsl-(gmsl_data)_glac-(glacier_data).csv` - the acceptance rate from the MCMC algorithm. Should be about 0.23 for the numbers of parameters (dimension) that we're dealing with here.
 
 Note that calibrations of 15 million iterations will take multiple hours to complete.
 * For BRICK on its own, this took about 2-3 hours on a standard desktop workstation (ca. 2022)

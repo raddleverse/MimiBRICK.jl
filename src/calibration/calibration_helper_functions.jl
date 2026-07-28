@@ -13,7 +13,7 @@ using CSV
 #-------------------------------------------------------------------------------
 
 """
-    load_calibration_data(model_start_year::Int, last_calibration_year::Int; last_sea_level_norm_year::Int=1990, calibration_data_dir::Union{Nothing, String} = nothing, gmsl_data::Symbol=:cw)
+    load_calibration_data(model_start_year::Int, last_calibration_year::Int; last_sea_level_norm_year::Int=1990, calibration_data_dir::Union{Nothing, String}=nothing, gmsl_data::Symbol=:cw, glacier_data::Symbol=:dm)
 
 Load and clean up data used for model calibration.
 
@@ -27,10 +27,12 @@ Function Arguments:
                                  may be necessary for out-of-sample tests). These data sets will be normalized from 1961-last norm year, default = 1961-1990.
     - calibration_data_dir    = Data directory for calibration data. Defaults to package calibration data directory, changing this is not recommended.
     - gmsl_data               = GMSL reconstruction to use: `:wa` for Wang et al. (2024) or `:cw` for Church & White (2011).
+    - glacier_data            = Glacier reconstruction to use: `:dm` for Dyurgerov and Meier (2004) or `:fr` for Frederikse et al. (2020).
 """
-function load_calibration_data(model_start_year::Int, last_calibration_year::Int; last_sea_level_norm_year::Int=1990, calibration_data_dir::Union{Nothing, String} = nothing, gmsl_data::Symbol=:cw)
+function load_calibration_data(model_start_year::Int, last_calibration_year::Int; last_sea_level_norm_year::Int=1990, calibration_data_dir::Union{Nothing, String}=nothing, gmsl_data::Symbol=:cw, glacier_data::Symbol=:dm)
 
     gmsl_data in (:wa, :cw) || throw(ArgumentError("gmsl_data must be :wa or :cw; got :$gmsl_data"))
+    glacier_data in (:dm, :fr) || throw(ArgumentError("glacier_data must be :dm or :fr; got :$glacier_data"))
 
     # Create column of calibration years and calculate indicies for calibration time period relative to 1765-2020 (will crop later).
     # Note: first year is first year to run model (not necessarily year of first observation).
@@ -270,28 +272,32 @@ function load_calibration_data(model_start_year::Int, last_calibration_year::Int
     df = outerjoin(df, merged_greenland_df, on=:year)
 
     #---------------------------------------------------------------------------------
-    # Load Glacier and Small Ice Caps (GSIC) Data
+    # Load the selected Glacier and Small Ice Caps (GSIC) data
     #---------------------------------------------------------------------------------
 
-    # Load GSIC raw data.
-    raw_glaciers_data = DataFrame(load(joinpath(calibration_data_dir, "glacier_small_ice_caps_1961_2003.csv"), skiplines_begin=1))
-
-    # Convert observations (cummulative GSIC melt contribution to sea level rise) from mm to meters.
-    glaciers_obs = raw_glaciers_data[!, Symbol("contribution to sea level cumulative (mm)")] ./ 1000
-
-    # Convert observation errors from mm to meters.
-    glaciers_error = raw_glaciers_data[!, Symbol("standard dev. (mm/yr)")] ./ 1000
-
-    # Years for GSIC data (covers 1961-2003 period).
-    years = raw_glaciers_data[:, 1]
+    if glacier_data == :dm
+        # Dyurgerov and Meier (2004), 1961-2003.
+        raw_glaciers_data = DataFrame(load(joinpath(calibration_data_dir, "glacier_small_ice_caps_1961_2003.csv"), skiplines_begin=1))
+        glaciers_obs = raw_glaciers_data[!, Symbol("contribution to sea level cumulative (mm)")] ./ 1000
+        glaciers_error = raw_glaciers_data[!, Symbol("standard dev. (mm/yr)")] ./ 1000
+        glacier_years = raw_glaciers_data[:, 1]
+    else
+        # Frederikse et al. (2020), 1900-2018. The workbook reports cumulative
+        # sea-level contribution and lower/upper 95% bounds in millimeters.
+        glacier_years = Int.(raw_frederikse_data.Year)
+        glaciers_obs = Float64.(raw_frederikse_data[!, Symbol("Glaciers [mean]")]) ./ 1000
+        glaciers_error = (
+            Float64.(raw_frederikse_data[!, Symbol("Glaciers [upper]")]) .-
+            Float64.(raw_frederikse_data[!, Symbol("Glaciers [lower]")])
+        ) ./ 4 ./ 1000
+    end
 
     # Get year indices and normalize data relative to 1961-1990 mean.
-    glaciers_norm_indices = findall((in)(1961:last_sea_level_norm_year), years)
+    glaciers_norm_indices = findall((in)(1961:last_sea_level_norm_year), glacier_years)
     glaciers_obs_norm = glaciers_obs .- mean(glaciers_obs[glaciers_norm_indices])
 
     # Combine into data frame and join with other calibration data.
-    glaciers_df = DataFrame(year = years, glaciers_obs = glaciers_obs_norm, glaciers_sigma = glaciers_error)
-    #df = join(df, glaciers_df, on=:year, kind=:outer)
+    glaciers_df = DataFrame(year=glacier_years, glaciers_obs=glaciers_obs_norm, glaciers_sigma=glaciers_error)
     df = outerjoin(df, glaciers_df, on=:year)
 
     #---------------------------------------------------------------------------------
