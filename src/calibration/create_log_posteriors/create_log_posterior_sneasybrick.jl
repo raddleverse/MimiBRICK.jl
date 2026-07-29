@@ -28,7 +28,7 @@ Function Arguments:
       calibration_data_dir    = Data directory for calibration data. Defaults to package calibration data directory, changing this is not recommended.
       glacier_model           = :mengel (Mengel 2016 version) or :gsic (original Wigley and Raper version)
 """
-function construct_sneasybrick_log_prior(joint_antarctic_prior::Bool, uniform_ECS::Bool; calibration_data_dir::Union{String, Nothing} = nothing, glacier_model=:mengel)
+function construct_sneasybrick_log_prior(joint_antarctic_prior::Bool, uniform_ECS::Bool; calibration_data_dir::Union{String, Nothing} = nothing, glacier_model=:mengel, calibration_targets::Symbol=:standard)
 
     # set calibration data directory if one was not provided ie. it is set as nothing
     if isnothing(calibration_data_dir)
@@ -299,6 +299,10 @@ function construct_sneasybrick_log_prior(joint_antarctic_prior::Bool, uniform_EC
             error("unrecognized glacier_model argument")
         end
         
+        if calibration_targets == :mengel_ext
+            log_prior += mengel_ext_thermal_process_logprior(p[end-1], p[end])
+        end
+
         return log_prior
     end
 
@@ -327,17 +331,22 @@ Function Arguments:
     glacier_model         = :mengel (Mengel 2016 version) or :gsic (original Wigley and Raper version)
     gmsl_data             = :wa (Wang et al. 2024) or :cw (Church & White 2011)
 """
-function construct_sneasybrick_log_posterior(f_run_model!; model_start_year::Int=1850, calibration_end_year::Int=2017, joint_antarctic_prior::Bool=false, uniform_ECS::Bool=false, calibration_data_dir::Union{String, Nothing}=nothing, glacier_model=:mengel, gmsl_data::Symbol=:wa)
+function construct_sneasybrick_log_posterior(f_run_model!; model_start_year::Int=1850, calibration_end_year::Int=2017, joint_antarctic_prior::Bool=false, uniform_ECS::Bool=false, calibration_data_dir::Union{String, Nothing}=nothing, glacier_model=:mengel, gmsl_data::Symbol=:wa, calibration_targets::Symbol=:standard)
 
    # Create a vector of calibration years and calculate total number of years to run model.
     calibration_years = collect(model_start_year:calibration_end_year)
     n = length(calibration_years)
 
     # Get log-prior function.
-    sneasybrick_log_prior = construct_sneasybrick_log_prior(joint_antarctic_prior, uniform_ECS, glacier_model=glacier_model)
+    sneasybrick_log_prior = construct_sneasybrick_log_prior(
+        joint_antarctic_prior,
+        uniform_ECS;
+        glacier_model=glacier_model,
+        calibration_targets=calibration_targets,
+    )
 
     # Load calibration data/observations.
-    calibration_data, obs_antarctic_trends, obs_thermal_trends = MimiBRICK.load_calibration_data(model_start_year, calibration_end_year, last_sea_level_norm_year=1990, calibration_data_dir=calibration_data_dir, gmsl_data=gmsl_data)
+    calibration_data, obs_antarctic_trends, obs_thermal_trends = MimiBRICK.load_calibration_data(model_start_year, calibration_end_year, last_sea_level_norm_year=1990, calibration_data_dir=calibration_data_dir, gmsl_data=gmsl_data, calibration_targets=calibration_targets)
 
     # Calculate indices for each year that has an observation in calibration data sets.
     indices_maunaloa_co2_data  = findall(x-> !ismissing(x), calibration_data.maunaloa_co2_obs)
@@ -471,6 +480,29 @@ function construct_sneasybrick_log_posterior(f_run_model!; model_start_year::Int
 
         # Calculate ocean CO₂ flux total log-likelihood as sum of individual data point likelihoods.
         llik_oceanco2_flux = sum(individual_llik_oceanco2_flux)
+
+        if calibration_targets == :mengel_ext
+            llik_sealevel = mengel_extended_loglikelihood(
+                calibration_data,
+                calibration_years,
+                modeled_glaciers,
+                modeled_greenland,
+                modeled_antarctic,
+                modeled_thermal_expansion,
+                σ_glaciers,
+                ρ_glaciers,
+                σ_greenland,
+                ρ_greenland,
+                σ_antarctic,
+                ρ_antarctic,
+                p[end-1],
+                p[end],
+                σ_gmsl,
+                ρ_gmsl,
+            )
+            return llik_temperature + llik_ocean_heat + llik_co2 +
+                   llik_oceanco2_flux + llik_sealevel
+        end
 
         #-----------------------------------------------------------------------
         # Glaciers and Small Ice Caps Log-Likelihood

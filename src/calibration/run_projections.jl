@@ -14,7 +14,8 @@ using Random
                         magicc_sampling = false,
                         magicc_resample = false,
                         glacier_model::Symbol = :mengel,
-                        gmsl_data::Symbol = :wa
+                        gmsl_data::Symbol = :wa,
+                        calibration_targets::Symbol = :standard
                     )
 
 Function to run BRICK (standalone, or with DOECLIM or SNEASY) over the projections
@@ -33,6 +34,7 @@ Function Arguments:
                                           NB: currently only false works
     - glacier_model         = :mengel (Mengel 2016 version) or :gsic (original Wigley and Raper version)
     - gmsl_data             = :wa (Wang et al. 2024) or :cw (Church & White 2011)
+    - calibration_targets   = :standard or :mengel_ext
 """
 function run_projections(; output_dir::String,
                         model_config::String = "brick",
@@ -43,6 +45,7 @@ function run_projections(; output_dir::String,
                         magicc_resample = false,
                         glacier_model::Symbol = :mengel,
                         gmsl_data::Symbol = :wa,
+                        calibration_targets::Symbol = :standard,
                     )
     
     ##==============================================================================
@@ -55,6 +58,8 @@ function run_projections(; output_dir::String,
         "\"sneasybrick\"; got \"$model_config\""
     ))
     gmsl_data in (:wa, :cw) || throw(ArgumentError("gmsl_data must be :wa or :cw; got :$gmsl_data"))
+    calibration_targets in (:standard, :mengel_ext) ||
+        throw(ArgumentError("calibration_targets must be :standard or :mengel_ext; got :$calibration_targets"))
 
     model_years = collect(start_year:end_year)
     num_years = length(model_years)
@@ -71,7 +76,8 @@ function run_projections(; output_dir::String,
         throw(ArgumentError("glacier_model must be :gsic or :mengel; got :$glacier_model"))
     end
     
-    calibration_tag = "_gmsl-$(gmsl_data)"
+    calibration_tag = calibration_targets == :mengel_ext ?
+        "_data-mengel-ext" : "_gmsl-$(gmsl_data)"
     filename_parameters = joinpath(output_dir, glacpath, "parameters_subsample_$(model_config)$(calibration_tag).csv")
     filename_logpost    = joinpath(output_dir, glacpath, "log_post_subsample_$(model_config)$(calibration_tag).csv")
     parameters = DataFrame(load(filename_parameters))
@@ -114,10 +120,12 @@ function run_projections(; output_dir::String,
     end
 
     # Load calibration data from 1765-2017 (measurement errors used in simulated noise).
+    target_data_end_year = calibration_targets == :mengel_ext ? 2026 : 2017
     calibration_data, obs_antarctic_trends, obs_thermal_trends = load_calibration_data(
         start_year,
-        2017,
+        target_data_end_year,
         gmsl_data=gmsl_data,
+        calibration_targets=calibration_targets,
     )
 
     # Initialize arrays to save the model components
@@ -135,12 +143,21 @@ function run_projections(; output_dir::String,
     ar1_noise_glaciers    = zeros(num_years)
     ar1_noise_greenland   = zeros(num_years)
     ar1_noise_antarctic   = zeros(num_years)
+    ar1_noise_thermal     = zeros(num_years)
     ar1_noise_gmsl        = zeros(num_years)
     # Replicate errors for years without observations over model time horizon (used for simulating AR1 noise).
-    obs_error_glaciers    = replicate_errors(start_year, end_year, calibration_data.glaciers_sigma)
-    obs_error_greenland   = replicate_errors(start_year, end_year, calibration_data.merged_greenland_sigma)
-    obs_error_antarctic   = replicate_errors(start_year, end_year, calibration_data.antarctic_imbie_sigma)
-    obs_error_gmsl        = replicate_errors(start_year, end_year, calibration_data.gmsl_sigma)
+    if calibration_targets == :mengel_ext
+        obs_error_glaciers = replicate_errors(start_year, end_year, calibration_data.mengel_ext_glaciers_sigma)
+        obs_error_greenland = replicate_errors(start_year, end_year, calibration_data.mengel_ext_greenland_sigma)
+        obs_error_antarctic = replicate_errors(start_year, end_year, calibration_data.mengel_ext_ais_sigma)
+        obs_error_thermal = replicate_errors(start_year, end_year, calibration_data.mengel_ext_thermal_sigma)
+        obs_error_gmsl = replicate_errors(start_year, end_year, calibration_data.mengel_ext_gmsl_sigma)
+    else
+        obs_error_glaciers = replicate_errors(start_year, end_year, calibration_data.glaciers_sigma)
+        obs_error_greenland = replicate_errors(start_year, end_year, calibration_data.merged_greenland_sigma)
+        obs_error_antarctic = replicate_errors(start_year, end_year, calibration_data.antarctic_imbie_sigma)
+        obs_error_gmsl = replicate_errors(start_year, end_year, calibration_data.gmsl_sigma)
+    end
     if (model_config == "doeclimbrick") | (model_config == "sneasybrick")
         temperature  = zeros(Union{Missing, Float64}, num_ens, num_years)
         ocean_heat   = zeros(Union{Missing, Float64}, num_ens, num_years)
@@ -165,6 +182,7 @@ function run_projections(; output_dir::String,
     # Get indices needed to normalize all sea level rise sources.
     sealevel_norm_indices_1961_1990 = findall((in)(1961:1990), start_year:end_year)
     sealevel_norm_indices_1992_2001 = findall((in)(1992:2001), start_year:end_year)
+    sealevel_norm_indices_1995_2005 = findall((in)(1995:2005), start_year:end_year)
 
     # Ocean heat normalization years
     if magicc_sampling
@@ -284,6 +302,13 @@ function run_projections(; output_dir::String,
         ar1_noise_greenland[:]   = simulate_ar1_noise(num_years, σ_greenland,   ρ_greenland,   obs_error_greenland)
         ar1_noise_antarctic[:]   = simulate_ar1_noise(num_years, σ_antarctic,   ρ_antarctic,   obs_error_antarctic)
         ar1_noise_gmsl[:]        = simulate_ar1_noise(num_years, σ_gmsl,        ρ_gmsl,        obs_error_gmsl)
+        if calibration_targets == :mengel_ext
+            σ_thermal = parameters[i, findall(x->x=="sd_thermal",parnames)][1]
+            ρ_thermal = parameters[i, findall(x->x=="rho_thermal",parnames)][1]
+            ar1_noise_thermal[:] = simulate_ar1_noise(
+                num_years, σ_thermal, ρ_thermal, obs_error_thermal
+            )
+        end
         if (model_config == "doeclimbrick") | (model_config == "sneasybrick")
             temperature_0            = parameters[i, findall(x->x=="temperature_0",parnames)][1]
             ocean_heat_0             = parameters[i, findall(x->x=="ocean_heat_0",parnames)][1]
@@ -302,12 +327,21 @@ function run_projections(; output_dir::String,
             end
         end
         # Normalize relative to appropriate time period, and superimpose statistical noise where appropriate
-        glaciers[i,:]    = m[:glaciers_small_icecaps, :gsic_sea_level] .- mean(m[:glaciers_small_icecaps, :gsic_sea_level][sealevel_norm_indices_1961_1990]) .+ ar1_noise_glaciers
-        greenland[i,:]   = m[:greenland_icesheet, :greenland_sea_level] .- mean(m[:greenland_icesheet, :greenland_sea_level][sealevel_norm_indices_1992_2001]) .+ ar1_noise_greenland
-        antarctic[i,:]   = m[:antarctic_icesheet, :ais_sea_level] .- mean(m[:antarctic_icesheet, :ais_sea_level][sealevel_norm_indices_1992_2001]) .+ ar1_noise_antarctic
-        thermal_sl[i,:]  = m[:thermal_expansion, :te_sea_level]
+        sea_level_norm_indices = calibration_targets == :mengel_ext ?
+            sealevel_norm_indices_1995_2005 : sealevel_norm_indices_1961_1990
+        greenland_norm_indices = calibration_targets == :mengel_ext ?
+            sealevel_norm_indices_1995_2005 : sealevel_norm_indices_1992_2001
+        antarctic_norm_indices = calibration_targets == :mengel_ext ?
+            sealevel_norm_indices_1995_2005 : sealevel_norm_indices_1992_2001
+        glaciers[i,:]    = m[:glaciers_small_icecaps, :gsic_sea_level] .- mean(m[:glaciers_small_icecaps, :gsic_sea_level][sea_level_norm_indices]) .+ ar1_noise_glaciers
+        greenland[i,:]   = m[:greenland_icesheet, :greenland_sea_level] .- mean(m[:greenland_icesheet, :greenland_sea_level][greenland_norm_indices]) .+ ar1_noise_greenland
+        antarctic[i,:]   = m[:antarctic_icesheet, :ais_sea_level] .- mean(m[:antarctic_icesheet, :ais_sea_level][antarctic_norm_indices]) .+ ar1_noise_antarctic
+        thermal_sl[i,:]  = m[:thermal_expansion, :te_sea_level] .-
+                           (calibration_targets == :mengel_ext ?
+                            mean(m[:thermal_expansion, :te_sea_level][sealevel_norm_indices_1995_2005]) : 0.0) .+
+                           ar1_noise_thermal
         lws_sl[i,:]      = m[:landwater_storage, :lws_sea_level]
-        gmsl[i,:]        = m[:global_sea_level, :sea_level_rise] .- mean(m[:global_sea_level, :sea_level_rise][sealevel_norm_indices_1961_1990]) .+ ar1_noise_gmsl
+        gmsl[i,:]        = m[:global_sea_level, :sea_level_rise] .- mean(m[:global_sea_level, :sea_level_rise][sea_level_norm_indices]) .+ ar1_noise_gmsl
         if (model_config == "doeclimbrick") | (model_config == "sneasybrick")
             temperature[i,:] = m[:doeclim, :temp] .- mean(m[:doeclim, :temp][temperature_norm_indices]) .+ ar1_noise_temperature .+ temperature_0
             ocean_heat[i,:]  = m[:doeclim, :heat_mixed] .+ m[:doeclim, :heat_interior] .+ ar1_noise_ocean_heat .+ ocean_heat_0

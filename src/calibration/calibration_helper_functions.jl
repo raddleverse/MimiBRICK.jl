@@ -27,14 +27,17 @@ Function Arguments:
                                  may be necessary for out-of-sample tests). These data sets will be normalized from 1961-last norm year, default = 1961-1990.
     - calibration_data_dir    = Data directory for calibration data. Defaults to package calibration data directory, changing this is not recommended.
     - gmsl_data               = GMSL reconstruction to use: `:wa` for Wang et al. (2024) or `:cw` for Church & White (2011).
+    - calibration_targets     = `:standard` or `:mengel_ext`.
 """
-function load_calibration_data(model_start_year::Int, last_calibration_year::Int; last_sea_level_norm_year::Int=1990, calibration_data_dir::Union{Nothing, String} = nothing, gmsl_data::Symbol=:cw)
+function load_calibration_data(model_start_year::Int, last_calibration_year::Int; last_sea_level_norm_year::Int=1990, calibration_data_dir::Union{Nothing, String} = nothing, gmsl_data::Symbol=:cw, calibration_targets::Symbol=:standard)
 
     gmsl_data in (:wa, :cw) || throw(ArgumentError("gmsl_data must be :wa or :cw; got :$gmsl_data"))
+    calibration_targets in (:standard, :mengel_ext) ||
+        throw(ArgumentError("calibration_targets must be :standard or :mengel_ext; got :$calibration_targets"))
 
     # Create column of calibration years and calculate indicies for calibration time period relative to 1765-2020 (will crop later).
     # Note: first year is first year to run model (not necessarily year of first observation).
-    df = DataFrame(year = collect(1765:2020))
+    df = DataFrame(year = collect(1765:max(2020, last_calibration_year)))
     model_calibration_indices = findall((in)(collect(model_start_year:last_calibration_year)), df.year)
     
     # set calibration data directory if one was not provided ie. it is set as nothing
@@ -389,6 +392,67 @@ function load_calibration_data(model_start_year::Int, last_calibration_year::Int
     df = outerjoin(df, antarctic_inst_df, on=:year)
 
     #---------------------------------------------------------------------------------
+    # Marcus Sarofim extended calibration targets.
+    #---------------------------------------------------------------------------------
+    if calibration_targets == :mengel_ext
+        targets_path = joinpath(calibration_data_dir, "calibration_targets_brick_mengel_ext.csv")
+        isfile(targets_path) || error(
+            "Marcus extended calibration targets not found: $targets_path"
+        )
+
+        targets = CSV.read(targets_path, DataFrame)
+        required_columns = [
+            :year,
+            :ais, :ais_lo, :ais_hi,
+            :gsic, :gsic_lo, :gsic_hi,
+            :gis, :gis_lo, :gis_hi,
+            :steric, :steric_lo, :steric_hi,
+            :lws, :lws_lo, :lws_hi,
+            :dang, :dang_sig, :dang_lo, :dang_hi,
+        ]
+        missing_columns = setdiff(required_columns, Symbol.(names(targets)))
+        isempty(missing_columns) || error(
+            "Marcus target file is missing required columns: $(join(missing_columns, ", "))"
+        )
+
+        # Marcus's table is in centimeters and is already referenced to the
+        # 1995-2005 mean. Convert to meters to match MimiBRICK output. Reported
+        # lower/upper bounds are 5-95% intervals; follow Marcus's conversion to
+        # one-sigma errors and retain his 0.05 cm uncertainty floor.
+        band_sigma(lo, hi) =
+            ismissing(lo) || ismissing(hi) ? missing :
+            max((hi - lo) / (2 * 1.645), 0.05) / 100
+        cm_to_m(x) = ismissing(x) ? missing : x / 100
+
+        mengel_ext_targets = DataFrame(
+            year = Int.(targets.year),
+            mengel_ext_ais_obs = cm_to_m.(targets.ais),
+            mengel_ext_ais_sigma = band_sigma.(targets.ais_lo, targets.ais_hi),
+            mengel_ext_glaciers_obs = cm_to_m.(targets.gsic),
+            mengel_ext_glaciers_sigma = band_sigma.(targets.gsic_lo, targets.gsic_hi),
+            mengel_ext_greenland_obs = cm_to_m.(targets.gis),
+            mengel_ext_greenland_sigma = band_sigma.(targets.gis_lo, targets.gis_hi),
+            mengel_ext_thermal_obs = cm_to_m.(targets.steric),
+            mengel_ext_thermal_sigma = band_sigma.(targets.steric_lo, targets.steric_hi),
+            mengel_ext_lws_obs = cm_to_m.(targets.lws),
+            mengel_ext_lws_sigma = band_sigma.(targets.lws_lo, targets.lws_hi),
+            mengel_ext_gmsl_obs = cm_to_m.(targets.dang),
+            mengel_ext_gmsl_lower = cm_to_m.(targets.dang_lo),
+            mengel_ext_gmsl_upper = cm_to_m.(targets.dang_hi),
+            mengel_ext_gmsl_sigma = map(
+                (dang_sigma, lws_lo, lws_hi) ->
+                    ismissing(dang_sigma) || ismissing(lws_lo) || ismissing(lws_hi) ?
+                    missing :
+                    sqrt((dang_sigma / 100)^2 + band_sigma(lws_lo, lws_hi)^2),
+                targets.dang_sig,
+                targets.lws_lo,
+                targets.lws_hi,
+            ),
+        )
+        df = outerjoin(df, mengel_ext_targets, on=:year)
+    end
+
+    #---------------------------------------------------------------------------------
     # Finalize Joint Calibration Data Set.
     #---------------------------------------------------------------------------------
 
@@ -467,9 +531,119 @@ function load_calibration_data(model_start_year::Int, last_calibration_year::Int
     return df, ais_trend_df, te_trend_df
 end
 
+"""
+    mengel_extended_loglikelihood(...)
+
+Calculate the five-series sea-level likelihood used for the `:mengel_ext`
+calibration-target option. Each annual series uses its own non-missing years.
+All modeled components are re-referenced to 1995-2005. The total-GMSL
+comparison uses modeled AIS + glaciers + GIS + steric plus observed LWS, as in
+Marcus Sarofim's `brick-fm` calibration.
+"""
+function mengel_extended_loglikelihood(
+    calibration_data::DataFrame,
+    model_years,
+    modeled_glaciers,
+    modeled_greenland,
+    modeled_antarctic,
+    modeled_thermal,
+    σ_glaciers,
+    ρ_glaciers,
+    σ_greenland,
+    ρ_greenland,
+    σ_antarctic,
+    ρ_antarctic,
+    σ_thermal,
+    ρ_thermal,
+    σ_gmsl,
+    ρ_gmsl,
+)
+    norm_indices = findall((in)(1995:2005), model_years)
+    length(norm_indices) == 11 ||
+        error("The :mengel_ext calibration requires model years covering 1995-2005.")
+
+    rereference(x) = x .- mean(x[norm_indices])
+    glaciers = rereference(modeled_glaciers)
+    greenland = rereference(modeled_greenland)
+    antarctic = rereference(modeled_antarctic)
+    thermal = rereference(modeled_thermal)
+
+    function series_loglikelihood(model, obs_column, sigma_column, σ_process, ρ)
+        indices = findall(
+            i -> !ismissing(calibration_data[i, obs_column]) &&
+                 !ismissing(calibration_data[i, sigma_column]),
+            1:nrow(calibration_data),
+        )
+        isempty(indices) && error("No usable observations found for $obs_column.")
+        residual = Float64[
+            calibration_data[i, obs_column] - model[i] for i in indices
+        ]
+        obs_sigma = Float64[calibration_data[i, sigma_column] for i in indices]
+        return hetero_logl_ar1(residual, σ_process, ρ, obs_sigma)
+    end
+
+    llik = series_loglikelihood(
+        glaciers, :mengel_ext_glaciers_obs, :mengel_ext_glaciers_sigma, σ_glaciers, ρ_glaciers
+    )
+    llik += series_loglikelihood(
+        greenland, :mengel_ext_greenland_obs, :mengel_ext_greenland_sigma, σ_greenland, ρ_greenland
+    )
+    llik += series_loglikelihood(
+        antarctic, :mengel_ext_ais_obs, :mengel_ext_ais_sigma, σ_antarctic, ρ_antarctic
+    )
+    llik += series_loglikelihood(
+        thermal, :mengel_ext_thermal_obs, :mengel_ext_thermal_sigma, σ_thermal, ρ_thermal
+    )
+
+    gmsl_indices = findall(
+        i -> !ismissing(calibration_data[i, :mengel_ext_gmsl_obs]) &&
+             !ismissing(calibration_data[i, :mengel_ext_gmsl_sigma]) &&
+             !ismissing(calibration_data[i, :mengel_ext_lws_obs]),
+        1:nrow(calibration_data),
+    )
+    isempty(gmsl_indices) && error("No usable Marcus/Dangendorf GMSL observations found.")
+    total = antarctic .+ glaciers .+ greenland .+ thermal
+    gmsl_residual = Float64[
+        calibration_data[i, :mengel_ext_gmsl_obs] -
+        (total[i] + calibration_data[i, :mengel_ext_lws_obs])
+        for i in gmsl_indices
+    ]
+    gmsl_sigma = Float64[calibration_data[i, :mengel_ext_gmsl_sigma] for i in gmsl_indices]
+    llik += hetero_logl_ar1(gmsl_residual, σ_gmsl, ρ_gmsl, gmsl_sigma)
+
+    # Additional Gaussian cumulative-change constraints used by Marcus.
+    index_1992 = findfirst(==(1992), model_years)
+    index_2017 = findfirst(==(2017), model_years)
+    index_1961 = findfirst(==(1961), model_years)
+    index_2003 = findfirst(==(2003), model_years)
+    any(isnothing, (index_1992, index_2017, index_1961, index_2003)) &&
+        error("The :mengel_ext calibration requires model years 1961, 1992, 2003, and 2017.")
+    llik += logpdf(
+        Normal(0.0072, 0.00156),
+        antarctic[index_2017] - antarctic[index_1992],
+    )
+    llik += logpdf(
+        Normal(0.02127, 0.00148),
+        glaciers[index_2003] - glaciers[index_1961],
+    )
+
+    return llik
+end
 
 """
-    hetero_logl_ar1(residuals::Array{Float64,1}, σ::Float64, ρ::Float64, ϵ::Array{Union{Float64, Missings.Missing},1})
+    mengel_ext_thermal_process_logprior(σ_thermal, ρ_thermal)
+
+Prior for the additional steric AR(1) discrepancy parameters used only by the
+`:mengel_ext` target set.
+"""
+function mengel_ext_thermal_process_logprior(σ_thermal, ρ_thermal)
+    return logpdf(Uniform(1e-10, 0.05), σ_thermal) +
+           logpdf(truncated(Normal(0.8, 0.25), -1.0, 1.0), ρ_thermal)
+end
+
+
+"""
+    hetero_logl_ar1(residuals, σ, ρ, ϵ)
 
 Calculate AR(1) log-likelihood.
 
@@ -484,7 +658,12 @@ Function Arguments:
       ρ         = AR(1) autocorrelation term.
       ϵ         = A vector of time-varying observation error estimates (from calibration data sets).
 """
-function hetero_logl_ar1(residuals::Array{Float64,1}, σ::Float64, ρ::Float64, ϵ::Array{Union{Float64, Missings.Missing},1})
+function hetero_logl_ar1(
+    residuals::AbstractVector{<:Real},
+    σ::Real,
+    ρ::Real,
+    ϵ::AbstractVector,
+)
 
     # Calculate length of residuals.
     n=length(residuals)
@@ -497,7 +676,7 @@ function hetero_logl_ar1(residuals::Array{Float64,1}, σ::Float64, ρ::Float64, 
 
     # Calculate residual covariance matrix (sum of AR(1) process variance and observation error variances).
     # Note: This follows Supplementary Information Equation (10) in Ruckert et al. (2017).
-    cov_matrix = σ_process * ρ .^ H + Diagonal(ϵ.^2)
+    cov_matrix = σ_process * ρ .^ H + Diagonal(Float64.(ϵ).^2)
 
     # Return the log-likelihood.
     return logpdf(MvNormal(cov_matrix), residuals)

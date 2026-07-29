@@ -28,7 +28,7 @@ Function Arguments:
       calibration_data_dir    = Data directory for calibration data. Defaults to package calibration data directory, changing this is not recommended.
       glacier_model           = :mengel (Mengel 2016 version) or :gsic (original Wigley and Raper version)
 """
-function construct_doeclimbrick_log_prior(joint_antarctic_prior::Bool, uniform_ECS::Bool; calibration_data_dir::Union{String, Nothing} = nothing, glacier_model=:mengel)
+function construct_doeclimbrick_log_prior(joint_antarctic_prior::Bool, uniform_ECS::Bool; calibration_data_dir::Union{String, Nothing} = nothing, glacier_model=:mengel, calibration_targets::Symbol=:standard)
     
     # set calibration data directory if one was not provided ie. it is set as nothing
     if isnothing(calibration_data_dir)
@@ -271,6 +271,10 @@ function construct_doeclimbrick_log_prior(joint_antarctic_prior::Bool, uniform_E
             error("unrecognized glacier_model argument")
         end    
 
+        if calibration_targets == :mengel_ext
+            log_prior += mengel_ext_thermal_process_logprior(p[end-1], p[end])
+        end
+
         return log_prior
     end
 
@@ -299,17 +303,22 @@ Function Arguments:
     glacier_model         = :mengel (Mengel 2016 version) or :gsic (original Wigley and Raper version)
     gmsl_data             = :wa (Wang et al. 2024) or :cw (Church & White 2011)
 """
-function construct_doeclimbrick_log_posterior(f_run_model!; model_start_year::Int=1850, calibration_end_year::Int=2017, joint_antarctic_prior::Bool=false, uniform_ECS::Bool=false, calibration_data_dir::Union{String, Nothing}=nothing, glacier_model=:mengel, gmsl_data::Symbol=:wa)
+function construct_doeclimbrick_log_posterior(f_run_model!; model_start_year::Int=1850, calibration_end_year::Int=2017, joint_antarctic_prior::Bool=false, uniform_ECS::Bool=false, calibration_data_dir::Union{String, Nothing}=nothing, glacier_model=:mengel, gmsl_data::Symbol=:wa, calibration_targets::Symbol=:standard)
 
    # Create a vector of calibration years and calculate total number of years to run model.
     calibration_years = collect(model_start_year:calibration_end_year)
     n = length(calibration_years)
 
     # Get log-prior function.
-    doeclimbrick_log_prior = construct_doeclimbrick_log_prior(joint_antarctic_prior, uniform_ECS, glacier_model=glacier_model)
+    doeclimbrick_log_prior = construct_doeclimbrick_log_prior(
+        joint_antarctic_prior,
+        uniform_ECS;
+        glacier_model=glacier_model,
+        calibration_targets=calibration_targets,
+    )
 
     # Load calibration data/observations.
-    calibration_data, obs_antarctic_trends, obs_thermal_trends = MimiBRICK.load_calibration_data(model_start_year, calibration_end_year, last_sea_level_norm_year=1990, calibration_data_dir=calibration_data_dir, gmsl_data=gmsl_data)
+    calibration_data, obs_antarctic_trends, obs_thermal_trends = MimiBRICK.load_calibration_data(model_start_year, calibration_end_year, last_sea_level_norm_year=1990, calibration_data_dir=calibration_data_dir, gmsl_data=gmsl_data, calibration_targets=calibration_targets)
 
     # Calculate indices for each year that has an observation in calibration data sets.
     indices_temperature_data   = findall(x-> !ismissing(x), calibration_data.hadcrut_temperature_obs)
@@ -363,6 +372,50 @@ function construct_doeclimbrick_log_posterior(f_run_model!; model_start_year::In
         # Run an instance of DOECLIM+BRICK with sampled parameter set and return model output being compared to observations.
         f_run_model!(p, modeled_temperature, modeled_ocean_heat,
                      modeled_glaciers, modeled_greenland, modeled_antarctic, modeled_thermal_expansion, modeled_gmsl)
+
+        if calibration_targets == :mengel_ext
+            return mengel_extended_loglikelihood(
+                calibration_data,
+                calibration_years,
+                modeled_glaciers,
+                modeled_greenland,
+                modeled_antarctic,
+                modeled_thermal_expansion,
+                σ_glaciers,
+                ρ_glaciers,
+                σ_greenland,
+                ρ_greenland,
+                σ_antarctic,
+                ρ_antarctic,
+                p[end-1],
+                p[end],
+                σ_gmsl,
+                ρ_gmsl,
+            ) +
+            hetero_logl_ar1(
+                Float64[
+                    calibration_data[i, :hadcrut_temperature_obs] -
+                    modeled_temperature[i] for i in indices_temperature_data
+                ],
+                σ_temperature,
+                ρ_temperature,
+                Float64[
+                    calibration_data[i, :hadcrut_temperature_sigma]
+                    for i in indices_temperature_data
+                ],
+            ) +
+            hetero_logl_ar1(
+                Float64[
+                    calibration_data[i, :ocean_heat_obs] - modeled_ocean_heat[i]
+                    for i in indices_oceanheat_data
+                ],
+                σ_ocean_heat,
+                ρ_ocean_heat,
+                Float64[
+                    calibration_data[i, :ocean_heat_sigma] for i in indices_oceanheat_data
+                ],
+            )
+        end
 
         #---------------------------------------------------------------------------
         # Global Surface Temperature (normalized to 1861-1880 mean) Log-Likelihood.

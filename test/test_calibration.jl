@@ -67,4 +67,21 @@ end
     @test isapprox(wang_data[wang_data.year .== 2019, :gmsl_sigma][1], 0.00965; atol=1e-12)
     @test wang_data[wang_data.year .== 1900, :gmsl_obs][1] != church_white_data[church_white_data.year .== 1900, :gmsl_obs][1]
     @test_throws ArgumentError MimiBRICK.load_calibration_data(1900, 2019, gmsl_data=:invalid)
+
+    mengel_ext_data, _, _ = MimiBRICK.load_calibration_data(
+        1900,
+        2026;
+        calibration_targets=:mengel_ext,
+    )
+    @test count(x -> !ismissing(x), mengel_ext_data.mengel_ext_ais_obs) == 126
+    @test count(x -> !ismissing(x), mengel_ext_data.mengel_ext_glaciers_obs) == 124
+    @test count(x -> !ismissing(x), mengel_ext_data.mengel_ext_greenland_obs) == 126
+    @test count(x -> !ismissing(x), mengel_ext_data.mengel_ext_thermal_obs) == 126
+    @test count(x -> !ismissing(x), mengel_ext_data.mengel_ext_gmsl_obs) == 125
+    @test count(x -> !ismissing(x), mengel_ext_data.mengel_ext_lws_obs) == 127
+    @test_throws ArgumentError MimiBRICK.load_calibration_data(
+        1900,
+        2026;
+        calibration_targets=:invalid,
+    )
 end

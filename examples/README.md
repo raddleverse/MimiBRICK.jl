@@ -17,6 +17,10 @@ This is all done by running the `examples/calibration_driver.jl` script. This sc
 * `threshold_gr` - if you do a short test calibration, it will yell at you that some of the parameters' potential scale reduction factors are not less than this threshold. You don't need to do anything about it, just letting you know so you don't worry about it.
 * `size_subsample` - this must be less than `total_chain_length - burnin_length`
 * `gmsl_data` - `:wa` (Wang et al. 2024, the default) or `:cw` (Church & White 2011). This option applies to all three model configurations.
+* `calibration_targets` - `:standard` for MimiBRICK's usual mixture of calibration datasets, or `:mengel_ext` for Marcus Sarofim's extended Mengel target table. The `:mengel_ext` option uses Frederikse-based AIS, glacier, Greenland, steric, and LWS series with Dangendorf/NOAA total GMSL, all referenced to 1995–2005. It requires `glacier_model=:mengel`; use `calibration_end_year=2026` to include every available target year.
+
+When `calibration_targets=:mengel_ext`, calibration and projection files use
+the suffix `_data-mengel-ext` instead of `_gmsl-wa` or `_gmsl-cw`.
 
 The `run_calibration` function will create a subfolder for the `model_config` in the user-defined `output_dir`. Within that results directory, you will find:
 * `parameters_full_chain_(model_config)_gmsl-(gmsl_data).csv` - the full Markov chain of parameter samples, including the burn-in period

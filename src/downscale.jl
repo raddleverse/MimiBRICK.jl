@@ -19,6 +19,7 @@ using StatsBase
                                 ssprcp_scenario::String="ssp245",
                                 glacier_model::Symbol=:mengel,
                                 gmsl_data::Symbol=:wa,
+                                calibration_targets::Symbol=:standard,
                             )
                             
 Downscale BRICK projections to a single point, using either the whole ensemble
@@ -35,6 +36,7 @@ Function Arguments:
     - ssprcp_scenario (default = "ssp245") - SSP-RCP scenario with possible options: ssp119, ssp126, ssp245, ssp370, ssp460, ssp585, ssp534-over
     - glacier_model = :mengel (Mengel 2016 version) or :gsic (original Wigley and Raper version)
     - gmsl_data = :wa (Wang et al. 2024) or :cw (Church & White 2011)
+    - calibration_targets = :standard or :mengel_ext
 """
 function downscale_brick(;lon::Float64, 
                             lat::Float64, 
@@ -44,6 +46,7 @@ function downscale_brick(;lon::Float64,
                             ssprcp_scenario::String="ssp245",
                             glacier_model::Symbol=:mengel,
                             gmsl_data::Symbol=:wa,
+                            calibration_targets::Symbol=:standard,
                         )
 
     # set glacier model path
@@ -55,9 +58,12 @@ function downscale_brick(;lon::Float64,
         throw(ArgumentError("glacier_model must be :gsic or :mengel; got :$glacier_model"))
     end
     gmsl_data in (:wa, :cw) || throw(ArgumentError("gmsl_data must be :wa or :cw; got :$gmsl_data"))
+    calibration_targets in (:standard, :mengel_ext) ||
+        throw(ArgumentError("calibration_targets must be :standard or :mengel_ext; got :$calibration_targets"))
 
     slr_dir = joinpath(results_dir, glacpath, "projections_csv", model_config, ssprcp_scenario)
-    calibration_tag = "_gmsl-$(gmsl_data)"
+    calibration_tag = calibration_targets == :mengel_ext ?
+        "_data-mengel-ext" : "_gmsl-$(gmsl_data)"
     MAP = DataFrame(load(joinpath(slr_dir,"projections_MAP_$(ssprcp_scenario)_$(model_config)$(calibration_tag).csv")))
     years = MAP[:,:YEAR]
     if ensemble_or_map=="ensemble"
