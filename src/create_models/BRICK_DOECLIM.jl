@@ -9,7 +9,7 @@ using MimiSNEASY
 # -------------------------------------------------------------------------------------------
 
 """
-    create_brick_doeclim(;ssprcp_scenario::String = "ssp245", start_year::Int=1850, end_year::Int=2020, glacier_model::Symbol=:mengel)
+    create_brick_doeclim(;ssprcp_scenario::String = "ssp245", start_year::Int=1850, end_year::Int=2020, glacier_model::Symbol=:gsic)
 
 Return a Mimi model instance with MimiBRICK and DOECLIM coupled together.
 
@@ -26,7 +26,7 @@ Function Arguments:
                           `:mengel` = the optional temperature-dependent-equilibrium
                           Mengel-2016 emulator (same glaciers + small-ice-cap inventory)
 """
-function create_brick_doeclim(;ssprcp_scenario::String = "ssp245", start_year::Int=1850, end_year::Int=2020, glacier_model::Symbol=:mengel)
+function create_brick_doeclim(;ssprcp_scenario::String = "ssp245", start_year::Int=1850, end_year::Int=2020, glacier_model::Symbol=:gsic)
 
     glacier_model in (:gsic, :mengel) || error("create_brick_doeclim: glacier_model must be :gsic or :mengel (got :$glacier_model)")
 

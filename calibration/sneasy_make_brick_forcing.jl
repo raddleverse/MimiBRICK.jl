@@ -7,12 +7,16 @@ using Dates
 ##==============================================================================
 ## Read output from SNEASY RCP projections
 
-dir_sneasybrick = joinpath(@__DIR__, "results", "projections_csv", "sneasybrick")
+glacier_model = :gsic
+glacier_data = :ze
 gmsl_data = :wa
+glacpath = glacier_model == :gsic ? "wigley-raper-glac" : "mengel"
+dir_sneasybrick = joinpath(@__DIR__, "results", glacpath, "projections_csv", "sneasybrick")
+calibration_tag = "_gmsl-$(gmsl_data)_glac-$(glacier_data)"
 
 for scenario in ["ssp119","ssp126","ssp245","ssp370","ssp460","ssp585","ssp534-over"]
 
-    filename_sneasy_map = joinpath(dir_sneasybrick,scenario,"projections_MAP_$(scenario)_sneasybrick_gmsl-$(gmsl_data).csv")
+    filename_sneasy_map = joinpath(dir_sneasybrick,scenario,"projections_MAP_$(scenario)_sneasybrick$(calibration_tag).csv")
     map_projections = DataFrame(load(filename_sneasy_map))
 
     ## Get temperature and ocean heat

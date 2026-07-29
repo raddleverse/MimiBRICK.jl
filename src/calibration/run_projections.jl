@@ -13,8 +13,9 @@ using Random
                         end_year = 2300,
                         magicc_sampling = false,
                         magicc_resample = false,
-                        glacier_model::Symbol = :mengel,
-                        gmsl_data::Symbol = :wa
+                        glacier_model::Symbol = :gsic,
+                        gmsl_data::Symbol = :wa,
+                        glacier_data::Symbol = :ze
                     )
 
 Function to run BRICK (standalone, or with DOECLIM or SNEASY) over the projections
@@ -33,6 +34,7 @@ Function Arguments:
                                           NB: currently only false works
     - glacier_model         = :mengel (Mengel 2016 version) or :gsic (original Wigley and Raper version)
     - gmsl_data             = :wa (Wang et al. 2024) or :cw (Church & White 2011)
+    - glacier_data          = :ze (Zemp et al. 2019) or :dm (Dyurgerov and Meier 2005)
 """
 function run_projections(; output_dir::String,
                         model_config::String = "brick",
@@ -41,8 +43,9 @@ function run_projections(; output_dir::String,
                         end_year = 2300,
                         magicc_sampling = false,
                         magicc_resample = false,
-                        glacier_model::Symbol = :mengel,
+                        glacier_model::Symbol = :gsic,
                         gmsl_data::Symbol = :wa,
+                        glacier_data::Symbol = :ze,
                     )
     
     ##==============================================================================
@@ -55,6 +58,7 @@ function run_projections(; output_dir::String,
         "\"sneasybrick\"; got \"$model_config\""
     ))
     gmsl_data in (:wa, :cw) || throw(ArgumentError("gmsl_data must be :wa or :cw; got :$gmsl_data"))
+    glacier_data in (:ze, :dm) || throw(ArgumentError("glacier_data must be :ze or :dm; got :$glacier_data"))
 
     model_years = collect(start_year:end_year)
     num_years = length(model_years)
@@ -71,7 +75,7 @@ function run_projections(; output_dir::String,
         throw(ArgumentError("glacier_model must be :gsic or :mengel; got :$glacier_model"))
     end
     
-    calibration_tag = "_gmsl-$(gmsl_data)"
+    calibration_tag = "_gmsl-$(gmsl_data)_glac-$(glacier_data)"
     filename_parameters = joinpath(output_dir, glacpath, "parameters_subsample_$(model_config)$(calibration_tag).csv")
     filename_logpost    = joinpath(output_dir, glacpath, "log_post_subsample_$(model_config)$(calibration_tag).csv")
     parameters = DataFrame(load(filename_parameters))
@@ -118,6 +122,7 @@ function run_projections(; output_dir::String,
         start_year,
         2017,
         gmsl_data=gmsl_data,
+        glacier_data=glacier_data,
     )
 
     # Initialize arrays to save the model components

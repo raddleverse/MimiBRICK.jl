@@ -5,6 +5,7 @@ using NetCDF
 using KernelDensity
 using CSVFiles
 using Statistics
+using LinearAlgebra
 using XLSX
 using CSV
 
@@ -13,7 +14,7 @@ using CSV
 #-------------------------------------------------------------------------------
 
 """
-    load_calibration_data(model_start_year::Int, last_calibration_year::Int; last_sea_level_norm_year::Int=1990, calibration_data_dir::Union{Nothing, String} = nothing, gmsl_data::Symbol=:cw)
+    load_calibration_data(model_start_year::Int, last_calibration_year::Int; last_sea_level_norm_year::Int=1990, calibration_data_dir::Union{Nothing, String} = nothing, gmsl_data::Symbol=:wa, glacier_data::Symbol=:ze)
 
 Load and clean up data used for model calibration.
 
@@ -27,10 +28,12 @@ Function Arguments:
                                  may be necessary for out-of-sample tests). These data sets will be normalized from 1961-last norm year, default = 1961-1990.
     - calibration_data_dir    = Data directory for calibration data. Defaults to package calibration data directory, changing this is not recommended.
     - gmsl_data               = GMSL reconstruction to use: `:wa` for Wang et al. (2024) or `:cw` for Church & White (2011).
+    - glacier_data            = Glacier reconstruction to use: `:ze` for Zemp et al. (2019) or `:dm` for Dyurgerov and Meier (2005).
 """
-function load_calibration_data(model_start_year::Int, last_calibration_year::Int; last_sea_level_norm_year::Int=1990, calibration_data_dir::Union{Nothing, String} = nothing, gmsl_data::Symbol=:cw)
+function load_calibration_data(model_start_year::Int, last_calibration_year::Int; last_sea_level_norm_year::Int=1990, calibration_data_dir::Union{Nothing, String} = nothing, gmsl_data::Symbol=:wa, glacier_data::Symbol=:ze)
 
     gmsl_data in (:wa, :cw) || throw(ArgumentError("gmsl_data must be :wa or :cw; got :$gmsl_data"))
+    glacier_data in (:ze, :dm) || throw(ArgumentError("glacier_data must be :ze or :dm; got :$glacier_data"))
 
     # Create column of calibration years and calculate indicies for calibration time period relative to 1765-2020 (will crop later).
     # Note: first year is first year to run model (not necessarily year of first observation).
@@ -273,20 +276,43 @@ function load_calibration_data(model_start_year::Int, last_calibration_year::Int
     # Load Glacier and Small Ice Caps (GSIC) Data
     #---------------------------------------------------------------------------------
 
-    # Load GSIC raw data.
-    raw_glaciers_data = DataFrame(load(joinpath(calibration_data_dir, "glacier_small_ice_caps_1961_2003.csv"), skiplines_begin=1))
+    if glacier_data == :ze
+        # Zemp et al. (2019) report annual glacier mass changes as global mean
+        # sea-level equivalents.
+        raw_glaciers_data = DataFrame(CSV.File(
+            joinpath(calibration_data_dir, "Zemp_etal_results_global.csv");
+            comment="#",
+            normalizenames=true,
+            stripwhitespace=true,
+        ))
+        sort!(raw_glaciers_data, :Year)
 
-    # Convert observations (cummulative GSIC melt contribution to sea level rise) from mm to meters.
-    glaciers_obs = raw_glaciers_data[!, Symbol("contribution to sea level cumulative (mm)")] ./ 1000
+        years = Int.(raw_glaciers_data.Year)
+        allunique(years) || throw(ArgumentError("Zemp glacier data contain duplicate years"))
+        annual_sle = Float64.(raw_glaciers_data.INT_SLE) ./ 1000
+        annual_sigma = Float64.(raw_glaciers_data.sig_Total_SLE) ./ 1000
+        glaciers_obs = cumsum(annual_sle)
 
-    # Convert observation errors from mm to meters.
-    glaciers_error = raw_glaciers_data[!, Symbol("standard dev. (mm/yr)")] ./ 1000
+        # Propagate the reported annual uncertainties through both cumulation
+        # and subtraction of the 1962-last_sea_level_norm_year baseline mean,
+        # assuming independent annual errors.
+        cumulative_map = Matrix(LowerTriangular(ones(length(years), length(years))))
+        glacier_norm_start_year = 1962
+        norm_mask = in.(years, Ref(glacier_norm_start_year:last_sea_level_norm_year))
+        any(norm_mask) || throw(ArgumentError("Zemp data do not overlap the requested normalization period"))
+        normalized_map = cumulative_map .- mean(cumulative_map[norm_mask, :], dims=1)
+        glaciers_error = sqrt.(vec((normalized_map .^ 2) * (annual_sigma .^ 2)))
+    else
+        # Dyurgerov and Meier (2005), the original BRICK calibration target.
+        raw_glaciers_data = DataFrame(load(joinpath(calibration_data_dir, "glacier_small_ice_caps_1961_2003.csv"), skiplines_begin=1))
+        glaciers_obs = raw_glaciers_data[!, Symbol("contribution to sea level cumulative (mm)")] ./ 1000
+        glaciers_error = raw_glaciers_data[!, Symbol("standard dev. (mm/yr)")] ./ 1000
+        years = Int.(raw_glaciers_data[:, 1])
+        glacier_norm_start_year = 1961
+    end
 
-    # Years for GSIC data (covers 1961-2003 period).
-    years = raw_glaciers_data[:, 1]
-
-    # Get year indices and normalize data relative to 1961-1990 mean.
-    glaciers_norm_indices = findall((in)(1961:last_sea_level_norm_year), years)
+    # Normalize observations to the dataset's common reference period.
+    glaciers_norm_indices = findall((in)(glacier_norm_start_year:last_sea_level_norm_year), years)
     glaciers_obs_norm = glaciers_obs .- mean(glaciers_obs[glaciers_norm_indices])
 
     # Combine into data frame and join with other calibration data.

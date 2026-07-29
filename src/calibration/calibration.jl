@@ -22,7 +22,7 @@ using StatsBase
     run_calibration(;   output_dir::String, 
                         model_config="brick", 
                         calibration_start_year=1850, 
-                        calibration_end_year=2005,
+                        calibration_end_year=2020,
                         total_chain_length=1000, 
                         burnin_length=0, 
                         threshold_gr=1.1,
@@ -32,8 +32,9 @@ using StatsBase
                         start_from_priors=false,
                         joint_ais_prior=false,
                         calibration_data_dir::Union{String, Nothing} = nothing,
-                        glacier_model::Symbol=:mengel,
-                        gmsl_data::Symbol=:wa
+                        glacier_model::Symbol=:gsic,
+                        gmsl_data::Symbol=:wa,
+                        glacier_data::Symbol=:ze
                     )
                     
 This function carries out a Markov chain Monte Carlo calibration of BRICK.
@@ -46,7 +47,7 @@ This includes one of the following possible model configurations set with `model
 function run_calibration(;  output_dir::String, 
                             model_config="brick", 
                             calibration_start_year=1850, 
-                            calibration_end_year=2005,
+                            calibration_end_year=2020,
                             total_chain_length=1000, 
                             burnin_length=0, 
                             threshold_gr=1.1,
@@ -56,8 +57,9 @@ function run_calibration(;  output_dir::String,
                             start_from_priors=false,
                             joint_ais_prior=false,
                             calibration_data_dir::Union{String, Nothing} = nothing,
-                            glacier_model::Symbol = :mengel,
-                            gmsl_data::Symbol = :wa
+                            glacier_model::Symbol = :gsic,
+                            gmsl_data::Symbol = :wa,
+                            glacier_data::Symbol = :ze
                         )
 
     # check model_config is valid
@@ -67,6 +69,7 @@ function run_calibration(;  output_dir::String,
         "\"sneasybrick\"; got \"$model_config\""
     ))
     gmsl_data in (:wa, :cw) || throw(ArgumentError("gmsl_data must be :wa or :cw; got :$gmsl_data"))
+    glacier_data in (:ze, :dm) || throw(ArgumentError("glacier_data must be :ze or :dm; got :$glacier_data"))
 
     # set calibration data directory if one was not provided ie. it is set as nothing
     if isnothing(calibration_data_dir)
@@ -92,7 +95,7 @@ function run_calibration(;  output_dir::String,
             end
         else
             glac_tag = "wigley-raper"
-            if gmsl_data==:wa
+            if gmsl_data==:wa && (model_config=="sneasybrick" || model_config=="doeclimbrick")
                 gmsl_tag = "gmsl-wa"
                 path_initial_parameters = joinpath(calibration_data_dir, glac_tag, "calibration_initial_values_"*model_config*"_gmsl-wa_1.csv")
                 path_initial_covariance = joinpath(calibration_data_dir, glac_tag, "initial_proposal_covariance_matrix_"*model_config*"_gmsl-wa_1.csv")
@@ -143,14 +146,14 @@ function run_calibration(;  output_dir::String,
     # functions in the helper scripts included above. Using this instead of the
     # @eval and Symbols so this can be run as a function instead of a script.
     if model_config=="brick"
-        run_mymodel! = MimiBRICK.construct_run_brick(calibration_start_year, calibration_end_year, glacier_model=glacier_model)
-        log_posterior_mymodel = MimiBRICK.construct_brick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=joint_ais_prior, calibration_data_dir=calibration_data_dir, glacier_model=glacier_model, gmsl_data=gmsl_data)
+        run_mymodel! = MimiBRICK.construct_run_brick(calibration_start_year, calibration_end_year, glacier_model=glacier_model, glacier_data=glacier_data)
+        log_posterior_mymodel = MimiBRICK.construct_brick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=joint_ais_prior, calibration_data_dir=calibration_data_dir, glacier_model=glacier_model, gmsl_data=gmsl_data, glacier_data=glacier_data)
     elseif model_config=="doeclimbrick"
-        run_mymodel! = MimiBRICK.construct_run_doeclimbrick(calibration_start_year, calibration_end_year, glacier_model=glacier_model)
-        log_posterior_mymodel = MimiBRICK.construct_doeclimbrick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=joint_ais_prior, calibration_data_dir=calibration_data_dir, glacier_model=glacier_model, gmsl_data=gmsl_data)
+        run_mymodel! = MimiBRICK.construct_run_doeclimbrick(calibration_start_year, calibration_end_year, glacier_model=glacier_model, glacier_data=glacier_data)
+        log_posterior_mymodel = MimiBRICK.construct_doeclimbrick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=joint_ais_prior, calibration_data_dir=calibration_data_dir, glacier_model=glacier_model, gmsl_data=gmsl_data, glacier_data=glacier_data)
     elseif model_config=="sneasybrick"
-        run_mymodel! = MimiBRICK.construct_run_sneasybrick(calibration_start_year, calibration_end_year, glacier_model=glacier_model)
-        log_posterior_mymodel = MimiBRICK.construct_sneasybrick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=joint_ais_prior, calibration_data_dir=calibration_data_dir, glacier_model=glacier_model, gmsl_data=gmsl_data)
+        run_mymodel! = MimiBRICK.construct_run_sneasybrick(calibration_start_year, calibration_end_year, glacier_model=glacier_model, glacier_data=glacier_data)
+        log_posterior_mymodel = MimiBRICK.construct_sneasybrick_log_posterior(run_mymodel!, model_start_year=calibration_start_year, calibration_end_year=calibration_end_year, joint_antarctic_prior=joint_ais_prior, calibration_data_dir=calibration_data_dir, glacier_model=glacier_model, gmsl_data=gmsl_data, glacier_data=glacier_data)
     end
 
     println("Begin baseline calibration of "*model_config*" model.\n")
@@ -217,7 +220,7 @@ function run_calibration(;  output_dir::String,
     calibration_output_dir = joinpath(output_dir, glacpath)
     mkpath(calibration_output_dir)
 
-    calibration_tag = "_gmsl-$(gmsl_data)"
+    calibration_tag = "_gmsl-$(gmsl_data)_glac-$(glacier_data)"
 
     save(joinpath(calibration_output_dir, "mcmc_log_post_$(model_config)$(calibration_tag).csv"), DataFrame(log_post=log_post))
     save(joinpath(calibration_output_dir, "mcmc_acceptance_rate_$(model_config)$(calibration_tag).csv"), DataFrame(acceptance_rate=accept_rate))

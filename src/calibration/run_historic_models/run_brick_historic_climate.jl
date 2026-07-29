@@ -9,7 +9,9 @@ using Mimi
 
 Create a function to run the BRICK model over the historic period.
 """
-function construct_run_brick(calibration_start_year::Int, calibration_end_year::Int; glacier_model::Symbol=:mengel)
+function construct_run_brick(calibration_start_year::Int, calibration_end_year::Int; glacier_model::Symbol=:gsic, glacier_data::Symbol=:ze)
+
+    glacier_data in (:ze, :dm) || throw(ArgumentError("glacier_data must be :ze or :dm; got :$glacier_data"))
 
     # Load an instance of BRICK(+_) model.
     # WARNING: for general use, use `m = get_model!(...[arguments here]...)`  instead
@@ -20,6 +22,7 @@ function construct_run_brick(calibration_start_year::Int, calibration_end_year::
 
     # Get indices needed to normalize all sea level rise sources.
     sealevel_norm_indices_1961_1990 = findall((in)(1961:1990), 1850:calibration_end_year)
+    glacier_norm_indices = findall((in)((glacier_data == :ze ? 1962 : 1961):1990), 1850:calibration_end_year)
     sealevel_norm_indices_1992_2001 = findall((in)(1992:2001), 1850:calibration_end_year)
 
     # Given user settings, create a function to run BRICK and return model output used for calibration.
@@ -154,7 +157,7 @@ function construct_run_brick(calibration_start_year::Int, calibration_end_year::
         #----------------------------------------------------------
 
         # Glaciers and small ice caps (normalized relative to 1961-1990 mean).
-        modeled_glaciers[:] = m[:glaciers_small_icecaps, :gsic_sea_level] .- mean(m[:glaciers_small_icecaps, :gsic_sea_level][sealevel_norm_indices_1961_1990])
+        modeled_glaciers[:] = m[:glaciers_small_icecaps, :gsic_sea_level] .- mean(m[:glaciers_small_icecaps, :gsic_sea_level][glacier_norm_indices])
 
         # Greenland ice sheet (normalized relative to 1992-2001 ten year period to work with pooled data that includes IMBIE observations).
         modeled_greenland[:] = m[:greenland_icesheet, :greenland_sea_level] .- mean(m[:greenland_icesheet, :greenland_sea_level][sealevel_norm_indices_1961_1990])
