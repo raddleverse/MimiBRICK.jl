@@ -50,10 +50,15 @@
 end
 
 @testitem "Glacier calibration data options" begin
+    using CSV
+    using DataFrames
     using Statistics
 
     zemp_data, _, _ = MimiBRICK.load_calibration_data(1900, 2020)
     dm_data, _, _ = MimiBRICK.load_calibration_data(1900, 2020; glacier_data=:dm)
+    zemp_source_file = joinpath(dirname(pathof(MimiBRICK)), "..", "data", "calibration_data", "Zemp_etal_results_global.csv")
+    zemp_source = DataFrame(CSV.File(zemp_source_file; comment="#", normalizenames=true, stripwhitespace=true))
+    sort!(zemp_source, :Year)
 
     zemp_indices = findall(x -> !ismissing(x), zemp_data.glaciers_obs)
     dm_indices = findall(x -> !ismissing(x), dm_data.glaciers_obs)
@@ -63,6 +68,7 @@ end
     @test length(unique(zemp_data.year[zemp_indices])) == length(zemp_indices)
     @test isapprox(mean(skipmissing(zemp_data[in.(zemp_data.year, Ref(1962:1990)), :glaciers_obs])), 0.0; atol=1e-12)
     @test all(>(0), zemp_data.glaciers_sigma[zemp_indices])
+    @test zemp_data.glaciers_sigma[zemp_indices] ≈ Float64.(zemp_source.sig_Total_SLE) ./ 1000
     @test zemp_data[zemp_data.year .== 2003, :glaciers_obs][1] != dm_data[dm_data.year .== 2003, :glaciers_obs][1]
     @test_throws ArgumentError MimiBRICK.load_calibration_data(1900, 2020; glacier_data=:invalid)
 end

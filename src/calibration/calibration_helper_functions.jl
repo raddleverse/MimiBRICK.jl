@@ -293,15 +293,14 @@ function load_calibration_data(model_start_year::Int, last_calibration_year::Int
         annual_sigma = Float64.(raw_glaciers_data.sig_Total_SLE) ./ 1000
         glaciers_obs = cumsum(annual_sle)
 
-        # Propagate the reported annual uncertainties through both cumulation
-        # and subtraction of the 1962-last_sea_level_norm_year baseline mean,
-        # assuming independent annual errors.
-        cumulative_map = Matrix(LowerTriangular(ones(length(years), length(years))))
+        # Use the reported annual SLE uncertainty directly with the cumulative
+        # observations, consistent with the treatment of the existing glacier
+        # calibration data. Do not propagate these uncertainties through
+        # cumulation or subtraction of the normalization-period mean.
+        glaciers_error = annual_sigma
         glacier_norm_start_year = 1962
         norm_mask = in.(years, Ref(glacier_norm_start_year:last_sea_level_norm_year))
         any(norm_mask) || throw(ArgumentError("Zemp data do not overlap the requested normalization period"))
-        normalized_map = cumulative_map .- mean(cumulative_map[norm_mask, :], dims=1)
-        glaciers_error = sqrt.(vec((normalized_map .^ 2) * (annual_sigma .^ 2)))
     else
         # Dyurgerov and Meier (2005), the original BRICK calibration target.
         raw_glaciers_data = DataFrame(load(joinpath(calibration_data_dir, "glacier_small_ice_caps_1961_2003.csv"), skiplines_begin=1))
