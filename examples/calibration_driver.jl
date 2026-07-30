@@ -20,7 +20,7 @@ burnin_length          = 2_000_000
 num_walkers            = 2
 size_subsample         = 10_000
 threshold_gr           = 1.1
-glacier_model          = :mengel
+glacier_model          = :gsic
 glacier_data           = :ze
 gmsl_data              = :wa
 
