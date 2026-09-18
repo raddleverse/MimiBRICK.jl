@@ -29,7 +29,7 @@ XLSX = "fdbf4ff8-1666-58a4-91e7-1b58723a45e0"
 ZipFile = "a5390f91-8eb1-5f08-bee0-b1d1ffed6cea"
 
 [compat]
-CSV = "0.9, 0.10"
+CSV = "0.9, 0.10, 1.0"
 CSVFiles = "1"
 DataFrames = "1"
 Distributions = "0.23,0.24,0.25"
