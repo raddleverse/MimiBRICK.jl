@@ -6,13 +6,14 @@ using KernelDensity
 using CSVFiles
 using Statistics
 using XLSX
+using CSV
 
 #-------------------------------------------------------------------------------
 # This file contains functions that are used for the model calibrations.
 #-------------------------------------------------------------------------------
 
 """
-    load_calibration_data(model_start_year::Int, last_calibration_year::Int; last_sea_level_norm_year::Int=1990, calibration_data_dir::Union{Nothing, String} = nothing)
+    load_calibration_data(model_start_year::Int, last_calibration_year::Int; last_sea_level_norm_year::Int=1990, calibration_data_dir::Union{Nothing, String} = nothing, gmsl_data::Symbol=:cw)
 
 Load and clean up data used for model calibration.
 
@@ -25,13 +26,16 @@ Function Arguments:
     - last_sea_level_norm_year = Some sea level data sets may need to be normalized to different years depending on when the calibration ends (this
                                  may be necessary for out-of-sample tests). These data sets will be normalized from 1961-last norm year, default = 1961-1990.
     - calibration_data_dir    = Data directory for calibration data. Defaults to package calibration data directory, changing this is not recommended.
+    - gmsl_data               = GMSL reconstruction to use: `:wa` for Wang et al. (2024) or `:cw` for Church & White (2011).
 """
-function load_calibration_data(model_start_year::Int, last_calibration_year::Int; last_sea_level_norm_year::Int=1990, calibration_data_dir::Union{Nothing, String} = nothing)
+function load_calibration_data(model_start_year::Int, last_calibration_year::Int; last_sea_level_norm_year::Int=1990, calibration_data_dir::Union{Nothing, String} = nothing, gmsl_data::Symbol=:cw)
+
+    gmsl_data in (:wa, :cw) || throw(ArgumentError("gmsl_data must be :wa or :cw; got :$gmsl_data"))
 
     # Create column of calibration years and calculate indicies for calibration time period relative to 1765-2020 (will crop later).
     # Note: first year is first year to run model (not necessarily year of first observation).
     df = DataFrame(year = collect(1765:2020))
-    model_calibration_indices = findall((in)(collect(model_start_year:last_calibration_year)), collect(1765:2018))
+    model_calibration_indices = findall((in)(collect(model_start_year:last_calibration_year)), df.year)
     
     # set calibration data directory if one was not provided ie. it is set as nothing
     if isnothing(calibration_data_dir)
@@ -109,19 +113,39 @@ function load_calibration_data(model_start_year::Int, last_calibration_year::Int
     #df = join(df, ocean_co2_flux_data, on=:year, kind=:outer)
     df = outerjoin(df, ocean_co2_flux_data, on=:year)
 
-    #--------------------------------------------------------------------------------------
-    # Load Church & White Global Mean Sea Level data (anomalies relative to 1961-1990 mean
-    #--------------------------------------------------------------------------------------
+    #---------------------------------------------------------
+    # Load the selected Global Mean Sea Level reconstruction.
+    #---------------------------------------------------------
 
-    # Get the sea level data; new version, Church and White updated to include through 2013
-    raw_gmsl_data = DataFrame(load(joinpath(calibration_data_dir, "CSIRO_Recons_gmsl_yr_2015.csv"), skiplines_begin=9))
+    if gmsl_data == :wa
+        # Wang et al. (2024), an updated Church & White reconstruction spanning
+        # 1900-2019. The source data are annual values and 1-sigma uncertainties
+        # in millimeters (https://doi.org/10.5281/zenodo.15301866).
+        wang_gmsl_file = joinpath(calibration_data_dir, "GMSL_yr.txt")
+        if !isfile(wang_gmsl_file)
+            wang_gmsl_url = "https://zenodo.org/records/15301866/files/GMSL_yr.txt?download=1"
+            download(wang_gmsl_url, wang_gmsl_file)
+        end
 
-    # Convert observations and error measurements from mm to meters.
-    gmsl_obs   = raw_gmsl_data[!, Symbol("GMSL (mm)")] ./ 1000
-    gmsl_error = raw_gmsl_data[!, Symbol("GMSL 1-sigma uncertainty (mm)")] ./ 1000
-
-    # Dataset years are in half-years "so it is unambiguous as to which year they mean."
-    gmsl_years = floor.(Int64, raw_gmsl_data[!, :Time])
+        # Use the original whitespace-delimited Zenodo file directly. Its three
+        # columns are annual midpoint, GMSL (mm), and 1-sigma uncertainty (mm).
+        raw_gmsl_data = DataFrame(CSV.File(
+            wang_gmsl_file;
+            header=[:year, :gmsl_mm, :gmsl_sigma_mm],
+            delim=' ',
+            ignorerepeated=true,
+        ))
+        gmsl_years = floor.(Int64, raw_gmsl_data.year)
+        gmsl_obs   = raw_gmsl_data.gmsl_mm ./ 1000
+        gmsl_error = raw_gmsl_data.gmsl_sigma_mm ./ 1000
+    else
+        # Church & White data updated through 2013.
+        raw_gmsl_data = DataFrame(load(joinpath(calibration_data_dir, "CSIRO_Recons_gmsl_yr_2015.csv"), skiplines_begin=9))
+        gmsl_obs   = raw_gmsl_data[!, Symbol("GMSL (mm)")] ./ 1000
+        gmsl_error = raw_gmsl_data[!, Symbol("GMSL 1-sigma uncertainty (mm)")] ./ 1000
+        # Dataset years are in half-years "so it is unambiguous as to which year they mean."
+        gmsl_years = floor.(Int64, raw_gmsl_data[!, :Time])
+    end
 
     # Get the indices for 1961-1990 and normalize GMSL observations relative to this period.
     gmsl_norm_indices = findall((in)(1961:last_sea_level_norm_year), gmsl_years)

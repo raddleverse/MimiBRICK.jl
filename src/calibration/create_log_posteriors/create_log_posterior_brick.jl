@@ -240,7 +240,7 @@ function construct_brick_log_prior(joint_antarctic_prior::Bool; calibration_data
 end
 
 """
-    construct_brick_log_posterior(f_run_model!; model_start_year::Int=1850, calibration_end_year::Int=2017, joint_antarctic_prior::Bool=false, glacier_model=:mengel)
+    construct_brick_log_posterior(f_run_model!; model_start_year::Int=1850, calibration_end_year::Int=2017, joint_antarctic_prior::Bool=false, calibration_data_dir::Union{String, Nothing}=nothing, glacier_model=:mengel, gmsl_data::Symbol=:wa)
 
 Calculate log posterior for brick.
 
@@ -255,18 +255,25 @@ Function Arguments:
     joint_antarctic_prior = TRUE/FALSE check for whether to use a joint normal prior distribution (TRUE = option 1 described
                             above) or fitted marginal kernel density estimates (FALSE = option 2 described above).
     glacier_model         = :mengel (Mengel 2016 version) or :gsic (original Wigley and Raper version)
+    gmsl_data             = :wa (Wang et al. 2024) or :cw (Church & White 2011)
 """
-function construct_brick_log_posterior(f_run_model!; model_start_year::Int=1850, calibration_end_year::Int=2017, joint_antarctic_prior::Bool=false, glacier_model=:mengel)
+function construct_brick_log_posterior(f_run_model!; model_start_year::Int=1850, calibration_end_year::Int=2017, joint_antarctic_prior::Bool=false, calibration_data_dir::Union{String, Nothing}=nothing, glacier_model=:mengel, gmsl_data::Symbol=:wa)
 
    # Create a vector of calibration years and calculate total number of years to run model.
     calibration_years = collect(model_start_year:calibration_end_year)
     n = length(calibration_years)
 
     # Get log-prior function.
-    brick_log_prior = construct_brick_log_prior(joint_antarctic_prior, glacier_model=glacier_model)
+    brick_log_prior = construct_brick_log_prior(joint_antarctic_prior, calibration_data_dir=calibration_data_dir, glacier_model=glacier_model)
 
     # Load calibration data/observations.
-    calibration_data, obs_antarctic_trends, obs_thermal_trends = MimiBRICK.load_calibration_data(model_start_year, calibration_end_year, last_sea_level_norm_year=1990)
+    calibration_data, obs_antarctic_trends, obs_thermal_trends = MimiBRICK.load_calibration_data(
+        model_start_year,
+        calibration_end_year,
+        last_sea_level_norm_year=1990,
+        calibration_data_dir=calibration_data_dir,
+        gmsl_data=gmsl_data,
+    )
 
     # Calculate indices for each year that has an observation in calibration data sets.
     indices_glaciers_data      = findall(x-> !ismissing(x), calibration_data.glaciers_obs)

@@ -307,7 +307,7 @@ function construct_sneasybrick_log_prior(joint_antarctic_prior::Bool, uniform_EC
 end
 
 """
-    construct_sneasybrick_log_posterior(f_run_model!; model_start_year::Int=1850, calibration_end_year::Int=2017, joint_antarctic_prior::Bool=false, uniform_ECS::Bool=false, glacier_model=:mengel)
+    construct_sneasybrick_log_posterior(f_run_model!; model_start_year::Int=1850, calibration_end_year::Int=2017, joint_antarctic_prior::Bool=false, uniform_ECS::Bool=false, calibration_data_dir::Union{String, Nothing}=nothing, glacier_model=:mengel, gmsl_data::Symbol=:wa)
 
 Calculate log posterior for sneasybrick.
 
@@ -323,9 +323,11 @@ Function Arguments:
                             above) or fitted marginal kernel density estimates (FALSE = option 2 described above).
     uniform_ECS           = TRUE/FALSE check for whether or not to use a uniform prior distribution for the equilibrium
                             climate sensitivity (true = use uniform).
+    calibration_data_dir = Optional directory containing the calibration data files.
     glacier_model         = :mengel (Mengel 2016 version) or :gsic (original Wigley and Raper version)
+    gmsl_data             = :wa (Wang et al. 2024) or :cw (Church & White 2011)
 """
-function construct_sneasybrick_log_posterior(f_run_model!; model_start_year::Int=1850, calibration_end_year::Int=2017, joint_antarctic_prior::Bool=false, uniform_ECS::Bool=false, glacier_model=:mengel)
+function construct_sneasybrick_log_posterior(f_run_model!; model_start_year::Int=1850, calibration_end_year::Int=2017, joint_antarctic_prior::Bool=false, uniform_ECS::Bool=false, calibration_data_dir::Union{String, Nothing}=nothing, glacier_model=:mengel, gmsl_data::Symbol=:wa)
 
    # Create a vector of calibration years and calculate total number of years to run model.
     calibration_years = collect(model_start_year:calibration_end_year)
@@ -335,7 +337,7 @@ function construct_sneasybrick_log_posterior(f_run_model!; model_start_year::Int
     sneasybrick_log_prior = construct_sneasybrick_log_prior(joint_antarctic_prior, uniform_ECS, glacier_model=glacier_model)
 
     # Load calibration data/observations.
-    calibration_data, obs_antarctic_trends, obs_thermal_trends = MimiBRICK.load_calibration_data(model_start_year, calibration_end_year, last_sea_level_norm_year=1990)
+    calibration_data, obs_antarctic_trends, obs_thermal_trends = MimiBRICK.load_calibration_data(model_start_year, calibration_end_year, last_sea_level_norm_year=1990, calibration_data_dir=calibration_data_dir, gmsl_data=gmsl_data)
 
     # Calculate indices for each year that has an observation in calibration data sets.
     indices_maunaloa_co2_data  = findall(x-> !ismissing(x), calibration_data.maunaloa_co2_obs)
